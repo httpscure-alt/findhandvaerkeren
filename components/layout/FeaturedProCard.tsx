@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Company, Language } from '../../types';
-import { Phone, Mail, MessageSquare } from 'lucide-react';
+import { Phone, Mail, MessageSquare, BadgeCheck } from 'lucide-react';
+import { translations } from '../../translations';
 
 interface FeaturedProCardProps {
   company: Company;
@@ -10,6 +11,16 @@ interface FeaturedProCardProps {
 
 const FeaturedProCard: React.FC<FeaturedProCardProps> = ({ company, lang, onViewProfile }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const t = translations[lang].listings;
+
+  // Reset expanded state and trigger fade when company changes
+  useEffect(() => {
+    setIsExpanded(false);
+    setIsVisible(false);
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, [company.id]);
 
   const handleCardInteraction = () => {
     setIsExpanded(!isExpanded);
@@ -17,7 +28,9 @@ const FeaturedProCard: React.FC<FeaturedProCardProps> = ({ company, lang, onView
 
   return (
     <div 
-      className="bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+      className={`bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
       onClick={handleCardInteraction}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
@@ -29,11 +42,23 @@ const FeaturedProCard: React.FC<FeaturedProCardProps> = ({ company, lang, onView
           alt={company.name} 
           className="w-full h-full object-cover"
         />
+        {/* Verified Badge - Top Right Corner (Same style as ListingCard) */}
+        {company.isVerified && (
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-indigo-50 shadow-sm">
+            <BadgeCheck size={14} className="text-nexus-verified fill-nexus-verified text-white" />
+            <span className="text-[10px] font-bold tracking-wide uppercase text-nexus-subtext">{t.verifiedPartner}</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-lg font-bold text-[#1D1D1F] mb-1">{company.name}</h3>
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="text-lg font-bold text-[#1D1D1F]">{company.name}</h3>
+          {company.isVerified && (
+            <BadgeCheck size={18} className="text-nexus-verified" />
+          )}
+        </div>
         <p className="text-sm text-nexus-subtext mb-2">{company.category}</p>
         <p className={`text-sm text-nexus-text transition-all duration-300 ${isExpanded ? 'mb-4 line-clamp-3' : 'mb-0 line-clamp-2'}`}>
           {company.shortDescription}

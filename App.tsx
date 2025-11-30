@@ -58,6 +58,7 @@ import { MOCK_COMPANIES, CATEGORIES, MOCK_CONSUMER } from './constants';
 import { Search, X, Sparkles, Loader2, ArrowRight, ShieldCheck, Zap, Globe, MapPin } from 'lucide-react';
 import { analyzeSearchQuery } from './services/geminiService';
 import { translations } from './translations';
+import { useVerifiedPartnerRotation } from './hooks/useVerifiedPartnerRotation';
 
 const App: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -79,6 +80,9 @@ const App: React.FC = () => {
   const [savedCompanyIds, setSavedCompanyIds] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<GeminiSearchResponse | null>(null);
+
+  // Get rotating verified partner for hero section
+  const featuredCompany = useVerifiedPartnerRotation(MOCK_COMPANIES, 8000);
 
   const t = translations[lang];
 
@@ -227,8 +231,6 @@ const App: React.FC = () => {
   };
 
   const renderHome = () => {
-    // Get featured company (first verified company or first company)
-    const featuredCompany = MOCK_COMPANIES.find(c => c.isVerified) || MOCK_COMPANIES[0];
     const displayCompanies = filteredCompanies.slice(0, 6); // Show first 6 companies
 
     return (
@@ -237,9 +239,9 @@ const App: React.FC = () => {
         <div className="relative overflow-visible bg-gradient-to-b from-neutral-50 via-slate-50 to-white py-10">
           <div className="relative z-10">
             <div className="max-w-7xl mx-auto px-4">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {/* Left: Hero Search Section (takes 2 columns) */}
-                <div className="lg:col-span-2">
+              <div className={`grid grid-cols-1 gap-8 items-start ${featuredCompany ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
+                {/* Left: Hero Search Section (takes 2 columns when card exists, full width when not) */}
+                <div className={featuredCompany ? 'lg:col-span-2' : 'lg:col-span-1'}>
                   <HeroSearchSection
                     lang={lang}
                     searchQuery={filters.searchQuery}
@@ -250,16 +252,19 @@ const App: React.FC = () => {
                   />
                 </div>
 
-                {/* Right: Featured Pro Card (floating, expandable) */}
-                <div className="lg:col-span-1">
-                  <div className="sticky top-24">
-                    <FeaturedProCard
-                      company={featuredCompany}
-                      lang={lang}
-                      onViewProfile={handleCompanyClick}
-                    />
+                {/* Right: Featured Pro Card (floating, expandable) - Only show if verified partner exists */}
+                {featuredCompany && (
+                  <div className="lg:col-span-1">
+                    <div className="sticky top-24">
+                      <FeaturedProCard
+                        key={featuredCompany.id}
+                        company={featuredCompany}
+                        lang={lang}
+                        onViewProfile={handleCompanyClick}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
