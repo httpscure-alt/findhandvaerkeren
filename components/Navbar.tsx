@@ -64,9 +64,6 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
                   {lang === 'da' ? 'Kategorier' : 'Categories'}
                 </span>
                 <span onClick={() => setView(ViewState.PRICING)} className={navLinkClass(ViewState.PRICING)}>{t.pricing}</span>
-                <span onClick={() => setView(ViewState.HOW_IT_WORKS)} className={navLinkClass(ViewState.HOW_IT_WORKS)}>
-                  {lang === 'da' ? 'Sådan Fungerer Det' : 'How It Works'}
-                </span>
                 <span onClick={() => setView(ViewState.ABOUT)} className={navLinkClass(ViewState.ABOUT)}>
                   {lang === 'da' ? 'Om Os' : 'About'}
                 </span>
@@ -246,7 +243,6 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
                 <button onClick={() => { setView(ViewState.LISTINGS); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-[#86868B]">{t.browse}</button>
                 <button onClick={() => { setView(ViewState.CATEGORIES); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-[#86868B]">{lang === 'da' ? 'Kategorier' : 'Categories'}</button>
                 <button onClick={() => { setView(ViewState.PRICING); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-[#86868B]">{t.pricing}</button>
-                <button onClick={() => { setView(ViewState.HOW_IT_WORKS); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-[#86868B]">{lang === 'da' ? 'Sådan Fungerer Det' : 'How It Works'}</button>
                 <button onClick={() => { setView(ViewState.ABOUT); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-[#86868B]">{lang === 'da' ? 'Om Os' : 'About'}</button>
                 <button onClick={() => { setView(ViewState.CONTACT); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-[#86868B]">{lang === 'da' ? 'Kontakt' : 'Contact'}</button>
                 <div className="border-t border-gray-200 my-2"></div>
