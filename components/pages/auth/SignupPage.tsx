@@ -22,13 +22,18 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
   const t = translations[lang].auth;
 
   // If coming from pricing, force partner role
+  // Otherwise, respect the initialRole prop
   useEffect(() => {
-    const savedPlan = localStorage.getItem('selectedPlan');
-    const savedRole = localStorage.getItem('signupRole');
-    if (savedPlan || savedRole === 'PARTNER') {
-      setUserRole('PARTNER');
+    if (initialRole) {
+      setUserRole(initialRole);
+    } else {
+      const savedPlan = localStorage.getItem('selectedPlan');
+      const savedRole = localStorage.getItem('signupRole');
+      if (savedPlan || savedRole === 'PARTNER') {
+        setUserRole('PARTNER');
+      }
     }
-  }, []);
+  }, [initialRole]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

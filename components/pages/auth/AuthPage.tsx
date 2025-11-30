@@ -10,9 +10,10 @@ interface AuthPageProps {
   initialMode?: 'login' | 'signup';
   onSuccess?: () => void;
   onBack?: () => void;
+  onNavigateToSignup?: () => void;
 }
 
-const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBack }) => {
+const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBack, onNavigateToSignup }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode || 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -232,11 +233,15 @@ const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBac
                 </div>
               </div>
 
-              {/* Toggle to Sign Up */}
+              {/* Link to Sign Up Selection */}
               <div className="mt-6 text-center">
                 <button
                   type="button"
-                  onClick={() => setMode('signup')}
+                  onClick={() => {
+                    if (onNavigateToSignup) {
+                      onNavigateToSignup();
+                    }
+                  }}
                   className="text-sm text-gray-600 hover:text-nexus-accent transition-colors"
                 >
                   {lang === 'da' ? 'Har du ikke en konto? Opret konto' : "Don't have an account? Sign Up"}
@@ -293,11 +298,15 @@ const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBac
                 {lang === 'da' ? '← Tilbage til e-mail' : '← Back to email'}
               </button>
 
-              {/* Toggle to Sign Up */}
+              {/* Link to Sign Up Selection */}
               <div className="mt-6 text-center">
                 <button
                   type="button"
-                  onClick={() => setMode('signup')}
+                  onClick={() => {
+                    if (onNavigateToSignup) {
+                      onNavigateToSignup();
+                    }
+                  }}
                   className="text-sm text-gray-600 hover:text-nexus-accent transition-colors"
                 >
                   {lang === 'da' ? 'Har du ikke en konto? Opret konto' : "Don't have an account? Sign Up"}

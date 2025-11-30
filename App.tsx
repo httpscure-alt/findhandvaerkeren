@@ -15,6 +15,7 @@ import PlanReview from './components/PlanReview';
 import PaymentComingSoon from './components/PaymentComingSoon';
 import SignupPage from './components/pages/auth/SignupPage';
 import AuthPage from './components/pages/auth/AuthPage';
+import SignupSelectPage from './components/pages/auth/SignupSelectPage';
 import Footer from './components/layout/Footer';
 import ConsumerSidebar from './components/layout/ConsumerSidebar';
 import PartnerSidebar from './components/layout/PartnerSidebar';
@@ -554,47 +555,83 @@ const App: React.FC = () => {
           lang={lang}
           initialMode={new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'signup' : 'login'}
           onSuccess={() => {
-            // After successful login/signup, redirect based on user role
+            // After successful login, redirect based on user role
             if (user?.role === 'CONSUMER') {
               setCurrentView(ViewState.CONSUMER_DASHBOARD);
             } else if (user?.role === 'PARTNER') {
-              // Check if partner needs onboarding
-              const savedPlan = localStorage.getItem('selectedPlan');
-              if (savedPlan) {
-                setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
-              } else {
-                setCurrentView(ViewState.PARTNER_DASHBOARD);
-              }
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
             } else {
               setCurrentView(ViewState.HOME);
             }
           }}
           onBack={() => setCurrentView(ViewState.HOME)}
+          onNavigateToSignup={() => setCurrentView(ViewState.SIGNUP_SELECT)}
+        />
+      );
+    }
+    if (currentView === ViewState.SIGNUP_SELECT) {
+      return (
+        <SignupSelectPage
+          lang={lang}
+          onSelect={(view) => setCurrentView(view)}
+          onBack={() => setCurrentView(ViewState.AUTH)}
+        />
+      );
+    }
+    if (currentView === ViewState.CONSUMER_SIGNUP) {
+      return (
+        <SignupPage
+          lang={lang}
+          role="CONSUMER"
+          onSuccess={(userRole) => {
+            // Consumer signup - redirect to dashboard or home
+            setCurrentView(ViewState.CONSUMER_DASHBOARD);
+          }}
+          onBack={() => setCurrentView(ViewState.SIGNUP_SELECT)}
+        />
+      );
+    }
+    if (currentView === ViewState.PARTNER_REGISTER) {
+      return (
+        <SignupPage
+          lang={lang}
+          role="PARTNER"
+          onSuccess={(userRole) => {
+            // Partner signup - always redirect to onboarding wizard
+            setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+          }}
+          onBack={() => setCurrentView(ViewState.SIGNUP_SELECT)}
         />
       );
     }
     if (currentView === ViewState.SIGNUP) {
-      // Determine role from localStorage (set by pricing page)
-      const savedRole = localStorage.getItem('signupRole') as 'CONSUMER' | 'PARTNER' | null;
+      // Legacy signup route - redirect to signup select or determine from context
+      // If coming from pricing page, go directly to partner register
       const savedPlan = localStorage.getItem('selectedPlan');
-      const role = savedRole || (savedPlan ? 'PARTNER' : 'CONSUMER');
+      const savedRole = localStorage.getItem('signupRole') as 'CONSUMER' | 'PARTNER' | null;
       
-      return (
-        <SignupPage
-          lang={lang}
-          role={role}
-          onSuccess={(userRole) => {
-            if (userRole === 'CONSUMER') {
-              // Consumer: go straight to dashboard, no wizard
-              setCurrentView(ViewState.CONSUMER_DASHBOARD);
-            } else {
-              // Partner: redirect directly to onboarding step 1 (no account created page)
+      if (savedPlan || savedRole === 'PARTNER') {
+        // Coming from pricing - go directly to partner register
+        return (
+          <SignupPage
+            lang={lang}
+            role="PARTNER"
+            onSuccess={(userRole) => {
               setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
-            }
-          }}
-          onBack={() => setCurrentView(ViewState.HOME)}
-        />
-      );
+            }}
+            onBack={() => setCurrentView(ViewState.HOME)}
+          />
+        );
+      } else {
+        // Default to signup select page
+        return (
+          <SignupSelectPage
+            lang={lang}
+            onSelect={(view) => setCurrentView(view)}
+            onBack={() => setCurrentView(ViewState.HOME)}
+          />
+        );
+      }
     }
     if (currentView === ViewState.PRICING) {
       return (
@@ -788,9 +825,11 @@ const App: React.FC = () => {
     // Partner Pages
     if (currentView === ViewState.PARTNER_DASHBOARD) {
       const company = getCurrentCompany();
-      // If no company or onboarding incomplete, redirect to onboarding
-      if (!company || showOnboarding) {
-        // Check onboarding status and redirect to appropriate step
+      // Only redirect to onboarding if user just signed up (has selectedPlan)
+      // Don't auto-redirect existing partners who navigate to dashboard
+      const savedPlan = localStorage.getItem('selectedPlan');
+      if (savedPlan && (!company || showOnboarding)) {
+        // User just signed up - check onboarding status and redirect
         const checkAndRedirect = async () => {
           try {
             const { step } = await api.getOnboardingStatus();
@@ -812,6 +851,7 @@ const App: React.FC = () => {
         checkAndRedirect();
         return null;
       }
+      // If no savedPlan, user is an existing partner - show dashboard normally
       // Show business dashboard if company exists
       return (
         <BusinessDashboard
