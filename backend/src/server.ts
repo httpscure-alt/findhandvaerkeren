@@ -8,6 +8,9 @@ import inquiryRoutes from './routes/inquiryRoutes';
 import categoryRoutes from './routes/categoryRoutes';
 import locationRoutes from './routes/locationRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
+import onboardingRoutes from './routes/onboardingRoutes';
+import userRoutes from './routes/userRoutes';
+import businessRoutes from './routes/businessRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -36,6 +39,9 @@ app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/business', businessRoutes);
 
 // Error handler
 app.use(errorHandler);

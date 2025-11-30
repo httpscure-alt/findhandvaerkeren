@@ -17,6 +17,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, type, onClose, lang, onSu
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'CONSUMER' | 'PARTNER'>('CONSUMER');
   const { login, register } = useAuth();
   const t = translations[lang].auth;
 
@@ -31,11 +32,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, type, onClose, lang, onSu
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const companyName = formData.get('companyName') as string;
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
     const message = formData.get('message') as string;
 
     try {
       if (type === ModalState.REGISTER_FREE) {
-        await register(email, password, companyName, 'PARTNER');
+        // Register based on selected role
+        if (userRole === 'PARTNER') {
+          await register(email, password, companyName, undefined, undefined, 'PARTNER');
+        } else {
+          // Consumer signup with firstName/lastName
+          await register(email, password, undefined, firstName, lastName, 'CONSUMER');
+        }
         setIsSuccess(true);
         setTimeout(() => {
           setIsSuccess(false);
@@ -99,13 +108,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, type, onClose, lang, onSu
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity" 
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
       ></div>
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8 animate-fadeIn">
+      <div 
+        className="relative w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8 animate-fadeIn"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button 
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <X size={20} />
@@ -144,15 +162,80 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, type, onClose, lang, onSu
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Company Name - Only for registration or sales, optional for vendor contact */}
-              {!isVendorContact && (
+              {/* Role Selection - Only for registration */}
+              {type === ModalState.REGISTER_FREE && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase ml-1">
+                    {lang === 'da' ? 'Kontotype' : 'Account Type'}
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUserRole('CONSUMER')}
+                      className={`flex-1 px-4 py-2 rounded-xl border transition-all ${
+                        userRole === 'CONSUMER'
+                          ? 'border-nexus-accent bg-nexus-accent/10 text-nexus-accent'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {lang === 'da' ? 'Forbrugere' : 'Consumer'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserRole('PARTNER')}
+                      className={`flex-1 px-4 py-2 rounded-xl border transition-all ${
+                        userRole === 'PARTNER'
+                          ? 'border-nexus-accent bg-nexus-accent/10 text-nexus-accent'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {lang === 'da' ? 'Partner' : 'Partner'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Consumer Fields - First Name, Last Name */}
+              {type === ModalState.REGISTER_FREE && userRole === 'CONSUMER' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase ml-1">
+                        {lang === 'da' ? 'Fornavn' : 'First Name'}
+                      </label>
+                      <input 
+                        name="firstName"
+                        required
+                        type="text" 
+                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-nexus-accent/50 focus:border-nexus-accent outline-none transition-all"
+                        placeholder={lang === 'da' ? 'Fornavn' : 'First Name'}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase ml-1">
+                        {lang === 'da' ? 'Efternavn' : 'Last Name'}
+                      </label>
+                      <input 
+                        name="lastName"
+                        required
+                        type="text" 
+                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-nexus-accent/50 focus:border-nexus-accent outline-none transition-all"
+                        placeholder={lang === 'da' ? 'Efternavn' : 'Last Name'}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Company Name - Only for Partner registration or sales, optional for vendor contact */}
+              {(!isVendorContact && (type !== ModalState.REGISTER_FREE || userRole === 'PARTNER')) && (
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-gray-500 uppercase ml-1">{t.companyName}</label>
                   <div className="relative">
                     <Building2 className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input 
                       name="companyName"
-                      required={type === ModalState.REGISTER_FREE}
+                      required={type === ModalState.REGISTER_FREE && userRole === 'PARTNER'}
                       type="text" 
                       className="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-nexus-accent/50 focus:border-nexus-accent outline-none transition-all"
                       placeholder={lang === 'da' ? 'F.eks. Mesterbyg ApS' : 'Ex. Acme Corp'}

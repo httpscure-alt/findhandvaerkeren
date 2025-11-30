@@ -77,7 +77,7 @@ export const translations = {
       checkout: {
         processing: "Processing...",
         redirecting: "Redirecting to Secure Checkout",
-        success: "Redirecting to Shopify..."
+        success: "Redirecting to payment..."
       }
     },
     auth: {
@@ -213,7 +213,7 @@ export const translations = {
       checkout: {
         processing: "Behandler...",
         redirecting: "Viderestiller til Sikker Betaling",
-        success: "Viderestiller til Shopify..."
+        success: "Viderestiller til betaling..."
       }
     },
     auth: {

@@ -5,6 +5,8 @@ interface User {
   id: string;
   email: string;
   name: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
   role: 'CONSUMER' | 'PARTNER' | 'ADMIN';
   avatarUrl: string | null;
   location: string | null;
@@ -15,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string, role?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string, firstName?: string, lastName?: string, role?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -112,9 +114,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const register = async (email: string, password: string, name?: string, role?: string) => {
+  const register = async (email: string, password: string, name?: string, firstName?: string, lastName?: string, role?: string) => {
     try {
-      const { user, token } = await api.register({ email, password, name, role });
+      const { user, token } = await api.register({ email, password, name, firstName, lastName, role });
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setToken(token);
@@ -125,7 +127,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const mockUser: User = {
           id: 'mock-user-' + Date.now(),
           email,
-          name: name || email.split('@')[0],
+          name: name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || email.split('@')[0]),
+          firstName,
+          lastName,
           role: (role as 'CONSUMER' | 'PARTNER' | 'ADMIN') || 'CONSUMER',
           avatarUrl: null,
           location: null,

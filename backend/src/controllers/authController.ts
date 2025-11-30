@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name, role = 'CONSUMER' } = req.body;
+    const { email, password, name, firstName, lastName, role = 'CONSUMER' } = req.body;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -28,13 +28,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       data: {
         email,
         password: hashedPassword,
-        name,
+        name: name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName),
+        firstName,
+        lastName,
         role: role as 'CONSUMER' | 'PARTNER' | 'ADMIN',
       },
       select: {
         id: true,
         email: true,
         name: true,
+        firstName: true,
+        lastName: true,
         role: true,
         avatarUrl: true,
         location: true,
@@ -84,6 +88,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         id: user.id,
         email: user.email,
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
         avatarUrl: user.avatarUrl,
         location: user.location,
@@ -106,6 +112,8 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         id: true,
         email: true,
         name: true,
+        firstName: true,
+        lastName: true,
         role: true,
         avatarUrl: true,
         location: true,

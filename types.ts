@@ -73,6 +73,10 @@ export enum ViewState {
   CONSUMER_INQUIRIES = 'CONSUMER_INQUIRIES',
   CONSUMER_SETTINGS = 'CONSUMER_SETTINGS',
   
+  // Auth Pages
+  AUTH = 'AUTH',
+  SIGNUP = 'SIGNUP',
+  
   // Partner Pages
   PARTNER_DASHBOARD = 'PARTNER_DASHBOARD',
   PARTNER_PROFILE_EDIT = 'PARTNER_PROFILE_EDIT',
@@ -82,6 +86,12 @@ export enum ViewState {
   PARTNER_LEADS = 'PARTNER_LEADS',
   PARTNER_BILLING = 'PARTNER_BILLING',
   PARTNER_SETTINGS = 'PARTNER_SETTINGS',
+  PARTNER_ONBOARDING_STEP_1 = 'PARTNER_ONBOARDING_STEP_1',
+  PARTNER_ONBOARDING_STEP_2 = 'PARTNER_ONBOARDING_STEP_2',
+  PARTNER_ONBOARDING_STEP_3 = 'PARTNER_ONBOARDING_STEP_3',
+  PARTNER_ONBOARDING_STEP_4 = 'PARTNER_ONBOARDING_STEP_4',
+  PLAN_REVIEW = 'PLAN_REVIEW',
+  PAYMENT_COMING_SOON = 'PAYMENT_COMING_SOON',
   
   // Admin Pages
   ADMIN = 'ADMIN',
@@ -113,3 +123,10 @@ export interface GeminiSearchResponse {
 }
 
 export type Language = 'en' | 'da';
+
+export interface SelectedPlan {
+  id: string;
+  name: string;
+  monthlyPrice: number;
+  billingPeriod: 'monthly' | 'annual';
+}

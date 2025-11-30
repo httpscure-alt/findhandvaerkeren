@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ConsumerUser, Language } from '../../../types';
-import { User, Mail, MapPin, Save, Loader2 } from 'lucide-react';
+import { User, Mail, MapPin, Save, Loader2, Trash2 } from 'lucide-react';
 import { translations } from '../../../translations';
+import { api } from '../../../services/api';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ConsumerAccountSettingsProps {
   user: ConsumerUser;
@@ -16,23 +18,79 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
   onBack,
   onSave
 }) => {
+  const { logout } = useAuth();
   const [formData, setFormData] = useState({
+    firstName: (user as any).firstName || '',
+    lastName: (user as any).lastName || '',
     name: user.name,
     email: user.email,
-    location: user.location
+    location: user.location,
+    avatarUrl: (user as any).avatarUrl || ''
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await api.updateConsumerProfile({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        name: formData.name,
+        location: formData.location,
+        avatarUrl: formData.avatarUrl,
+      });
       onSave(formData);
-      setIsSaving(false);
       alert(lang === 'da' ? 'Indstillinger gemt!' : 'Settings saved!');
-    }, 1000);
+    } catch (error: any) {
+      alert(error.message || (lang === 'da' ? 'Fejl ved gemning' : 'Error saving'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert(lang === 'da' ? 'Adgangskoder matcher ikke' : 'Passwords do not match');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    try {
+      await api.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      alert(lang === 'da' ? 'Adgangskode ændret!' : 'Password changed!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error: any) {
+      alert(error.message || (lang === 'da' ? 'Fejl ved ændring af adgangskode' : 'Error changing password'));
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm(lang === 'da' ? 'Er du sikker? Denne handling kan ikke fortrydes.' : 'Are you sure? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await api.deleteAccount();
+      logout();
+      onBack();
+    } catch (error: any) {
+      alert(error.message || (lang === 'da' ? 'Fejl ved sletning' : 'Error deleting account'));
+    }
   };
 
   return (
@@ -69,18 +127,46 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
             </div>
           </div>
 
-          {/* Name */}
+          {/* First Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <User size={16} />
-              {lang === 'da' ? 'Navn' : 'Name'}
+              {lang === 'da' ? 'Fornavn' : 'First Name'}
+            </label>
+            <input
+              type="text"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+            />
+          </div>
+
+          {/* Last Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <User size={16} />
+              {lang === 'da' ? 'Efternavn' : 'Last Name'}
+            </label>
+            <input
+              type="text"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+            />
+          </div>
+
+          {/* Full Name (auto-generated or manual) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <User size={16} />
+              {lang === 'da' ? 'Fulde Navn' : 'Full Name'}
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
-              required
+              placeholder={formData.firstName && formData.lastName ? `${formData.firstName} ${formData.lastName}` : ''}
             />
           </div>
 
@@ -119,14 +205,17 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
             <h3 className="font-bold text-[#1D1D1F] mb-4">
               {lang === 'da' ? 'Skift Adgangskode' : 'Change Password'}
             </h3>
-            <div className="space-y-4">
+            <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {lang === 'da' ? 'Nuværende Adgangskode' : 'Current Password'}
                 </label>
                 <input
                   type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                  required
                 />
               </div>
               <div>
@@ -135,10 +224,53 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
                 </label>
                 <input
                   type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                  required
                 />
               </div>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {lang === 'da' ? 'Bekræft Ny Adgangskode' : 'Confirm New Password'}
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isChangingPassword}
+                className="px-4 py-2 bg-nexus-accent text-white rounded-xl text-sm font-medium hover:bg-nexus-accent/90 transition-colors disabled:opacity-50"
+              >
+                {isChangingPassword 
+                  ? (lang === 'da' ? 'Ændrer...' : 'Changing...')
+                  : (lang === 'da' ? 'Skift Adgangskode' : 'Change Password')}
+              </button>
+            </form>
+          </div>
+
+          {/* GDPR Delete Account */}
+          <div className="pt-6 border-t border-red-200">
+            <h3 className="font-bold text-red-600 mb-4">
+              {lang === 'da' ? 'Slet Konto' : 'Delete Account'}
+            </h3>
+            <p className="text-sm text-nexus-subtext mb-4">
+              {lang === 'da' 
+                ? 'Dette vil permanent slette din konto og alle dine data. Denne handling kan ikke fortrydes.'
+                : 'This will permanently delete your account and all your data. This action cannot be undone.'}
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
+            >
+              <Trash2 size={16} />
+              {lang === 'da' ? 'Slet Konto' : 'Delete Account'}
+            </button>
           </div>
 
           {/* Actions */}

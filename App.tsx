@@ -9,6 +9,12 @@ import AuthModal from './components/AuthModal';
 import AdminDashboard from './components/AdminDashboard';
 import PartnerDashboard from './components/PartnerDashboard';
 import ConsumerDashboard from './components/ConsumerDashboard';
+import PartnerOnboardingWizard from './components/PartnerOnboardingWizard';
+import BusinessDashboard from './components/BusinessDashboard';
+import PlanReview from './components/PlanReview';
+import PaymentComingSoon from './components/PaymentComingSoon';
+import SignupPage from './components/pages/auth/SignupPage';
+import AuthPage from './components/pages/auth/AuthPage';
 import Footer from './components/layout/Footer';
 import ConsumerSidebar from './components/layout/ConsumerSidebar';
 import PartnerSidebar from './components/layout/PartnerSidebar';
@@ -59,6 +65,7 @@ import { Search, X, Sparkles, Loader2, ArrowRight, ShieldCheck, Zap, Globe, MapP
 import { analyzeSearchQuery } from './services/geminiService';
 import { translations } from './translations';
 import { useVerifiedPartnerRotation } from './hooks/useVerifiedPartnerRotation';
+import { api } from './services/api';
 
 const App: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -80,6 +87,9 @@ const App: React.FC = () => {
   const [savedCompanyIds, setSavedCompanyIds] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<GeminiSearchResponse | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
   // Get rotating verified partner for hero section
   const featuredCompany = useVerifiedPartnerRotation(MOCK_COMPANIES, 8000);
@@ -89,6 +99,29 @@ const App: React.FC = () => {
   // Determine user role from AuthContext or mock state
   const userRole = user?.role || (currentPartner ? 'PARTNER' : currentConsumer ? 'CONSUMER' : null);
   const isLoggedIn = isAuthenticated || !!currentPartner || !!currentConsumer;
+
+  // Check onboarding status for partners
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (userRole === 'PARTNER' && isAuthenticated && user) {
+        try {
+          const { step, hasCompany } = await api.getOnboardingStatus();
+          setOnboardingStep(step);
+          if (!hasCompany || step < 4) {
+            setShowOnboarding(true);
+          }
+        } catch (error) {
+          // API not available or error - check if user has company
+          if (user.ownedCompany) {
+            setShowOnboarding(false);
+          } else {
+            setShowOnboarding(true);
+          }
+        }
+      }
+    };
+    checkOnboarding();
+  }, [userRole, isAuthenticated, user]);
 
   // Get current company for partner (from user or mock)
   const getCurrentCompany = (): Company | null => {
@@ -515,8 +548,94 @@ const App: React.FC = () => {
         />
       );
     }
+    if (currentView === ViewState.AUTH) {
+      return (
+        <AuthPage
+          lang={lang}
+          initialMode={new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'signup' : 'login'}
+          onSuccess={() => {
+            // After successful login/signup, redirect based on user role
+            if (user?.role === 'CONSUMER') {
+              setCurrentView(ViewState.CONSUMER_DASHBOARD);
+            } else if (user?.role === 'PARTNER') {
+              // Check if partner needs onboarding
+              const savedPlan = localStorage.getItem('selectedPlan');
+              if (savedPlan) {
+                setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+              } else {
+                setCurrentView(ViewState.PARTNER_DASHBOARD);
+              }
+            } else {
+              setCurrentView(ViewState.HOME);
+            }
+          }}
+          onBack={() => setCurrentView(ViewState.HOME)}
+        />
+      );
+    }
+    if (currentView === ViewState.SIGNUP) {
+      // Determine role from localStorage (set by pricing page)
+      const savedRole = localStorage.getItem('signupRole') as 'CONSUMER' | 'PARTNER' | null;
+      const savedPlan = localStorage.getItem('selectedPlan');
+      const role = savedRole || (savedPlan ? 'PARTNER' : 'CONSUMER');
+      
+      return (
+        <SignupPage
+          lang={lang}
+          role={role}
+          onSuccess={(userRole) => {
+            if (userRole === 'CONSUMER') {
+              // Consumer: go straight to dashboard, no wizard
+              setCurrentView(ViewState.CONSUMER_DASHBOARD);
+            } else {
+              // Partner: redirect directly to onboarding step 1 (no account created page)
+              setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+            }
+          }}
+          onBack={() => setCurrentView(ViewState.HOME)}
+        />
+      );
+    }
     if (currentView === ViewState.PRICING) {
-      return <Pricing lang={lang} onOpenModal={setActiveModal} />;
+      return (
+        <Pricing 
+          lang={lang} 
+          onOpenModal={(modal) => {
+            // For partner plans, redirect to signup instead of modal
+            if (modal === ModalState.REGISTER_FREE) {
+              const savedPlan = localStorage.getItem('selectedPlan');
+              if (savedPlan) {
+                setCurrentView(ViewState.SIGNUP);
+                return;
+              }
+            }
+            setActiveModal(modal);
+          }}
+          onPlanSelected={(plan) => {
+            setSelectedPlan(plan);
+            // Plan is saved to localStorage in Pricing component
+            // Redirect to signup
+            setCurrentView(ViewState.SIGNUP);
+          }}
+        />
+      );
+    }
+    if (currentView === ViewState.PLAN_REVIEW) {
+      return (
+        <PlanReview
+          lang={lang}
+          onContinueToPayment={() => setCurrentView(ViewState.PAYMENT_COMING_SOON)}
+          onBack={() => setCurrentView(ViewState.PARTNER_DASHBOARD)}
+        />
+      );
+    }
+    if (currentView === ViewState.PAYMENT_COMING_SOON) {
+      return (
+        <PaymentComingSoon
+          lang={lang}
+          onBack={() => setCurrentView(ViewState.PARTNER_DASHBOARD)}
+        />
+      );
     }
     if (currentView === ViewState.CATEGORIES) {
       return <CategoriesPage lang={lang} onCategorySelect={(cat) => { setFilters({...filters, category: cat}); setCurrentView(ViewState.LISTINGS); }} />;
@@ -592,16 +711,116 @@ const App: React.FC = () => {
       );
     }
 
+    // Partner Onboarding Steps
+    if (currentView === ViewState.PARTNER_ONBOARDING_STEP_1) {
+      return (
+        <PartnerOnboardingWizard
+          lang={lang}
+          currentStep={1}
+          onNavigate={setCurrentView}
+          onComplete={() => {
+            // Step 4 completion redirects to plan review (step 5)
+            // This callback is called after step 4 completes
+            const savedPlan = localStorage.getItem('selectedPlan');
+            if (savedPlan) {
+              setCurrentView(ViewState.PLAN_REVIEW);
+            } else {
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
+            }
+          }}
+        />
+      );
+    }
+    if (currentView === ViewState.PARTNER_ONBOARDING_STEP_2) {
+      return (
+        <PartnerOnboardingWizard
+          lang={lang}
+          currentStep={2}
+          onNavigate={setCurrentView}
+          onComplete={() => {
+            const savedPlan = localStorage.getItem('selectedPlan');
+            if (savedPlan) {
+              setCurrentView(ViewState.PLAN_REVIEW);
+            } else {
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
+            }
+          }}
+        />
+      );
+    }
+    if (currentView === ViewState.PARTNER_ONBOARDING_STEP_3) {
+      return (
+        <PartnerOnboardingWizard
+          lang={lang}
+          currentStep={3}
+          onNavigate={setCurrentView}
+          onComplete={() => {
+            const savedPlan = localStorage.getItem('selectedPlan');
+            if (savedPlan) {
+              setCurrentView(ViewState.PLAN_REVIEW);
+            } else {
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
+            }
+          }}
+        />
+      );
+    }
+    if (currentView === ViewState.PARTNER_ONBOARDING_STEP_4) {
+      return (
+        <PartnerOnboardingWizard
+          lang={lang}
+          currentStep={4}
+          onNavigate={setCurrentView}
+          onComplete={() => {
+            // Step 4 completion automatically navigates to PLAN_REVIEW via handleComplete
+            // This callback is a fallback
+            const savedPlan = localStorage.getItem('selectedPlan');
+            if (savedPlan) {
+              setCurrentView(ViewState.PLAN_REVIEW);
+            } else {
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
+            }
+          }}
+        />
+      );
+    }
+
     // Partner Pages
     if (currentView === ViewState.PARTNER_DASHBOARD) {
       const company = getCurrentCompany();
-      if (!company) return null;
+      // If no company or onboarding incomplete, redirect to onboarding
+      if (!company || showOnboarding) {
+        // Check onboarding status and redirect to appropriate step
+        const checkAndRedirect = async () => {
+          try {
+            const { step } = await api.getOnboardingStatus();
+            const stepViewMap: Record<number, ViewState> = {
+              0: ViewState.PARTNER_ONBOARDING_STEP_1,
+              1: ViewState.PARTNER_ONBOARDING_STEP_2,
+              2: ViewState.PARTNER_ONBOARDING_STEP_3,
+              3: ViewState.PARTNER_ONBOARDING_STEP_4,
+            };
+            if (stepViewMap[step]) {
+              setCurrentView(stepViewMap[step]);
+            } else {
+              setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+            }
+          } catch {
+            setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+          }
+        };
+        checkAndRedirect();
+        return null;
+      }
+      // Show business dashboard if company exists
       return (
-        <PartnerDashboard 
-          company={company} 
+        <BusinessDashboard
           lang={lang}
-          onViewPublic={handleCompanyClick}
-          onChangeView={setCurrentView}
+          onEditListing={() => setCurrentView(ViewState.PARTNER_PROFILE_EDIT)}
+          onManageServices={() => setCurrentView(ViewState.PARTNER_SERVICES)}
+          onManagePortfolio={() => setCurrentView(ViewState.PARTNER_PORTFOLIO)}
+          onManageTestimonials={() => setCurrentView(ViewState.PARTNER_TESTIMONIALS)}
+          onViewInquiries={() => setCurrentView(ViewState.PARTNER_LEADS)}
         />
       );
     }
@@ -731,8 +950,8 @@ const App: React.FC = () => {
         currentView={currentView} 
         lang={lang} 
         setLang={setLang}
-        onLoginPartner={handlePartnerLogin}
-        onLoginConsumer={handleConsumerLogin}
+        onLoginPartner={() => setCurrentView(ViewState.AUTH)}
+        onLoginConsumer={() => setCurrentView(ViewState.AUTH)}
         isLoggedIn={isLoggedIn}
         userRole={userRole}
         onLogout={handleLogout}
@@ -772,20 +991,18 @@ const App: React.FC = () => {
       </div>
       
       {/* Global Modal */}
-      <AuthModal 
-        isOpen={activeModal !== ModalState.CLOSED}
-        type={activeModal}
-        onClose={() => setActiveModal(ModalState.CLOSED)}
-        lang={lang}
-        onSuccess={() => {
-          // Refresh view after successful auth
-          if (user?.role === 'CONSUMER') {
-            setCurrentView(ViewState.CONSUMER_DASHBOARD);
-          } else if (user?.role === 'PARTNER') {
-            setCurrentView(ViewState.PARTNER_DASHBOARD);
-          }
-        }}
-      />
+      {/* AuthModal kept only for contact forms (CONTACT_SALES, CONTACT_VENDOR) */}
+      {activeModal === ModalState.CONTACT_SALES || activeModal === ModalState.CONTACT_VENDOR ? (
+        <AuthModal
+          isOpen={activeModal !== ModalState.CLOSED}
+          type={activeModal}
+          onClose={() => setActiveModal(ModalState.CLOSED)}
+          lang={lang}
+          onSuccess={() => {
+            setActiveModal(ModalState.CLOSED);
+          }}
+        />
+      ) : null}
 
       {/* Footer */}
       <Footer lang={lang} onNavigate={setCurrentView} />

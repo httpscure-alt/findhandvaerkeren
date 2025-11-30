@@ -18,6 +18,8 @@ export const registerValidation = [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 6 }),
   body('name').optional().trim().notEmpty(),
+  body('firstName').optional().trim().notEmpty(),
+  body('lastName').optional().trim().notEmpty(),
   body('role').optional().isIn(['CONSUMER', 'PARTNER']),
 ];
 
