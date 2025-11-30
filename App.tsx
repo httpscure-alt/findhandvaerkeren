@@ -236,7 +236,7 @@ const App: React.FC = () => {
     return (
       <div className="animate-fadeIn">
         {/* Hero Section with Search - Soft Scandinavian Gradient Background */}
-        <div className="relative overflow-visible bg-gradient-to-b from-neutral-50 via-slate-50 to-white py-10">
+        <div className="relative overflow-visible bg-gradient-to-b from-neutral-50 via-slate-50 to-white py-8 md:py-10">
           <div className="relative z-10">
             <div className="max-w-7xl mx-auto px-4">
               <div className={`grid grid-cols-1 gap-8 items-start ${featuredCompany ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
@@ -254,7 +254,7 @@ const App: React.FC = () => {
 
                 {/* Right: Featured Pro Card (floating, expandable) - Only show if verified partner exists */}
                 {featuredCompany && (
-                  <div className="lg:col-span-1">
+                  <div className="w-full lg:col-span-1">
                     <div className="sticky top-24">
                       <FeaturedProCard
                         key={featuredCompany.id}
@@ -271,7 +271,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Main Content Area: Categories Sidebar + Listings Grid */}
-        <div className="bg-nexus-bg py-12">
+        <div className="bg-nexus-bg py-8 md:py-12">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-8">
               {/* Left: Categories Sidebar */}
@@ -284,7 +284,7 @@ const App: React.FC = () => {
               {/* Right: Listings Grid */}
               <div className="flex-1">
                 {/* Category Filter Chips (above listings) */}
-                <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 pb-4 mb-6 scrollbar-hide">
                   {CATEGORIES.filter(cat => cat !== 'All').map((category) => (
                     <button
                       key={category}
@@ -302,7 +302,7 @@ const App: React.FC = () => {
 
                 {/* Listings Grid */}
                 {displayCompanies.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-6 md:gap-6">
                     {displayCompanies.map(company => (
                       <ListingCard 
                         key={company.id} 

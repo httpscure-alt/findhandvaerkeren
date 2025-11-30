@@ -14,7 +14,7 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
   onCategorySelect
 }) => {
   return (
-    <aside className="w-full md:w-64 shrink-0">
+    <aside className="hidden md:block w-full md:w-64 shrink-0">
       <h2 className="text-lg font-bold text-[#1D1D1F] mb-4">
         {lang === 'da' ? 'Kategorier' : 'Categories'}
       </h2>

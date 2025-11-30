@@ -41,7 +41,7 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ lang, onGetStarte
   ];
 
   return (
-    <div className="bg-white py-20">
+    <div className="bg-white py-8 md:py-20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1D1D1F] mb-4">
