@@ -78,10 +78,22 @@ const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal,
 
   return (
     <div className="animate-fadeIn">
-      {/* Hero Banner */}
+      {/* Hero Banner - with placeholder if missing */}
       <div className="relative h-64 md:h-96 w-full overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 z-10"></div>
-        <img src={company.bannerUrl} alt="Cover" className="w-full h-full object-cover blur-sm scale-105 transform transition-transform duration-[20s] hover:scale-110" />
+        {company.bannerUrl ? (
+          <img 
+            src={company.bannerUrl} 
+            alt="Cover" 
+            className="w-full h-full object-cover blur-sm scale-105 transform transition-transform duration-[20s] hover:scale-110"
+            onError={(e) => {
+              // Fallback to gradient on error
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200"></div>
+        )}
         
         <div className="absolute inset-0 z-20 flex flex-col justify-between p-6 md:p-10 max-w-7xl mx-auto w-full">
           <button 
@@ -103,12 +115,33 @@ const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal,
             <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-gray-200/50 border border-gray-100 mb-8">
               <div className="flex flex-col md:flex-row md:items-center gap-8">
                 <div className="w-32 h-32 rounded-2xl bg-white shadow-lg p-1 shrink-0 border border-gray-50">
-                  <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-xl" />
+                  {company.logoUrl ? (
+                    <img 
+                      src={company.logoUrl} 
+                      alt="Logo" 
+                      className="w-full h-full object-cover rounded-xl"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        const parent = (e.target as HTMLImageElement).parentElement;
+                        if (parent && !parent.querySelector('.logo-placeholder')) {
+                          const placeholder = document.createElement('div');
+                          placeholder.className = 'logo-placeholder w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-2xl rounded-xl';
+                          placeholder.textContent = company.name.charAt(0).toUpperCase();
+                          parent.appendChild(placeholder);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-2xl rounded-xl">
+                      {company.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-4xl font-bold text-nexus-text tracking-tight">{company.name}</h1>
-                    {company.isVerified && <CheckCircle className="text-nexus-verified shrink-0" size={28} fill="#F59E0B" color="white" />}
+                    {/* Use verificationStatus === 'verified' for verified badge (Danish verification requirements) */}
+                    {(company.verificationStatus === 'verified' || company.isVerified) && <CheckCircle className="text-nexus-verified shrink-0" size={28} fill="#F59E0B" color="white" />}
                   </div>
                   <p className="text-nexus-subtext text-lg mb-6 font-light">{company.shortDescription}</p>
                   <div className="flex flex-wrap gap-3">

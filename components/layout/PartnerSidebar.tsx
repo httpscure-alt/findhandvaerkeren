@@ -9,7 +9,8 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Star
+  Star,
+  ShieldCheck
 } from 'lucide-react';
 
 interface PartnerSidebarProps {
@@ -44,7 +45,13 @@ const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ currentView, lang, onNa
     {
       view: ViewState.PARTNER_TESTIMONIALS,
       icon: Star,
-      label: lang === 'da' ? 'Udtalelser' : 'Testimonials'
+      label: lang === 'da' ? 'Udtalelser' : 'Testimonials',
+      // Testimonials creation temporarily disabled until we finalise moderation rules.
+    },
+    {
+      view: ViewState.PARTNER_VERIFICATION,
+      icon: ShieldCheck,
+      label: lang === 'da' ? 'Verificering' : 'Verification'
     },
     {
       view: ViewState.PARTNER_LEADS,

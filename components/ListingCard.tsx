@@ -13,7 +13,8 @@ interface ListingCardProps {
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({ company, onViewProfile, lang, isFavorite, onToggleFavorite }) => {
-  const isPremium = company.isVerified;
+  // Use verificationStatus === 'verified' for verified badge (Danish verification requirements)
+  const isPremium = company.verificationStatus === 'verified' || company.isVerified;
   const t = translations[lang].listings;
 
   return (
@@ -57,9 +58,30 @@ const ListingCard: React.FC<ListingCardProps> = ({ company, onViewProfile, lang,
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div className="relative">
-             {/* Logo */}
+             {/* Logo - with placeholder if missing */}
              <div className={`w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-white shadow-sm ${isPremium ? 'ring-1 ring-black/5' : ''}`}>
-                <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
+                {company.logoUrl ? (
+                  <img 
+                    src={company.logoUrl} 
+                    alt={company.name} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to placeholder on error
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const parent = (e.target as HTMLImageElement).parentElement;
+                      if (parent && !parent.querySelector('.logo-placeholder')) {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'logo-placeholder w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-xl';
+                        placeholder.textContent = company.name.charAt(0).toUpperCase();
+                        parent.appendChild(placeholder);
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-xl">
+                    {company.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
              </div>
           </div>
           

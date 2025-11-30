@@ -1,19 +1,25 @@
-import React from 'react';
-import { Company, Language } from '../../../types';
+import React, { useState } from 'react';
+import { Company, Language, ViewState } from '../../../types';
 import { CreditCard, CheckCircle, Calendar, Download, ArrowRight } from 'lucide-react';
+import { translations } from '../../../translations';
+import UpgradePlanModal from './UpgradePlanModal';
+import { PARTNER_PLAN_PRICING } from '../../../constants/pricing';
 
 interface SubscriptionBillingPageProps {
   company: Company;
   lang: Language;
   onBack: () => void;
-  onUpgrade: () => void;
+  onUpgrade?: () => void;
+  onNavigate?: (view: ViewState) => void;
 }
 
-const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ company, lang, onUpgrade }) => {
+const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ company, lang, onBack, onUpgrade, onNavigate }) => {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const t = translations[lang].pricing;
   const billingHistory = [
-    { id: '1', date: '2024-01-15', amount: '$49', plan: 'Pro', status: 'Paid' },
-    { id: '2', date: '2023-12-15', amount: '$49', plan: 'Pro', status: 'Paid' },
-    { id: '3', date: '2023-11-15', amount: '$49', plan: 'Pro', status: 'Paid' }
+    { id: '1', date: '2024-01-15', amount: `$${PARTNER_PLAN_PRICING.MONTHLY}`, plan: 'Partner Plan', status: 'Paid' },
+    { id: '2', date: '2023-12-15', amount: `$${PARTNER_PLAN_PRICING.MONTHLY}`, plan: 'Partner Plan', status: 'Paid' },
+    { id: '3', date: '2023-11-15', amount: `$${PARTNER_PLAN_PRICING.MONTHLY}`, plan: 'Partner Plan', status: 'Paid' }
   ];
 
   return (
@@ -49,7 +55,7 @@ const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ compa
             </div>
           </div>
           <button
-            onClick={onUpgrade}
+            onClick={() => setShowUpgradeModal(true)}
             className="px-6 py-3 bg-[#1D1D1F] text-white rounded-xl font-medium hover:bg-black transition-colors flex items-center gap-2"
           >
             {lang === 'da' ? 'Opgrader Plan' : 'Upgrade Plan'} <ArrowRight size={18} />
@@ -61,7 +67,7 @@ const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ compa
             <p className="text-sm text-nexus-subtext mb-1">
               {lang === 'da' ? 'Næste Betaling' : 'Next Payment'}
             </p>
-            <p className="text-xl font-bold text-[#1D1D1F]">$49</p>
+            <p className="text-xl font-bold text-[#1D1D1F]">${PARTNER_PLAN_PRICING.MONTHLY}</p>
             <p className="text-xs text-nexus-subtext mt-1">
               {lang === 'da' ? '15. februar 2024' : 'February 15, 2024'}
             </p>
@@ -121,6 +127,31 @@ const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ compa
           ))}
         </div>
       </div>
+
+      {/* Upgrade Plan Modal */}
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        lang={lang}
+        currentPlan={company.pricingTier}
+        onSelectPlan={(planId, planName, monthlyPrice) => {
+          // Save selected plan
+          localStorage.setItem('selectedPlan', JSON.stringify({
+            id: planId.toLowerCase(),
+            name: planName,
+            monthlyPrice,
+            billingPeriod: 'monthly'
+          }));
+          
+          // Navigate to payment coming soon
+          if (onNavigate) {
+            onNavigate(ViewState.PAYMENT_COMING_SOON);
+          } else if (onUpgrade) {
+            onUpgrade();
+          }
+          setShowUpgradeModal(false);
+        }}
+      />
     </div>
   );
 };

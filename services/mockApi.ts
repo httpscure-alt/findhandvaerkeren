@@ -571,16 +571,31 @@ class MockApiService {
     const company = mockStorage.getCompanies().find(c => c.id === userId);
     
     if (!company) {
-      return { step: 0, hasCompany: false };
+      return { step: 0, hasCompany: false, onboardingCompleted: false };
+    }
+
+    // If onboarding is completed, return that status
+    if (company.onboardingCompleted) {
+      return { 
+        step: 5, 
+        hasCompany: true, 
+        onboardingCompleted: true,
+        company 
+      };
     }
 
     // Determine step based on company data
     let step = 1;
     if (company.shortDescription && company.description) step = 2;
     if (company.logoUrl || company.bannerUrl) step = 3;
-    if (company.portfolio && company.portfolio.length > 0) step = 4;
+    if (company.cvrNumber || company.permitType) step = 4; // Step 4 is verification
 
-    return { step, hasCompany: true, company };
+    return { 
+      step, 
+      hasCompany: true, 
+      onboardingCompleted: company.onboardingCompleted || false,
+      company 
+    };
   }
 
   async saveOnboardingStep1(data: { name: string; category: string; location: string; contactEmail: string; website?: string; phone?: string }) {
@@ -664,8 +679,9 @@ class MockApiService {
       throw new Error('Company not found. Complete step 1 first.');
     }
 
-    if (data.logoUrl) company.logoUrl = data.logoUrl;
-    if (data.bannerUrl) company.bannerUrl = data.bannerUrl;
+    // Logo and banner are optional - save even if empty
+    company.logoUrl = data.logoUrl || null;
+    company.bannerUrl = data.bannerUrl || null;
     if (data.gallery) {
       company.portfolio = data.gallery.map(item => ({
         title: item.title,
@@ -675,6 +691,50 @@ class MockApiService {
     }
 
     return { company, step: 3 };
+  }
+
+  async saveOnboardingStep4(data: { 
+    cvrNumber?: string; 
+    vatNumber?: string; 
+    legalName?: string; 
+    businessAddress?: string; 
+    cvrLookupUrl?: string; 
+    permitType?: string; 
+    permitIssuer?: string; 
+    permitNumber?: string; 
+    permitDocuments?: string[]; 
+    requestVerification?: boolean;
+  }) {
+    await delay(400);
+    const userId = getCurrentUserId();
+    if (!userId) {
+      throw new Error('Not authenticated');
+    }
+
+    const company = mockStorage.getCompanies().find(c => c.id === userId);
+    if (!company) {
+      throw new Error('Company not found. Complete step 1 first.');
+    }
+
+    // Set verification status based on request
+    const verificationStatus = data.requestVerification ? 'pending' : 'unverified';
+
+    Object.assign(company, {
+      cvrNumber: data.cvrNumber || null,
+      vatNumber: data.vatNumber || null,
+      legalName: data.legalName || null,
+      businessAddress: data.businessAddress || null,
+      cvrLookupUrl: data.cvrLookupUrl || null,
+      permitType: data.permitType || null,
+      permitIssuer: data.permitIssuer || null,
+      permitNumber: data.permitNumber || null,
+      permitDocuments: data.permitDocuments || [],
+      verificationStatus: verificationStatus,
+      // Only set isVerified to true if status is verified (admin action)
+      isVerified: verificationStatus === 'verified',
+    });
+
+    return { company, step: 4 };
   }
 
   async completeOnboarding() {
@@ -689,10 +749,14 @@ class MockApiService {
       throw new Error('Company not found');
     }
 
+    // Mark onboarding as completed
+    company.onboardingCompleted = true;
+
     return {
       company,
-      step: 4,
+      step: 5,
       completed: true,
+      onboardingCompleted: true,
       message: 'Onboarding completed successfully',
     };
   }
@@ -857,6 +921,111 @@ class MockApiService {
       views: events.filter(e => e.eventType === 'profile_view').length || Math.floor(Math.random() * 100) + 50,
       saves: savedIds.length || Math.floor(Math.random() * 20) + 5,
       inquiries: inquiries.length || Math.floor(Math.random() * 10) + 2,
+    };
+  }
+
+  // Admin Finance & Transactions
+  async getFinanceMetrics() {
+    await delay(300);
+    return {
+      totalRevenue: 125430.50,
+      monthlyRecurringRevenue: 12450.00,
+      activeSubscriptions: 254,
+      newSubscriptionsThisMonth: 23,
+      cancellationsThisMonth: 5,
+      upcomingRenewals: 42,
+    };
+  }
+
+  async getTransactions(params?: { dateRange?: string }) {
+    await delay(300);
+    const mockTransactions = [
+      {
+        id: '1',
+        userOrCompany: 'Nexus Solutions',
+        planName: 'Partner Plan',
+        billingCycle: 'monthly',
+        amount: 49,
+        status: 'paid',
+        date: '2024-01-15',
+        transactionId: 'txn_abc123',
+      },
+      {
+        id: '2',
+        userOrCompany: 'Summit Capital',
+        planName: 'Partner Plan',
+        billingCycle: 'annual',
+        amount: 470.40,
+        status: 'paid',
+        date: '2024-01-14',
+        transactionId: 'txn_def456',
+      },
+      {
+        id: '3',
+        userOrCompany: 'TechFlow Inc',
+        planName: 'Partner Plan',
+        billingCycle: 'monthly',
+        amount: 49,
+        status: 'failed',
+        date: '2024-01-13',
+        transactionId: 'txn_ghi789',
+      },
+      {
+        id: '4',
+        userOrCompany: 'CloudBuilders',
+        planName: 'Partner Plan',
+        billingCycle: 'monthly',
+        amount: 49,
+        status: 'upcoming',
+        date: '2024-01-20',
+        transactionId: 'txn_jkl012',
+      },
+      {
+        id: '5',
+        userOrCompany: 'DataSync Pro',
+        planName: 'Partner Plan',
+        billingCycle: 'annual',
+        amount: 470.40,
+        status: 'paid',
+        date: '2024-01-12',
+        transactionId: 'txn_mno345',
+      },
+    ];
+    return { transactions: mockTransactions };
+  }
+
+  async getVerificationQueue() {
+    await delay(300);
+    return {
+      requests: [
+        {
+          id: '1',
+          companyName: 'Nexus Solutions',
+          cvrNumber: '12345678',
+          submittedDate: '2024-01-10',
+          status: 'pending',
+          permitType: 'Electrical authorisation',
+          permitDocuments: 3,
+        },
+        {
+          id: '2',
+          companyName: 'Summit Capital',
+          cvrNumber: '87654321',
+          submittedDate: '2024-01-08',
+          status: 'pending',
+          permitType: 'General contractor',
+          permitDocuments: 2,
+        },
+        {
+          id: '3',
+          companyName: 'TechFlow Inc',
+          cvrNumber: '11223344',
+          submittedDate: '2024-01-05',
+          status: 'approved',
+          permitType: 'Plumbing licence',
+          permitDocuments: 4,
+        },
+      ],
     };
   }
 }

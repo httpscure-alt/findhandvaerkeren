@@ -18,13 +18,15 @@ export interface TestimonialItem {
   rating: number;
 }
 
+export type VerificationStatus = 'unverified' | 'pending' | 'verified';
+
 export interface Company {
   id: string;
   name: string;
   description: string;
   shortDescription: string;
-  logoUrl: string;
-  bannerUrl: string;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
   isVerified: boolean;
   rating: number;
   reviewCount: number;
@@ -34,9 +36,22 @@ export interface Company {
   pricingTier: 'Standard' | 'Premium' | 'Elite';
   contactEmail: string;
   website: string;
+  onboardingCompleted?: boolean;
   services: ServiceItem[];
   portfolio: PortfolioItem[];
   testimonials: TestimonialItem[];
+  // Danish verification fields
+  cvrNumber?: string | null;
+  vatNumber?: string | null;
+  legalName?: string | null;
+  businessAddress?: string | null;
+  cvrLookupUrl?: string | null;
+  permitType?: string | null;
+  permitIssuer?: string | null;
+  permitNumber?: string | null;
+  permitDocuments?: string[];
+  verificationStatus?: VerificationStatus;
+  verificationNotes?: string | null;
 }
 
 export interface ConsumerUser {
@@ -89,10 +104,12 @@ export enum ViewState {
   PARTNER_LEADS = 'PARTNER_LEADS',
   PARTNER_BILLING = 'PARTNER_BILLING',
   PARTNER_SETTINGS = 'PARTNER_SETTINGS',
+  PARTNER_VERIFICATION = 'PARTNER_VERIFICATION',
   PARTNER_ONBOARDING_STEP_1 = 'PARTNER_ONBOARDING_STEP_1',
   PARTNER_ONBOARDING_STEP_2 = 'PARTNER_ONBOARDING_STEP_2',
   PARTNER_ONBOARDING_STEP_3 = 'PARTNER_ONBOARDING_STEP_3',
   PARTNER_ONBOARDING_STEP_4 = 'PARTNER_ONBOARDING_STEP_4',
+  PARTNER_ONBOARDING_STEP_5 = 'PARTNER_ONBOARDING_STEP_5',
   PLAN_REVIEW = 'PLAN_REVIEW',
   PAYMENT_COMING_SOON = 'PAYMENT_COMING_SOON',
   
@@ -107,7 +124,14 @@ export enum ViewState {
   ADMIN_INQUIRIES = 'ADMIN_INQUIRIES',
   ADMIN_ANALYTICS = 'ADMIN_ANALYTICS',
   ADMIN_SETTINGS = 'ADMIN_SETTINGS',
-  ADMIN_USERS = 'ADMIN_USERS'
+  ADMIN_USERS = 'ADMIN_USERS',
+  ADMIN_FINANCE = 'ADMIN_FINANCE',
+  ADMIN_TRANSACTIONS = 'ADMIN_TRANSACTIONS',
+  ADMIN_VERIFICATION_QUEUE = 'ADMIN_VERIFICATION_QUEUE',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN_SECURITY_LOGS = 'ADMIN_SECURITY_LOGS',
+  ADMIN_DATABASE = 'ADMIN_DATABASE',
+  ADMIN_API_MONITORING = 'ADMIN_API_MONITORING'
 }
 
 export enum ModalState {

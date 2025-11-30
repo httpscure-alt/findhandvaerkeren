@@ -3,6 +3,7 @@ import {
   saveBasicInfo, 
   saveDescriptions, 
   saveImages, 
+  saveVerification,
   completeOnboarding,
   getOnboardingStatus 
 } from '../controllers/onboardingController';
@@ -18,6 +19,7 @@ router.get('/status', getOnboardingStatus);
 router.post('/step-1', saveBasicInfo);
 router.post('/step-2', saveDescriptions);
 router.post('/step-3', saveImages);
-router.post('/step-4', completeOnboarding);
+router.post('/step-4', saveVerification);
+router.post('/complete', completeOnboarding);
 
 export default router;

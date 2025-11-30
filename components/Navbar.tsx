@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, X, Search, User, Globe, ChevronDown, ShieldCheck, Briefcase } from 'lucide-react';
+import { Menu, X, Search, User, Globe, ChevronDown, ShieldCheck, Briefcase, Shield } from 'lucide-react';
 import { ViewState, Language } from '../types';
 import { translations } from '../translations';
 import MobileDrawer from './layout/MobileDrawer';
@@ -15,9 +15,10 @@ interface NavbarProps {
   isLoggedIn: boolean;
   userRole?: 'CONSUMER' | 'PARTNER' | 'ADMIN' | null;
   onLogout?: () => void;
+  company?: { onboardingCompleted?: boolean } | null;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, onLoginPartner, onLoginConsumer, isLoggedIn, userRole, onLogout }) => {
+const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, onLoginPartner, onLoginConsumer, isLoggedIn, userRole, onLogout, company }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const loginDropdownRef = useRef<HTMLDivElement>(null);
@@ -84,7 +85,18 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
             ) : userRole === 'PARTNER' ? (
               // Partner menu
               <>
-                <span onClick={() => setView(ViewState.PARTNER_DASHBOARD)} className={navLinkClass(ViewState.PARTNER_DASHBOARD)}>
+                <span 
+                  onClick={() => {
+                    // Always go to dashboard - let App.tsx handle routing logic
+                    // Only redirect to onboarding if company explicitly has onboardingCompleted === false
+                    if (company && company.onboardingCompleted === false) {
+                      setView(ViewState.PARTNER_ONBOARDING_STEP_1);
+                    } else {
+                      setView(ViewState.PARTNER_DASHBOARD);
+                    }
+                  }} 
+                  className={navLinkClass(ViewState.PARTNER_DASHBOARD)}
+                >
                   {lang === 'da' ? 'Dashboard' : 'Dashboard'}
                 </span>
                 <span onClick={() => setView(ViewState.LISTINGS)} className={navLinkClass(ViewState.LISTINGS)}>{t.browse}</span>
@@ -92,6 +104,9 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
             ) : userRole === 'ADMIN' ? (
               // Admin menu
               <>
+                <span onClick={() => setView(ViewState.SUPER_ADMIN)} className={navLinkClass(ViewState.SUPER_ADMIN)}>
+                  {lang === 'da' ? 'Super Admin' : 'Super Admin'}
+                </span>
                 <span onClick={() => setView(ViewState.ADMIN)} className={navLinkClass(ViewState.ADMIN)}>
                   {lang === 'da' ? 'Dashboard' : 'Dashboard'}
                 </span>
@@ -161,7 +176,19 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
                     )}
                     {userRole === 'PARTNER' && (
                       <>
-                        <button onClick={() => { setView(ViewState.PARTNER_DASHBOARD); setIsLoginOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors flex items-center gap-2">
+                        <button 
+                          onClick={() => { 
+                            // Always go to dashboard - let App.tsx handle routing logic
+                            // Only redirect to onboarding if company explicitly has onboardingCompleted === false
+                            if (company && company.onboardingCompleted === false) {
+                              setView(ViewState.PARTNER_ONBOARDING_STEP_1);
+                            } else {
+                              setView(ViewState.PARTNER_DASHBOARD);
+                            }
+                            setIsLoginOpen(false); 
+                          }} 
+                          className="w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors flex items-center gap-2"
+                        >
                           <Briefcase size={14} /> {lang === 'da' ? 'Dashboard' : 'Dashboard'}
                         </button>
                         <button onClick={() => { setView(ViewState.PARTNER_PROFILE_EDIT); setIsLoginOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-black transition-colors flex items-center gap-2">
@@ -174,6 +201,9 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
                     )}
                     {userRole === 'ADMIN' && (
                       <>
+                        <button onClick={() => { setView(ViewState.SUPER_ADMIN); setIsLoginOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors flex items-center gap-2 font-semibold">
+                          <Shield size={14} /> {lang === 'da' ? 'Super Admin' : 'Super Admin'}
+                        </button>
                         <button onClick={() => { setView(ViewState.ADMIN); setIsLoginOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-black transition-colors flex items-center gap-2">
                           <ShieldCheck size={14} /> {lang === 'da' ? 'Dashboard' : 'Dashboard'}
                         </button>
@@ -238,6 +268,7 @@ const Navbar: React.FC<NavbarProps> = ({ setView, currentView, lang, setLang, on
         onLoginPartner={onLoginPartner}
         onLoginConsumer={onLoginConsumer}
         onLogout={onLogout}
+        company={company}
       />
     </>
   );

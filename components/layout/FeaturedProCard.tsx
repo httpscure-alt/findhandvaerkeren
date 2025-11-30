@@ -35,15 +35,22 @@ const FeaturedProCard: React.FC<FeaturedProCardProps> = ({ company, lang, onView
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      {/* Image */}
+      {/* Image - with placeholder if missing */}
       <div className="relative h-32 bg-gray-100 overflow-hidden rounded-t-2xl">
-        <img 
-          src={company.bannerUrl || company.logoUrl} 
-          alt={company.name} 
-          className="w-full h-full object-cover"
-        />
-        {/* Verified Badge - Top Right Corner (Same style as ListingCard) */}
-        {company.isVerified && (
+        {company.bannerUrl || company.logoUrl ? (
+          <img 
+            src={company.bannerUrl || company.logoUrl} 
+            alt={company.name} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200"></div>
+        )}
+        {/* Verified Badge - Use verificationStatus === 'verified' (Danish verification requirements) */}
+        {(company.verificationStatus === 'verified' || company.isVerified) && (
           <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-indigo-50 shadow-sm">
             <BadgeCheck size={14} className="text-nexus-verified fill-nexus-verified text-white" />
             <span className="text-[10px] font-bold tracking-wide uppercase text-nexus-subtext">{t.verifiedPartner}</span>
@@ -55,7 +62,8 @@ const FeaturedProCard: React.FC<FeaturedProCardProps> = ({ company, lang, onView
       <div className="p-4">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="text-lg font-bold text-[#1D1D1F]">{company.name}</h3>
-          {company.isVerified && (
+          {/* Use verificationStatus === 'verified' for verified badge (Danish verification requirements) */}
+          {(company.verificationStatus === 'verified' || company.isVerified) && (
             <BadgeCheck size={18} className="text-nexus-verified" />
           )}
         </div>

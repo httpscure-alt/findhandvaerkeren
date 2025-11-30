@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import ListingCard from './components/ListingCard';
@@ -47,6 +47,10 @@ import TestimonialsManagement from './components/pages/partner/TestimonialsManag
 import LeadsMessagesPage from './components/pages/partner/LeadsMessagesPage';
 import SubscriptionBillingPage from './components/pages/partner/SubscriptionBillingPage';
 import PartnerAccountSettings from './components/pages/partner/PartnerAccountSettings';
+import VerificationSection from './components/pages/partner/VerificationSection';
+import FinanceDashboard from './components/pages/admin/FinanceDashboard';
+import TransactionsPage from './components/pages/admin/TransactionsPage';
+import VerificationQueuePage from './components/pages/admin/VerificationQueuePage';
 
 // Admin Pages
 import CompaniesManagement from './components/pages/admin/CompaniesManagement';
@@ -59,6 +63,7 @@ import InquiriesManagement from './components/pages/admin/InquiriesManagement';
 import AnalyticsPage from './components/pages/admin/AnalyticsPage';
 import PlatformSettings from './components/pages/admin/PlatformSettings';
 import AdminUsersPage from './components/pages/admin/AdminUsersPage';
+import SuperAdminDashboard from './components/pages/admin/SuperAdminDashboard';
 
 import { Company, FilterState, ViewState, GeminiSearchResponse, Language, ModalState, ConsumerUser } from './types';
 import { MOCK_COMPANIES, CATEGORIES, MOCK_CONSUMER } from './constants';
@@ -72,6 +77,7 @@ const App: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.HOME);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(false);
   
   // User Session State (for backward compatibility with mock login)
   const [currentPartner, setCurrentPartner] = useState<Company | null>(null);
@@ -101,7 +107,59 @@ const App: React.FC = () => {
   const userRole = user?.role || (currentPartner ? 'PARTNER' : currentConsumer ? 'CONSUMER' : null);
   const isLoggedIn = isAuthenticated || !!currentPartner || !!currentConsumer;
 
-  // Check onboarding status for partners
+  // Check onboarding status for partners when navigating to dashboard
+  useEffect(() => {
+    const checkOnboardingForDashboard = async () => {
+      if (currentView === ViewState.PARTNER_DASHBOARD && userRole === 'PARTNER' && isAuthenticated && user && !isCheckingOnboarding) {
+        setIsCheckingOnboarding(true);
+        try {
+          const status = await api.getOnboardingStatus();
+          // Only redirect if onboarding is explicitly not completed AND we have a company
+          // If no company exists, that's a different case (new signup)
+          if (status.hasCompany && !status.onboardingCompleted) {
+            // Company exists but onboarding not completed - redirect to appropriate step
+            const stepViewMap: Record<number, ViewState> = {
+              0: ViewState.PARTNER_ONBOARDING_STEP_1,
+              1: ViewState.PARTNER_ONBOARDING_STEP_1,
+              2: ViewState.PARTNER_ONBOARDING_STEP_2,
+              3: ViewState.PARTNER_ONBOARDING_STEP_3,
+              4: ViewState.PARTNER_ONBOARDING_STEP_4,
+              5: ViewState.PARTNER_ONBOARDING_STEP_5,
+            };
+            if (stepViewMap[status.step]) {
+              setCurrentView(stepViewMap[status.step]);
+            } else {
+              setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+            }
+          } else if (!status.hasCompany) {
+            // No company exists - redirect to onboarding step 1
+            setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+          }
+          // If onboardingCompleted === true, do nothing - show dashboard
+        } catch (error) {
+          // API error - check company object directly, but be less aggressive
+          const company = getCurrentCompany();
+          // Only redirect if we're certain onboarding is incomplete
+          // If company exists but onboardingCompleted is undefined/null, assume it's completed
+          if (company && company.onboardingCompleted === false) {
+            setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+          } else if (!company) {
+            // No company at all - redirect to onboarding
+            setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
+          }
+          // If company exists and onboardingCompleted is not explicitly false, show dashboard
+        } finally {
+          setIsCheckingOnboarding(false);
+        }
+      } else if (currentView !== ViewState.PARTNER_DASHBOARD) {
+        // Reset checking flag when not on dashboard
+        setIsCheckingOnboarding(false);
+      }
+    };
+    checkOnboardingForDashboard();
+  }, [currentView, userRole, isAuthenticated, user]);
+
+  // Check onboarding status for partners (legacy - for showOnboarding state)
   useEffect(() => {
     const checkOnboarding = async () => {
       if (userRole === 'PARTNER' && isAuthenticated && user) {
@@ -231,7 +289,8 @@ const App: React.FC = () => {
   const filteredCompanies = MOCK_COMPANIES.filter(company => {
     const matchesCategory = filters.category === 'All' || company.category === filters.category;
     const matchesLocation = filters.location === 'All' || !filters.location || company.location === filters.location;
-    const matchesVerified = !filters.verifiedOnly || company.isVerified;
+    // Use verificationStatus === 'verified' for verified filter (Danish verification requirements)
+    const matchesVerified = !filters.verifiedOnly || (company.verificationStatus === 'verified' || company.isVerified);
     const query = filters.searchQuery.toLowerCase();
     const matchesSearch = !query || 
       company.name.toLowerCase().includes(query) || 
@@ -256,7 +315,9 @@ const App: React.FC = () => {
     currentView === ViewState.PARTNER_LEADS ||
     currentView === ViewState.PARTNER_BILLING ||
     currentView === ViewState.PARTNER_SETTINGS ||
+    currentView === ViewState.PARTNER_VERIFICATION ||
     currentView === ViewState.ADMIN ||
+    currentView === ViewState.SUPER_ADMIN ||
     currentView.toString().startsWith('ADMIN_');
 
   const handleHeroSearch = () => {
@@ -662,7 +723,7 @@ const App: React.FC = () => {
         <PlanReview
           lang={lang}
           onContinueToPayment={() => setCurrentView(ViewState.PAYMENT_COMING_SOON)}
-          onBack={() => setCurrentView(ViewState.PARTNER_DASHBOARD)}
+          onBack={() => setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_5)}
         />
       );
     }
@@ -670,7 +731,13 @@ const App: React.FC = () => {
       return (
         <PaymentComingSoon
           lang={lang}
-          onBack={() => setCurrentView(ViewState.PARTNER_DASHBOARD)}
+          onBack={() => setCurrentView(ViewState.PLAN_REVIEW)}
+          onContinue={() => {
+            // After payment page, redirect to partner dashboard
+            // Clear selectedPlan from localStorage since payment is handled
+            localStorage.removeItem('selectedPlan');
+            setCurrentView(ViewState.PARTNER_DASHBOARD);
+          }}
         />
       );
     }
@@ -809,8 +876,26 @@ const App: React.FC = () => {
           currentStep={4}
           onNavigate={setCurrentView}
           onComplete={() => {
-            // Step 4 completion automatically navigates to PLAN_REVIEW via handleComplete
+            // Step 4 completion automatically navigates to step 5 via handleStep4Submit
             // This callback is a fallback
+            const savedPlan = localStorage.getItem('selectedPlan');
+            if (savedPlan) {
+              setCurrentView(ViewState.PLAN_REVIEW);
+            } else {
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
+            }
+          }}
+        />
+      );
+    }
+    if (currentView === ViewState.PARTNER_ONBOARDING_STEP_5) {
+      return (
+        <PartnerOnboardingWizard
+          lang={lang}
+          currentStep={5}
+          onNavigate={setCurrentView}
+          onComplete={() => {
+            // Step 5 completion automatically navigates to PLAN_REVIEW via handleComplete
             const savedPlan = localStorage.getItem('selectedPlan');
             if (savedPlan) {
               setCurrentView(ViewState.PLAN_REVIEW);
@@ -825,34 +910,17 @@ const App: React.FC = () => {
     // Partner Pages
     if (currentView === ViewState.PARTNER_DASHBOARD) {
       const company = getCurrentCompany();
-      // Only redirect to onboarding if user just signed up (has selectedPlan)
-      // Don't auto-redirect existing partners who navigate to dashboard
-      const savedPlan = localStorage.getItem('selectedPlan');
-      if (savedPlan && (!company || showOnboarding)) {
-        // User just signed up - check onboarding status and redirect
-        const checkAndRedirect = async () => {
-          try {
-            const { step } = await api.getOnboardingStatus();
-            const stepViewMap: Record<number, ViewState> = {
-              0: ViewState.PARTNER_ONBOARDING_STEP_1,
-              1: ViewState.PARTNER_ONBOARDING_STEP_2,
-              2: ViewState.PARTNER_ONBOARDING_STEP_3,
-              3: ViewState.PARTNER_ONBOARDING_STEP_4,
-            };
-            if (stepViewMap[step]) {
-              setCurrentView(stepViewMap[step]);
-            } else {
-              setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
-            }
-          } catch {
-            setCurrentView(ViewState.PARTNER_ONBOARDING_STEP_1);
-          }
-        };
-        checkAndRedirect();
-        return null;
+      
+      // Show loading while checking onboarding status (handled by useEffect above)
+      if (isCheckingOnboarding && user?.role === 'PARTNER') {
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="animate-spin text-nexus-accent" size={32} />
+          </div>
+        );
       }
-      // If no savedPlan, user is an existing partner - show dashboard normally
-      // Show business dashboard if company exists
+      
+      // Show dashboard (onboarding check will redirect if needed via useEffect)
       return (
         <BusinessDashboard
           lang={lang}
@@ -928,7 +996,7 @@ const App: React.FC = () => {
           company={company}
           lang={lang}
           onBack={() => setCurrentView(ViewState.PARTNER_DASHBOARD)}
-          onUpgrade={() => setCurrentView(ViewState.PRICING)}
+          onNavigate={setCurrentView}
         />
       );
     }
@@ -944,8 +1012,27 @@ const App: React.FC = () => {
         />
       );
     }
+    if (currentView === ViewState.PARTNER_VERIFICATION) {
+      const company = getCurrentCompany();
+      if (!company) return null;
+      return (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <VerificationSection
+            company={company}
+            lang={lang}
+            onUpdate={(updated) => {
+              // Update company in state
+              setCurrentView(ViewState.PARTNER_DASHBOARD);
+            }}
+          />
+        </div>
+      );
+    }
 
     // Admin Pages
+    if (currentView === ViewState.SUPER_ADMIN) {
+      return <SuperAdminDashboard lang={lang} onNavigate={(view) => setCurrentView(view as ViewState)} />;
+    }
     if (currentView === ViewState.ADMIN) {
       return <AdminDashboard lang={lang} />;
     }
@@ -979,6 +1066,24 @@ const App: React.FC = () => {
     if (currentView === ViewState.ADMIN_USERS) {
       return <AdminUsersPage lang={lang} onBack={() => setCurrentView(ViewState.ADMIN)} />;
     }
+    if (currentView === ViewState.ADMIN_FINANCE) {
+      return <FinanceDashboard lang={lang} onBack={() => setCurrentView(ViewState.ADMIN)} />;
+    }
+    if (currentView === ViewState.ADMIN_TRANSACTIONS) {
+      return <TransactionsPage lang={lang} onBack={() => setCurrentView(ViewState.ADMIN)} />;
+    }
+    if (currentView === ViewState.ADMIN_VERIFICATION_QUEUE) {
+      return <VerificationQueuePage lang={lang} onBack={() => setCurrentView(ViewState.ADMIN)} />;
+    }
+    if (currentView === ViewState.ADMIN_SECURITY_LOGS) {
+      return <SecurityLogsPage lang={lang} onBack={() => setCurrentView(ViewState.SUPER_ADMIN)} />;
+    }
+    if (currentView === ViewState.ADMIN_DATABASE) {
+      return <DatabaseManagementPage lang={lang} onBack={() => setCurrentView(ViewState.SUPER_ADMIN)} />;
+    }
+    if (currentView === ViewState.ADMIN_API_MONITORING) {
+      return <ApiMonitoringPage lang={lang} onBack={() => setCurrentView(ViewState.SUPER_ADMIN)} />;
+    }
 
     return null;
   };
@@ -995,6 +1100,7 @@ const App: React.FC = () => {
         isLoggedIn={isLoggedIn}
         userRole={userRole}
         onLogout={handleLogout}
+        company={user?.role === 'PARTNER' ? getCurrentCompany() : null}
       />
       
       <div className="flex">

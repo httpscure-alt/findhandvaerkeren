@@ -33,7 +33,11 @@ export const getCompanies = async (req: Request, res: Response): Promise<void> =
     }
 
     if (verifiedOnly === 'true') {
-      where.isVerified = true;
+      // Use verificationStatus === 'verified' for verified filter (Danish verification requirements)
+      where.OR = [
+        { verificationStatus: 'verified' },
+        { isVerified: true },
+      ];
     }
 
     if (search) {

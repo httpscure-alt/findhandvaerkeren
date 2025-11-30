@@ -14,6 +14,7 @@ interface MobileDrawerProps {
   onLoginPartner: () => void;
   onLoginConsumer: () => void;
   onLogout?: () => void;
+  company?: { onboardingCompleted?: boolean } | null;
 }
 
 const MobileDrawer: React.FC<MobileDrawerProps> = ({
@@ -26,6 +27,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
   onLoginPartner,
   onLoginConsumer,
   onLogout,
+  company,
 }) => {
   const t = translations[lang].nav;
 
@@ -193,7 +195,14 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
               {userRole === 'PARTNER' && (
                 <>
                   <button
-                    onClick={() => handleNavigate(ViewState.PARTNER_DASHBOARD)}
+                    onClick={() => {
+                      // If onboarding not completed, redirect to onboarding, else to dashboard
+                      if (company && !company.onboardingCompleted) {
+                        handleNavigate(ViewState.PARTNER_ONBOARDING_STEP_1);
+                      } else {
+                        handleNavigate(ViewState.PARTNER_DASHBOARD);
+                      }
+                    }}
                     className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
                   >
                     {lang === 'da' ? 'Dashboard' : 'Dashboard'}

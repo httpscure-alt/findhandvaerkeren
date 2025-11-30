@@ -63,7 +63,7 @@ export const saveDescriptions = async (req: AuthRequest, res: Response): Promise
   }
 };
 
-// Step 3: Upload Images
+// Step 3: Upload Images (logo and banner are optional)
 export const saveImages = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
@@ -72,8 +72,9 @@ export const saveImages = async (req: AuthRequest, res: Response): Promise<void>
     const company = await prisma.company.update({
       where: { ownerId: userId },
       data: {
-        logoUrl,
-        bannerUrl,
+        // Logo and banner are optional - save even if empty
+        logoUrl: logoUrl || null,
+        bannerUrl: bannerUrl || null,
       },
     });
 
@@ -109,13 +110,63 @@ export const saveImages = async (req: AuthRequest, res: Response): Promise<void>
   }
 };
 
-// Step 4: Complete Onboarding
+// Step 4: Business Verification
+export const saveVerification = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId!;
+    const { 
+      cvrNumber, 
+      vatNumber, 
+      legalName, 
+      businessAddress, 
+      cvrLookupUrl, 
+      permitType, 
+      permitIssuer, 
+      permitNumber, 
+      permitDocuments, 
+      requestVerification 
+    } = req.body;
+
+    // Set verification status based on request
+    // Testimonials creation temporarily disabled until we finalise moderation rules.
+    const verificationStatus = requestVerification ? 'pending' : 'unverified';
+
+    const company = await prisma.company.update({
+      where: { ownerId: userId },
+      data: {
+        cvrNumber: cvrNumber || null,
+        vatNumber: vatNumber || null,
+        legalName: legalName || null,
+        businessAddress: businessAddress || null,
+        cvrLookupUrl: cvrLookupUrl || null,
+        permitType: permitType || null,
+        permitIssuer: permitIssuer || null,
+        permitNumber: permitNumber || null,
+        permitDocuments: permitDocuments || [],
+        verificationStatus: verificationStatus,
+        // Only set isVerified to true if status is verified (admin action)
+        isVerified: verificationStatus === 'verified',
+      },
+    });
+
+    res.json({ company, step: 4 });
+  } catch (error) {
+    console.error('Save verification error:', error);
+    res.status(500).json({ error: 'Failed to save verification info' });
+  }
+};
+
+// Step 5: Complete Onboarding
 export const completeOnboarding = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
 
-    const company = await prisma.company.findUnique({
+    // Mark onboarding as completed
+    const company = await prisma.company.update({
       where: { ownerId: userId },
+      data: {
+        onboardingCompleted: true,
+      },
       include: {
         services: true,
         portfolio: true,
@@ -130,8 +181,9 @@ export const completeOnboarding = async (req: AuthRequest, res: Response): Promi
 
     res.json({ 
       company,
-      step: 4,
+      step: 5,
       completed: true,
+      onboardingCompleted: true,
       message: 'Onboarding completed successfully'
     });
   } catch (error) {
@@ -153,17 +205,33 @@ export const getOnboardingStatus = async (req: AuthRequest, res: Response): Prom
     });
 
     if (!company) {
-      res.json({ step: 0, hasCompany: false });
+      res.json({ step: 0, hasCompany: false, onboardingCompleted: false });
       return;
     }
 
-    // Determine current step
+    // If onboarding is completed, return that status
+    if (company.onboardingCompleted) {
+      res.json({ 
+        step: 5, 
+        hasCompany: true, 
+        onboardingCompleted: true,
+        company 
+      });
+      return;
+    }
+
+    // Determine current step based on completion
     let step = 1;
     if (company.shortDescription && company.description) step = 2;
     if (company.logoUrl || company.bannerUrl) step = 3;
-    if (company.portfolio && company.portfolio.length > 0) step = 4;
+    if (company.cvrNumber || company.permitType) step = 4; // Step 4 is verification
 
-    res.json({ step, hasCompany: true, company });
+    res.json({ 
+      step, 
+      hasCompany: true, 
+      onboardingCompleted: company.onboardingCompleted || false,
+      company 
+    });
   } catch (error) {
     console.error('Get onboarding status error:', error);
     res.status(500).json({ error: 'Failed to get onboarding status' });

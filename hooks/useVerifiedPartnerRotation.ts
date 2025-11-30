@@ -41,9 +41,11 @@ export const useVerifiedPartnerRotation = (
     return useApi && apiCompanies.length > 0 ? apiCompanies : companies;
   }, [useApi, apiCompanies, companies]);
 
-  // Filter and memoize verified partners
+  // Filter and memoize verified partners - Use verificationStatus === 'verified' (Danish verification requirements)
   const verifiedPartners = useMemo(() => {
-    return allCompanies.filter(company => company.isVerified === true);
+    return allCompanies.filter(company => 
+      company.verificationStatus === 'verified' || company.isVerified === true
+    );
   }, [allCompanies]);
 
   // Get random starting index
@@ -53,7 +55,9 @@ export const useVerifiedPartnerRotation = (
 
   // Initialize with random partner (use initial companies, not memoized)
   const [currentIndex, setCurrentIndex] = useState(() => {
-    const initialPartners = companies.filter(company => company.isVerified === true);
+    const initialPartners = companies.filter(company => 
+      company.verificationStatus === 'verified' || company.isVerified === true
+    );
     if (initialPartners.length === 0) return -1;
     return Math.floor(Math.random() * initialPartners.length);
   });

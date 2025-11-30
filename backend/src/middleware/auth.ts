@@ -41,3 +41,9 @@ export const requireRole = (...roles: string[]) => {
     next();
   };
 };
+
+// Alias for authenticate
+export const authenticateToken = authenticate;
+
+// Require admin role
+export const requireAdmin = requireRole('ADMIN');

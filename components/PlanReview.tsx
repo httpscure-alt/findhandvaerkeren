@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ArrowRight, CreditCard } from 'lucide-react';
 import { Language, SelectedPlan } from '../types';
 import { translations } from '../translations';
+import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES, formatPrice } from '../constants/pricing';
 
 interface PlanReviewProps {
   lang: Language;
@@ -20,65 +21,65 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
     // Load selected plan from localStorage
     const savedPlan = localStorage.getItem('selectedPlan');
     if (savedPlan) {
-      const plan = JSON.parse(savedPlan);
-      setSelectedPlan(plan);
-      setPricingMode(plan.billingPeriod || 'monthly');
+      try {
+        const plan = JSON.parse(savedPlan);
+        // Ensure monthlyPrice is set correctly (fix if 0 or missing)
+        const validPlan = {
+          ...plan,
+          monthlyPrice: (plan.monthlyPrice && plan.monthlyPrice > 0) 
+            ? plan.monthlyPrice 
+            : PARTNER_PLAN_PRICING.MONTHLY,
+          billingPeriod: plan.billingPeriod || 'monthly',
+        };
+        setSelectedPlan(validPlan);
+        setPricingMode(validPlan.billingPeriod || 'monthly');
+        // Update localStorage with corrected plan
+        localStorage.setItem('selectedPlan', JSON.stringify(validPlan));
+      } catch (error) {
+        // If parsing fails, create default plan
+        const defaultPlan = {
+          id: 'partner',
+          name: 'Partner Plan',
+          monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+          billingPeriod: 'monthly',
+        };
+        setSelectedPlan(defaultPlan);
+        setPricingMode('monthly');
+        localStorage.setItem('selectedPlan', JSON.stringify(defaultPlan));
+      }
+    } else {
+      // No plan in localStorage, create default
+      const defaultPlan = {
+        id: 'partner',
+        name: 'Partner Plan',
+        monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+        billingPeriod: 'monthly',
+      };
+      setSelectedPlan(defaultPlan);
+      setPricingMode('monthly');
+      localStorage.setItem('selectedPlan', JSON.stringify(defaultPlan));
     }
   }, []);
 
-  // Calculate price based on mode
-  const getPrice = (monthlyPrice: number): number => {
-    if (pricingMode === 'monthly') {
-      return monthlyPrice;
-    }
-    // Annual: monthly * 12 * 0.8 (20% discount)
-    return Math.round(monthlyPrice * 12 * 0.8);
+  // Use centralized pricing format function
+  const getPriceInfo = () => {
+    // Always use PARTNER_PLAN_PRICING.MONTHLY if monthlyPrice is missing, 0, or invalid
+    const monthlyPrice = (selectedPlan?.monthlyPrice && selectedPlan.monthlyPrice > 0) 
+      ? selectedPlan.monthlyPrice 
+      : PARTNER_PLAN_PRICING.MONTHLY;
+    return formatPrice(monthlyPrice, pricingMode, lang);
   };
 
-  // Format price display
-  const formatPrice = (monthlyPrice: number): { price: string; period: string; billing: string } => {
-    const price = getPrice(monthlyPrice);
-    const period = pricingMode === 'monthly' 
-      ? (lang === 'da' ? '/måned' : '/month')
-      : (lang === 'da' ? '/år' : '/year');
-    const billing = pricingMode === 'monthly'
-      ? (lang === 'da' ? 'Faktureret månedligt' : 'Billed monthly')
-      : (lang === 'da' ? 'Faktureret årligt (20% RABAT)' : 'Billed yearly (20% OFF)');
-    
-    return {
-      price: `$${price}`,
-      period,
-      billing
-    };
+  // Ensure we have a valid plan with correct pricing
+  const validPlan = selectedPlan || {
+    id: 'partner',
+    name: 'Partner Plan',
+    monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+    billingPeriod: pricingMode,
   };
 
-  if (!selectedPlan) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <p className="text-gray-500">
-          {lang === 'da' ? 'Ingen plan valgt' : 'No plan selected'}
-        </p>
-      </div>
-    );
-  }
-
-  const priceInfo = formatPrice(selectedPlan.monthlyPrice);
-
-  // Features based on plan
-  const getFeatures = () => {
-    if (selectedPlan.id === 'pro') {
-      return [
-        t.features.priority,
-        t.features.verified,
-        t.features.search3,
-        t.features.messaging,
-        t.features.customHeader,
-      ];
-    }
-    return [];
-  };
-
-  const features = getFeatures();
+  const priceInfo = getPriceInfo();
+  const features = PARTNER_PLAN_FEATURES.PRO;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fadeIn">
@@ -111,11 +112,13 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             onClick={() => {
               const newMode = pricingMode === 'monthly' ? 'annual' : 'monthly';
               setPricingMode(newMode);
-              if (selectedPlan) {
-                const updatedPlan = { ...selectedPlan, billingPeriod: newMode };
-                setSelectedPlan(updatedPlan);
-                localStorage.setItem('selectedPlan', JSON.stringify(updatedPlan));
-              }
+              const updatedPlan = { 
+                ...validPlan, 
+                monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+                billingPeriod: newMode 
+              };
+              setSelectedPlan(updatedPlan);
+              localStorage.setItem('selectedPlan', JSON.stringify(updatedPlan));
             }}
             className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-nexus-accent focus:ring-offset-2 ${
               pricingMode === 'annual' ? 'bg-[#1D1D1F]' : 'bg-gray-300'
@@ -143,7 +146,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-xl font-bold text-[#1D1D1F] mb-2">
-                  {selectedPlan.name} {lang === 'da' ? 'Plan' : 'Plan'}
+                  {validPlan.name || 'Partner Plan'}
                 </h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-bold text-[#1D1D1F]">
@@ -192,7 +195,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             onClick={onContinueToPayment}
             className="flex-1 py-3 px-6 rounded-xl font-medium bg-[#1D1D1F] text-white hover:bg-black shadow-lg transition-all flex items-center justify-center gap-2"
           >
-            {lang === 'da' ? 'Fortsæt til betaling' : 'Continue to Payment'}
+            {lang === 'da' ? 'Fortsæt til betaling (Stripe kommer snart)' : 'Continue to Payment (Stripe coming soon)'}
             <ArrowRight size={18} />
           </button>
         </div>

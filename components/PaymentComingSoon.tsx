@@ -5,9 +5,10 @@ import { Language, ViewState } from '../types';
 interface PaymentComingSoonProps {
   lang: Language;
   onBack?: () => void;
+  onContinue?: () => void;
 }
 
-const PaymentComingSoon: React.FC<PaymentComingSoonProps> = ({ lang, onBack }) => {
+const PaymentComingSoon: React.FC<PaymentComingSoonProps> = ({ lang, onBack, onContinue }) => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fadeIn">
       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-12 text-center">
@@ -57,16 +58,26 @@ const PaymentComingSoon: React.FC<PaymentComingSoonProps> = ({ lang, onBack }) =
           </div>
         </div>
 
-        {/* Back Button */}
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
-          >
-            <ArrowLeft size={18} />
-            {lang === 'da' ? 'Tilbage til dashboard' : 'Back to Dashboard'}
-          </button>
-        )}
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
+            >
+              <ArrowLeft size={18} />
+              {lang === 'da' ? 'Tilbage' : 'Back'}
+            </button>
+          )}
+          {onContinue && (
+            <button
+              onClick={onContinue}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-[#1D1D1F] text-white hover:bg-black transition-all"
+            >
+              {lang === 'da' ? 'Gå til dashboard' : 'Go to Dashboard'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

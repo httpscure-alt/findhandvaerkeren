@@ -463,7 +463,7 @@ class ApiService {
   // Onboarding (Partner)
   async getOnboardingStatus() {
     try {
-      return await this.request<{ step: number; hasCompany: boolean; company?: any }>('/onboarding/status');
+      return await this.request<{ step: number; hasCompany: boolean; onboardingCompleted: boolean; company?: any }>('/onboarding/status');
     } catch (error: any) {
       if (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE') {
         return mockApi.getOnboardingStatus();
@@ -514,9 +514,34 @@ class ApiService {
     }
   }
 
+  async saveOnboardingStep4(data: { 
+    cvrNumber?: string; 
+    vatNumber?: string; 
+    legalName?: string; 
+    businessAddress?: string; 
+    cvrLookupUrl?: string; 
+    permitType?: string; 
+    permitIssuer?: string; 
+    permitNumber?: string; 
+    permitDocuments?: string[]; 
+    requestVerification?: boolean;
+  }) {
+    try {
+      return await this.request<{ company: any; step: number }>('/onboarding/step-4', {
+        method: 'POST',
+        body: data,
+      });
+    } catch (error: any) {
+      if (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE') {
+        return mockApi.saveOnboardingStep4(data);
+      }
+      throw error;
+    }
+  }
+
   async completeOnboarding() {
     try {
-      return await this.request<{ company: any; step: number; completed: boolean }>('/onboarding/step-4', {
+      return await this.request<{ company: any; step: number; completed: boolean; onboardingCompleted: boolean }>('/onboarding/complete', {
         method: 'POST',
       });
     } catch (error: any) {
@@ -612,6 +637,48 @@ class ApiService {
     } catch (error: any) {
       if (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE') {
         return mockApi.getBusinessAnalytics();
+      }
+      throw error;
+    }
+  }
+
+  // Admin Finance & Transactions
+  async getFinanceMetrics() {
+    try {
+      return await this.request<{
+        totalRevenue: number;
+        monthlyRecurringRevenue: number;
+        activeSubscriptions: number;
+        newSubscriptionsThisMonth: number;
+        cancellationsThisMonth: number;
+        upcomingRenewals: number;
+      }>('/admin/metrics/revenue');
+    } catch (error: any) {
+      if (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE') {
+        return mockApi.getFinanceMetrics();
+      }
+      throw error;
+    }
+  }
+
+  async getTransactions(params?: { dateRange?: string }) {
+    try {
+      const queryString = params ? `?${new URLSearchParams(params as any).toString()}` : '';
+      return await this.request<{ transactions: any[] }>(`/admin/transactions${queryString}`);
+    } catch (error: any) {
+      if (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE') {
+        return mockApi.getTransactions(params);
+      }
+      throw error;
+    }
+  }
+
+  async getVerificationQueue() {
+    try {
+      return await this.request<{ requests: any[] }>('/admin/verification-queue');
+    } catch (error: any) {
+      if (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE') {
+        return mockApi.getVerificationQueue();
       }
       throw error;
     }

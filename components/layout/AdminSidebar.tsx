@@ -12,7 +12,13 @@ import {
   BarChart3,
   Settings,
   ShieldCheck,
-  LogOut
+  LogOut,
+  DollarSign,
+  Receipt,
+  FileCheck,
+  Shield,
+  Database,
+  Activity
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -78,6 +84,36 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ currentView, lang, onNaviga
       view: ViewState.ADMIN_USERS,
       icon: ShieldCheck,
       label: lang === 'da' ? 'Admin Brugere' : 'Admin Users'
+    },
+    {
+      view: ViewState.ADMIN_FINANCE,
+      icon: DollarSign,
+      label: lang === 'da' ? 'Finans' : 'Finance'
+    },
+    {
+      view: ViewState.ADMIN_TRANSACTIONS,
+      icon: Receipt,
+      label: lang === 'da' ? 'Transaktioner' : 'Transactions'
+    },
+    {
+      view: ViewState.ADMIN_VERIFICATION_QUEUE,
+      icon: FileCheck,
+      label: lang === 'da' ? 'Verificeringskø' : 'Verification Queue'
+    },
+    {
+      view: ViewState.ADMIN_SECURITY_LOGS,
+      icon: ShieldCheck,
+      label: lang === 'da' ? 'Sikkerhedslog' : 'Security Logs'
+    },
+    {
+      view: ViewState.ADMIN_DATABASE,
+      icon: Database,
+      label: lang === 'da' ? 'Database' : 'Database'
+    },
+    {
+      view: ViewState.ADMIN_API_MONITORING,
+      icon: Activity,
+      label: lang === 'da' ? 'API Monitoring' : 'API Monitoring'
     }
   ];
 
@@ -94,7 +130,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ currentView, lang, onNaviga
               onClick={() => onNavigate(item.view)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 isActive
-                  ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
+                  ? item.highlight 
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium shadow-lg'
+                    : 'bg-nexus-bg text-[#1D1D1F] font-medium'
+                  : item.highlight
+                  ? 'text-purple-600 hover:bg-purple-50 hover:text-purple-700'
                   : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
               }`}
             >

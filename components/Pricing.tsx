@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { Language, ModalState, SelectedPlan } from '../types';
 import { translations } from '../translations';
+import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES, formatPrice } from '../constants/pricing';
 
 interface PricingProps {
   lang: Language;
@@ -15,44 +16,16 @@ const Pricing: React.FC<PricingProps> = ({ lang, onOpenModal, onPlanSelected }) 
   const [pricingMode, setPricingMode] = useState<PricingMode>('monthly');
   const t = translations[lang].pricing;
 
-  // Calculate price based on mode
-  const getPrice = (monthlyPrice: number): number => {
-    if (pricingMode === 'monthly') {
-      return monthlyPrice;
-    }
-    // Annual: monthly * 12 * 0.8 (20% discount)
-    return Math.round(monthlyPrice * 12 * 0.8);
-  };
-
-  // Format price display
-  const formatPrice = (monthlyPrice: number): { price: string; period: string; billing: string } => {
-    const price = getPrice(monthlyPrice);
-    const period = pricingMode === 'monthly' 
-      ? (lang === 'da' ? '/måned' : '/month')
-      : (lang === 'da' ? '/år' : '/year');
-    const billing = pricingMode === 'monthly'
-      ? (lang === 'da' ? 'Faktureret månedligt' : 'Billed monthly')
-      : (lang === 'da' ? 'Faktureret årligt (20% RABAT)' : 'Billed yearly (20% OFF)');
-    
-    return {
-      price: `$${price}`,
-      period,
-      billing
-    };
+  // Use centralized pricing format function
+  const getPriceInfo = (monthlyPrice: number) => {
+    return formatPrice(monthlyPrice, pricingMode, lang);
   };
 
   const handlePlanSelect = (tierName: string, isPaid: boolean, monthlyPrice: number) => {
-    // All plans are for partners only
-    // Elite -> Open Sales Contact
-    if (tierName === 'Elite') {
-      onOpenModal(ModalState.CONTACT_SALES);
-      return;
-    }
-
-    // Basic or Pro -> Save plan and redirect to Partner Signup
+    // Save plan and redirect to Partner Signup
     const selectedPlan: SelectedPlan = {
-      id: tierName.toLowerCase(),
-      name: tierName,
+      id: 'partner',
+      name: 'Partner Plan',
       monthlyPrice,
       billingPeriod: pricingMode,
     };
@@ -71,33 +44,13 @@ const Pricing: React.FC<PricingProps> = ({ lang, onOpenModal, onPlanSelected }) 
 
   const tiers = [
     {
-      id: 'Basic',
-      name: t.tiers.basic.name,
-      monthlyPrice: 0, // Free
-      description: t.tiers.basic.desc,
-      features: [t.features.listing, t.features.search1, t.features.analytics, t.features.support],
-      cta: t.tiers.basic.cta,
-      highlight: false,
-      paid: false
-    },
-    {
       id: 'Pro',
-      name: t.tiers.pro.name,
-      monthlyPrice: 49,
+      name: 'Partner Plan', // Single plan for partners
+      monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
       description: t.tiers.pro.desc,
-      features: [t.features.priority, t.features.verified, t.features.search3, t.features.messaging, t.features.customHeader],
-      cta: t.tiers.pro.cta,
+      features: PARTNER_PLAN_FEATURES.PRO,
+      cta: lang === 'da' ? 'Fortsæt til betaling (Stripe kommer snart)' : 'Continue to Payment (Stripe coming soon)',
       highlight: true,
-      paid: true
-    },
-    {
-      id: 'Elite',
-      name: t.tiers.elite.name,
-      monthlyPrice: 149,
-      description: t.tiers.elite.desc,
-      features: [t.features.topPlacement, t.features.unlimited, t.features.video, t.features.manager, t.features.api],
-      cta: t.tiers.elite.cta,
-      highlight: false,
       paid: true
     }
   ];
@@ -140,11 +93,9 @@ const Pricing: React.FC<PricingProps> = ({ lang, onOpenModal, onPlanSelected }) 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {tiers.filter(tier => tier.id !== 'Basic').map((tier) => {
-          const priceInfo = tier.monthlyPrice === 0 
-            ? { price: lang === 'da' ? 'Gratis' : 'Free', period: '', billing: '' }
-            : formatPrice(tier.monthlyPrice);
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-2xl mx-auto">
+        {tiers.map((tier) => {
+          const priceInfo = getPriceInfo(tier.monthlyPrice);
           
           return (
             <div 
