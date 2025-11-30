@@ -13,6 +13,11 @@ import Footer from './components/layout/Footer';
 import ConsumerSidebar from './components/layout/ConsumerSidebar';
 import PartnerSidebar from './components/layout/PartnerSidebar';
 import AdminSidebar from './components/layout/AdminSidebar';
+import HeroSearchSection from './components/layout/HeroSearchSection';
+import CategoriesSidebar from './components/layout/CategoriesSidebar';
+import FeaturedProCard from './components/layout/FeaturedProCard';
+import HowItWorksSection from './components/layout/HowItWorksSection';
+import FeaturedCategoriesSection from './components/layout/FeaturedCategoriesSection';
 
 // Visitor Pages
 import CategoriesPage from './components/pages/visitor/CategoriesPage';
@@ -216,84 +221,116 @@ const App: React.FC = () => {
     currentView === ViewState.ADMIN ||
     currentView.toString().startsWith('ADMIN_');
 
-  const renderHome = () => (
-    <div className="animate-fadeIn">
-      <div className="relative overflow-hidden bg-white">
-        <div className="absolute inset-0 z-0 opacity-40">
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-          <div className="absolute top-0 -right-4 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-nexus-bg border border-gray-200 mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nexus-accent opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-nexus-accent"></span>
-            </span>
-            <span className="text-xs font-medium text-nexus-subtext tracking-wide uppercase">{t.hero.tag}</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-nexus-text mb-6 max-w-4xl">
-            {t.hero.title} <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-nexus-text to-gray-500">{t.hero.subtitle}</span>
-          </h1>
-          <div className="w-full max-w-2xl mb-10">
-            <SearchBar 
-              variant="hero"
-              value={filters.searchQuery}
-              onChange={(val) => setFilters(prev => ({ ...prev, searchQuery: val }))}
-              onSearch={(val) => { setFilters(prev => ({ ...prev, searchQuery: val })); handleSearch(); }}
-              placeholder={t.hero.searchPlaceholder}
-              lang={lang}
-              buttonText={t.hero.searchButton}
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-              onClick={() => setCurrentView(ViewState.LISTINGS)}
-              className="px-8 py-3 rounded-full bg-nexus-text text-white font-medium hover:bg-black transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
-            >
-              {t.hero.ctaPrimary} <ArrowRight size={16} />
-            </button>
-            {!isLoggedIn && (
-              <button 
-                onClick={() => setCurrentView(ViewState.PRICING)}
-                className="px-8 py-3 rounded-full bg-white/50 backdrop-blur-sm border border-gray-200 text-nexus-text font-medium hover:bg-white transition-all flex items-center gap-2"
-              >
-                {t.hero.ctaSecondary}
-              </button>
-            )}
+  const handleHeroSearch = () => {
+    // Use the search query directly from filters
+    handleSearch();
+  };
+
+  const renderHome = () => {
+    // Get featured company (first verified company or first company)
+    const featuredCompany = MOCK_COMPANIES.find(c => c.isVerified) || MOCK_COMPANIES[0];
+    const displayCompanies = filteredCompanies.slice(0, 6); // Show first 6 companies
+
+    return (
+      <div className="animate-fadeIn">
+        {/* Hero Section with Search - Soft Scandinavian Gradient Background */}
+        <div className="relative overflow-visible bg-gradient-to-b from-neutral-50 via-slate-50 to-white py-10">
+          <div className="relative z-10">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                {/* Left: Hero Search Section (takes 2 columns) */}
+                <div className="lg:col-span-2">
+                  <HeroSearchSection
+                    lang={lang}
+                    searchQuery={filters.searchQuery}
+                    onSearchQueryChange={(val) => setFilters(prev => ({ ...prev, searchQuery: val }))}
+                    onSearch={handleHeroSearch}
+                    selectedCategory={filters.category || 'All'}
+                    onCategorySelect={(cat) => setFilters(prev => ({ ...prev, category: cat }))}
+                  />
+                </div>
+
+                {/* Right: Featured Pro Card (floating, expandable) */}
+                <div className="lg:col-span-1">
+                  <div className="sticky top-24">
+                    <FeaturedProCard
+                      company={featuredCompany}
+                      lang={lang}
+                      onViewProfile={handleCompanyClick}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Main Content Area: Categories Sidebar + Listings Grid */}
+        <div className="bg-nexus-bg py-12">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Left: Categories Sidebar */}
+              <CategoriesSidebar
+                lang={lang}
+                selectedCategory={filters.category || 'All'}
+                onCategorySelect={(cat) => setFilters(prev => ({ ...prev, category: cat }))}
+              />
+
+              {/* Right: Listings Grid */}
+              <div className="flex-1">
+                {/* Category Filter Chips (above listings) */}
+                <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+                  {CATEGORIES.filter(cat => cat !== 'All').map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setFilters(prev => ({ ...prev, category }))}
+                      className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                        filters.category === category
+                          ? 'bg-nexus-accent text-white'
+                          : 'bg-white border border-gray-200 text-nexus-text hover:bg-gray-50'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Listings Grid */}
+                {displayCompanies.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {displayCompanies.map(company => (
+                      <ListingCard 
+                        key={company.id} 
+                        company={company} 
+                        onViewProfile={handleCompanyClick} 
+                        lang={lang}
+                        isFavorite={savedCompanyIds.includes(company.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                      <Search className="text-gray-400" size={24} />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900">{t.listings.noResults}</h3>
+                    <p className="text-gray-500 mt-1">{lang === 'da' ? 'Prøv at justere dine filtre.' : 'Try adjusting your filters or search terms.'}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works Section - Moved to bottom, above footer */}
+        <HowItWorksSection
+          lang={lang}
+          onGetStarted={() => setCurrentView(ViewState.PRICING)}
+        />
       </div>
-      <div className="bg-nexus-bg py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="flex flex-col items-center text-center p-6">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 text-nexus-accent">
-                <ShieldCheck size={28} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Verified Trust</h3>
-              <p className="text-nexus-subtext leading-relaxed">Every premium listing is manually verified to ensure you connect with legitimate, high-quality partners.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-6">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 text-nexus-accent">
-                <Zap size={28} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Smart Discovery</h3>
-              <p className="text-nexus-subtext leading-relaxed">Our AI-driven search understands your business intent, not just keywords, saving you hours of research.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-6">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 text-nexus-accent">
-                <Globe size={28} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Global Network</h3>
-              <p className="text-nexus-subtext leading-relaxed">Access a curated network of industry leaders spanning across technology, finance, and logistics.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderListings = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
