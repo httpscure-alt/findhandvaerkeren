@@ -12,12 +12,13 @@ const AboutPage: React.FC<AboutPageProps> = ({ lang }) => {
     en: {
       title: 'About Findhåndværkeren',
       mission: 'Our Mission',
-      missionText: 'To connect businesses with trusted, verified partners through an intelligent, transparent marketplace that saves time and builds confidence.',
+      missionText: 'To help businesses find new customers easily with our help and business profiles.',
       vision: 'Our Vision',
-      visionText: 'To become the leading B2B marketplace in Denmark, where every connection leads to successful partnerships.',
+      visionText: 'We want to help businesses grow, for a cheap price, but with the same results as everyone else.',
       values: [
         { title: 'Trust', description: 'Every partner is verified and vetted for quality.' },
         { title: 'Transparency', description: 'Clear information helps you make informed decisions.' },
+        { title: 'Pricing', description: 'We want people to pay the same amount, regardless of how much money they have.' },
         { title: 'Innovation', description: 'AI-powered search makes finding partners effortless.' },
         { title: 'Excellence', description: 'We curate only the best companies for our platform.' }
       ]
@@ -25,12 +26,13 @@ const AboutPage: React.FC<AboutPageProps> = ({ lang }) => {
     da: {
       title: 'Om Findhåndværkeren',
       mission: 'Vores Mission',
-      missionText: 'At forbinde virksomheder med betroede, verificerede partnere gennem et intelligent, gennemsigtigt marked, der sparer tid og bygger tillid.',
+      missionText: 'At hjælpe virksomheder med at finde nye kunder nemt med vores hjælp og virksomhedsprofiler.',
       vision: 'Vores Vision',
-      visionText: 'At blive den førende B2B-markedsplads i Danmark, hvor hver forbindelse fører til succesfulde partnerskaber.',
+      visionText: 'Vi ønsker at hjælpe virksomheder med at vokse til en billig pris, men med de samme resultater som alle andre.',
       values: [
         { title: 'Tillid', description: 'Hver partner er verificeret og kontrolleret for kvalitet.' },
         { title: 'Gennemsigtighed', description: 'Klare oplysninger hjælper dig med at træffe informerede beslutninger.' },
+        { title: 'Prissætning', description: 'Vi ønsker, at folk betaler det samme beløb, uanset hvor mange penge de har.' },
         { title: 'Innovation', description: 'AI-drevet søgning gør det nemt at finde partnere.' },
         { title: 'Excellence', description: 'Vi kuraterer kun de bedste virksomheder til vores platform.' }
       ]
@@ -45,8 +47,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ lang }) => {
         <h1 className="text-5xl font-bold text-[#1D1D1F] mb-6">{t.title}</h1>
         <p className="text-xl text-nexus-subtext max-w-3xl mx-auto leading-relaxed">
           {lang === 'da'
-            ? 'Findhåndværkeren er Danmarks førende B2B-markedsplads, designet til at hjælpe virksomheder med at finde og forbinde med verificerede partnere.'
-            : 'Findhåndværkeren is Denmark\'s leading B2B marketplace, designed to help businesses find and connect with verified partners.'}
+            ? 'Findhåndværkeren er designet til at hjælpe små og store virksomheder med at finde nye kunder til den samme pris.'
+            : 'Findhåndværkeren is designed to help small and big businesses find new customers for the same price.'}
         </p>
       </div>
 
@@ -72,7 +74,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ lang }) => {
         <h2 className="text-3xl font-bold text-[#1D1D1F] text-center mb-12">
           {lang === 'da' ? 'Vores Værdier' : 'Our Values'}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {t.values.map((value, index) => (
             <div key={index} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-all">
               <div className="w-12 h-12 bg-nexus-bg rounded-xl flex items-center justify-center mb-4">

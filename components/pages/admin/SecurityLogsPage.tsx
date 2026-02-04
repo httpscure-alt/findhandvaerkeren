@@ -225,3 +225,10 @@ const SecurityLogsPage: React.FC<SecurityLogsPageProps> = ({ lang, onBack }) => 
 };
 
 export default SecurityLogsPage;
+
+
+
+
+
+
+

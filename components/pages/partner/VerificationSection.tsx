@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { Company, Language, VerificationStatus } from '../../../types';
 import { ShieldCheck, CheckCircle, Clock, X, Upload, FileText } from 'lucide-react';
 import { api } from '../../../services/api';
+import { useToast } from '../../../hooks/useToast';
+import { FileUpload } from '../../common/FileUpload';
 
 interface VerificationSectionProps {
   company: Company;
@@ -10,6 +13,7 @@ interface VerificationSectionProps {
 }
 
 const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang, onUpdate }) => {
+  const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -63,18 +67,18 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang
         ...formData,
         requestVerification: company.verificationStatus !== 'verified' && (formData.cvrNumber && formData.permitDocuments.length > 0),
       });
-      
+
       // Update local company data
       const updated = {
         ...company,
         ...formData,
-        verificationStatus: (company.verificationStatus === 'verified' ? 'verified' : 
+        verificationStatus: (company.verificationStatus === 'verified' ? 'verified' :
           (formData.cvrNumber && formData.permitDocuments.length > 0 ? 'pending' : 'unverified')) as VerificationStatus,
       };
-      onUpdate(updated);
       setIsEditing(false);
+      toast.success(lang === 'da' ? 'Verificeringsoplysninger gemt' : 'Verification info saved');
     } catch (error) {
-      alert(lang === 'da' ? 'Kunne ikke gemme verificeringsoplysninger' : 'Failed to save verification info');
+      toast.error(lang === 'da' ? 'Kunne ikke gemme verificeringsoplysninger' : 'Failed to save verification info');
     } finally {
       setIsSaving(false);
     }
@@ -106,7 +110,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang
           </div>
           {company.verificationStatus === 'pending' && (
             <p className="text-sm text-gray-600 mt-2">
-              {lang === 'da' 
+              {lang === 'da'
                 ? 'Din verificeringsanmodning afventer gennemgang. Du vil modtage en e-mail, når den er godkendt.'
                 : 'Your verification request is pending review. You will receive an email when it is approved.'}
             </p>
@@ -149,15 +153,26 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang
           )}
           {company.permitDocuments && company.permitDocuments.length > 0 && (
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">
+              <label className="text-xs font-semibold text-gray-500 uppercase mb-3 block">
                 {lang === 'da' ? 'Tilladelsesdokumenter' : 'Permit Documents'}
               </label>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {company.permitDocuments.map((doc, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                    <FileText size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-700">Document {idx + 1}</span>
-                  </div>
+                  <a
+                    key={idx}
+                    href={doc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-100 transition-colors group"
+                  >
+                    <div className="p-2 bg-white rounded-lg text-nexus-accent group-hover:scale-110 transition-transform">
+                      <FileText size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">Document {idx + 1}</p>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Click to view</p>
+                    </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -257,32 +272,40 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-nexus-text mb-2">
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-nexus-text">
             {lang === 'da' ? 'Tilladelsesdokumenter' : 'Permit Documents'} *
           </label>
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-              const urls = files.map(f => URL.createObjectURL(f));
-              setFormData(prev => ({ ...prev, permitDocuments: [...prev.permitDocuments, ...urls] }));
+
+          <FileUpload
+            lang={lang}
+            type="document"
+            onUpload={async (file) => {
+              const result = await api.uploadDocument(file);
+              setFormData(prev => ({
+                ...prev,
+                permitDocuments: [...prev.permitDocuments, result.document.fileUrl]
+              }));
+              return result.document.fileUrl;
             }}
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent/20"
+            accept=".pdf,.jpg,.jpeg,.png"
+            maxSize={10}
           />
+
           {formData.permitDocuments.length > 0 && (
-            <div className="mt-2 space-y-1">
+            <div className="grid grid-cols-1 gap-2">
               {formData.permitDocuments.map((url, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
-                  <span className="text-gray-700">Document {idx + 1}</span>
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 text-sm">
+                  <div className="flex items-center gap-2">
+                    <FileText size={16} className="text-gray-400" />
+                    <span className="text-gray-700 font-medium">Document {idx + 1}</span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, permitDocuments: prev.permitDocuments.filter((_, i) => i !== idx) }))}
-                    className="text-red-500 hover:text-red-700"
+                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    {lang === 'da' ? 'Fjern' : 'Remove'}
+                    <X size={16} />
                   </button>
                 </div>
               ))}
@@ -303,7 +326,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang
             disabled={isSaving || !formData.cvrNumber || formData.permitDocuments.length === 0}
             className="px-6 py-2 bg-[#1D1D1F] text-white rounded-xl font-medium hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            {isSaving 
+            {isSaving
               ? (lang === 'da' ? 'Gemmer...' : 'Saving...')
               : (lang === 'da' ? 'Gem og anmod om verificering' : 'Save & Request Verification')
             }
@@ -315,3 +338,10 @@ const VerificationSection: React.FC<VerificationSectionProps> = ({ company, lang
 };
 
 export default VerificationSection;
+
+
+
+
+
+
+

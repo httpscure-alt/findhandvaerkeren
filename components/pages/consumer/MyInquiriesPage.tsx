@@ -1,6 +1,7 @@
 import React from 'react';
-import { Language } from '../../../types';
-import { MessageSquare, Clock, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { api } from '../../../services/api';
+import { Inquiry, Language } from '../../../types';
+import { MessageSquare, Clock, CheckCircle, XCircle, ArrowRight, User } from 'lucide-react';
 import { translations } from '../../../translations';
 
 interface MyInquiriesPageProps {
@@ -9,48 +10,79 @@ interface MyInquiriesPageProps {
 }
 
 const MyInquiriesPage: React.FC<MyInquiriesPageProps> = ({ lang, onBack }) => {
-  // Mock inquiries
-  const inquiries = [
-    {
-      id: '1',
-      companyName: 'Nexus Solutions',
-      companyLogo: 'https://picsum.photos/id/42/200/200',
-      message: 'Interested in your cloud migration services...',
-      status: 'PENDING',
-      date: '2 days ago'
-    },
-    {
-      id: '2',
-      companyName: 'Summit Capital',
-      companyLogo: 'https://picsum.photos/id/60/200/200',
-      message: 'Looking for Series A funding opportunities...',
-      status: 'RESPONDED',
-      date: '1 week ago'
-    }
-  ];
+  const [inquiries, setInquiries] = React.useState<Inquiry[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const getStatusIcon = (status: string) => {
+  React.useEffect(() => {
+    const fetchInquiries = async () => {
+      try {
+        setLoading(true);
+        const response = await api.getInquiries();
+        setInquiries(response.inquiries || []);
+      } catch (err: any) {
+        console.error('Fetch inquiries error:', err);
+        setError(lang === 'da' ? 'Kunne ikke hente forespørgsler' : 'Failed to fetch inquiries');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInquiries();
+  }, [lang]);
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'RESPONDED':
-        return <CheckCircle className="text-green-500" size={18} />;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-bold border border-green-100">
+            <CheckCircle size={14} />
+            {lang === 'da' ? 'Besvaret' : 'Responded'}
+          </span>
+        );
       case 'CLOSED':
-        return <XCircle className="text-gray-400" size={18} />;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-50 text-gray-600 text-xs font-bold border border-gray-100">
+            <XCircle size={14} />
+            {lang === 'da' ? 'Lukket' : 'Closed'}
+          </span>
+        );
       default:
-        return <Clock className="text-amber-500" size={18} />;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
+            <Clock size={14} />
+            {lang === 'da' ? 'Afventer' : 'Pending'}
+          </span>
+        );
     }
   };
 
-  const getStatusText = (status: string) => {
-    if (lang === 'da') {
-      switch (status) {
-        case 'RESPONDED': return 'Besvaret';
-        case 'CLOSED': return 'Lukket';
-        default: return 'Afventer';
-      }
-    } else {
-      return status;
-    }
-  };
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nexus-accent mx-auto mb-4"></div>
+        <p className="text-nexus-subtext">
+          {lang === 'da' ? 'Henter forespørgsler...' : 'Loading inquiries...'}
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="bg-red-50 text-red-600 rounded-xl p-6 border border-red-100 max-w-md mx-auto">
+          <p className="font-medium mb-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-sm underline hover:no-underline"
+          >
+            {lang === 'da' ? 'Prøv igen' : 'Try again'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fadeIn">
@@ -77,19 +109,26 @@ const MyInquiriesPage: React.FC<MyInquiriesPageProps> = ({ lang, onBack }) => {
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
-                <img src={inquiry.companyLogo} alt={inquiry.companyName} className="w-full h-full object-cover" />
+                {inquiry.company?.logoUrl ? (
+                  <img src={inquiry.company.logoUrl} alt={inquiry.company.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <MessageSquare size={20} />
+                  </div>
+                )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-[#1D1D1F]">{inquiry.companyName}</h3>
+                  <h3 className="font-bold text-[#1D1D1F]">{inquiry.company?.name || 'Unknown Company'}</h3>
                   <div className="flex items-center gap-2">
-                    {getStatusIcon(inquiry.status)}
-                    <span className="text-xs text-nexus-subtext">{getStatusText(inquiry.status)}</span>
+                    {getStatusBadge(inquiry.status)}
                   </div>
                 </div>
                 <p className="text-nexus-subtext text-sm mb-3">{inquiry.message}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-nexus-subtext">{inquiry.date}</span>
+                  <span className="text-xs text-nexus-subtext">
+                    {new Date(inquiry.createdAt).toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US')}
+                  </span>
                   <button className="text-sm font-medium text-nexus-accent hover:underline flex items-center gap-1">
                     {lang === 'da' ? 'Se Detaljer' : 'View Details'} <ArrowRight size={14} />
                   </button>

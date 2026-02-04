@@ -1,5 +1,5 @@
 import { MOCK_COMPANIES, CATEGORIES } from '../constants';
-import { Company } from '../types';
+import { Company, VerificationStatus } from '../types';
 
 // Simulate network delay
 const delay = (ms: number = 300) => new Promise(resolve => setTimeout(resolve, ms));
@@ -10,6 +10,9 @@ class MockStorage {
   public savedListings: Map<string, Set<string>> = new Map(); // userId -> Set of companyIds
   public inquiries: any[] = [];
   public companies: Company[] = [...MOCK_COMPANIES];
+  public jobRequests: any[] = [];
+  public leadMatches: any[] = [];
+  public quotes: any[] = [];
   public categories: any[] = CATEGORIES.filter(c => c !== 'All').map((name, idx) => ({
     id: `cat-${idx}`,
     name,
@@ -25,6 +28,260 @@ class MockStorage {
     { id: 'loc-4', name: 'Aalborg', slug: 'aalborg' },
     { id: 'loc-5', name: 'Roskilde', slug: 'roskilde' },
   ];
+
+  constructor() {
+    // Initialize dummy data for testing
+    this.initializeDummyData();
+  }
+
+  private initializeDummyData() {
+    // Create a demo consumer user
+    const demoConsumerId = 'demo-consumer-1';
+    this.users.set(demoConsumerId, {
+      id: demoConsumerId,
+      email: 'demo@consumer.com',
+      name: 'Demo Consumer',
+      firstName: 'Demo',
+      lastName: 'Consumer',
+      role: 'CONSUMER',
+      avatarUrl: null,
+      location: 'København',
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    // Create demo partner user
+    const demoPartnerId = 'demo-partner-1';
+    this.users.set(demoPartnerId, {
+      id: demoPartnerId,
+      email: 'demo@partner.com',
+      name: 'Demo Partner',
+      firstName: 'Partner',
+      lastName: 'Demo',
+      role: 'PARTNER',
+      avatarUrl: null,
+      location: 'København',
+      createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    // Create demo partner company (matching the partner user ID)
+    this.companies.push({
+      id: demoPartnerId, // Important: matches the user ID so getOnboardingStatus works
+      name: 'Demo Craftsmen Service',
+      shortDescription: 'Your trusted local craftsmen for all home improvement needs.',
+      description: 'We are a full-service home improvement company specializing in renovations, repairs, and custom projects. Our team of skilled craftsmen has over 15 years of combined experience serving the Copenhagen area.',
+      logoUrl: 'https://picsum.photos/id/45/200/200',
+      bannerUrl: 'https://picsum.photos/id/49/1200/400',
+      isVerified: true,
+      rating: 4.8,
+      reviewCount: 67,
+      category: 'Tømrer',
+      location: 'København',
+      postalCode: '2100',
+      tags: ['Renovation', 'Repairs', 'Custom'],
+      pricingTier: 'Premium',
+      contactEmail: 'demo@partner.com',
+      website: 'democraftsmen.dk',
+      phone: '+45 12 34 56 78',
+      address: 'Vesterbrogade 123, 1620 København V',
+      cvrNumber: '12345678',
+      onboardingCompleted: true, // Important: marks onboarding as done so dashboard loads
+      services: [
+        { id: 's-demo-1', title: 'Kitchen Renovation', description: 'Complete kitchen remodeling including cabinets, countertops, and appliances.' },
+        { id: 's-demo-2', title: 'Bathroom Renovation', description: 'Modern bathroom upgrades with quality fixtures and tiling.' },
+        { id: 's-demo-3', title: 'General Repairs', description: 'All types of home repairs, from plumbing to electrical.' },
+      ],
+      portfolio: [
+        { id: 'p-demo-1', title: 'Modern Kitchen', category: 'Renovation', imageUrl: 'https://picsum.photos/id/42/600/400', description: 'Complete kitchen redesign with modern fixtures.' },
+        { id: 'p-demo-2', title: 'Bathroom Update', category: 'Renovation', imageUrl: 'https://picsum.photos/id/28/600/400', description: 'Luxurious bathroom renovation with premium materials.' },
+      ],
+      testimonials: [
+        { id: 't-demo-1', author: 'Lars Nielsen', role: 'Homeowner', company: 'Private', content: 'Excellent work on our kitchen renovation. Very professional!', rating: 5 },
+      ],
+    } as any);
+
+    // === DUMMY INQUIRIES (for Consumer "My Inquiries" page) ===
+    this.inquiries = [
+      {
+        id: 'inq-demo-1',
+        consumerId: demoConsumerId,
+        companyId: '1', // Nexus Solutions
+        message: 'Hi, I need help with cloud migration for my e-commerce platform. Can you provide a quote?',
+        status: 'PENDING',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'inq-demo-2',
+        consumerId: demoConsumerId,
+        companyId: '2', // Summit Capital
+        message: 'Looking for Series A funding advice for our startup. Would love to discuss opportunities.',
+        status: 'RESPONDED',
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'inq-demo-3',
+        consumerId: demoConsumerId,
+        companyId: '3', // Alpha Design Studio
+        message: 'Need a complete rebrand for my bakery business - logo, website, and packaging design.',
+        status: 'CLOSED',
+        createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    // === DUMMY JOB REQUESTS (3 Quotes feature) ===
+    this.jobRequests = [
+      {
+        id: 'job-demo-1',
+        consumerId: demoConsumerId,
+        title: 'Website Redesign for Restaurant',
+        description: 'Need a modern, responsive website for my restaurant. Should include online ordering, menu display, and reservation system.',
+        category: 'Technology',
+        postalCode: '2100',
+        images: ['https://picsum.photos/id/292/600/400'],
+        status: 'open',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'job-demo-2',
+        consumerId: demoConsumerId,
+        title: 'Startup Financial Planning',
+        description: 'Looking for financial advisory services for our early-stage fintech startup. Need help with funding strategy and investor pitch.',
+        category: 'Finance',
+        postalCode: '8000',
+        images: [],
+        status: 'open',
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'job-demo-3',
+        consumerId: demoConsumerId,
+        title: 'Brand Identity Package',
+        description: 'Complete branding package for a new eco-friendly fashion line. Need logo, color palette, and brand guidelines.',
+        category: 'Marketing',
+        postalCode: '5000',
+        images: ['https://picsum.photos/id/225/600/400', 'https://picsum.photos/id/96/600/400'],
+        status: 'closed',
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    // === DUMMY LEAD MATCHES (Partners matched to jobs) ===
+    this.leadMatches = [
+      // Matches for Job 1 (Website Redesign)
+      {
+        id: 'match-demo-1a',
+        jobRequestId: 'job-demo-1',
+        companyId: '1', // Nexus Solutions
+        status: 'pending',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      // Matches for Job 2 (Startup Financial Planning)
+      {
+        id: 'match-demo-2a',
+        jobRequestId: 'job-demo-2',
+        companyId: '2', // Summit Capital
+        status: 'quoted',
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'match-demo-2b',
+        jobRequestId: 'job-demo-2',
+        companyId: '6', // Nordic Consult
+        status: 'pending',
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      // Matches for Job 3 (Brand Identity - closed)
+      {
+        id: 'match-demo-3a',
+        jobRequestId: 'job-demo-3',
+        companyId: '3', // Alpha Design Studio
+        status: 'quoted',
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      // === LEADS FOR DEMO PARTNER (demo-partner-1) ===
+      {
+        id: 'match-demo-partner-1',
+        jobRequestId: 'job-demo-1', // Website Redesign
+        companyId: 'demo-partner-1',
+        status: 'pending',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'match-demo-partner-2',
+        jobRequestId: 'job-demo-2', // Financial Planning
+        companyId: 'demo-partner-1',
+        status: 'pending',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    // === DUMMY QUOTES (from partners) ===
+    this.quotes = [
+      {
+        id: 'quote-demo-1',
+        matchId: 'match-demo-2a',
+        price: 15000,
+        message: 'We would be happy to help with your startup funding strategy. Our team has extensive experience in fintech investments. This quote includes a 3-month advisory package.',
+        status: 'pending',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'quote-demo-2',
+        matchId: 'match-demo-3a',
+        price: 8500,
+        message: 'Complete brand identity package including logo design, typography selection, color palette, and comprehensive brand guidelines document. Delivery in 4-6 weeks.',
+        status: 'accepted',
+        createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    // Add portfolio descriptions to existing mock companies
+    this.companies.forEach(company => {
+      if (company.portfolio && company.portfolio.length > 0) {
+        company.portfolio = company.portfolio.map((item: any, idx: number) => ({
+          ...item,
+          description: this.getPortfolioDescription(company.category, idx),
+        }));
+      }
+    });
+  }
+
+  private getPortfolioDescription(category: string, index: number): string {
+    const descriptions: Record<string, string[]> = {
+      'Technology': [
+        'Complete system redesign with microservices architecture, reducing load times by 60%.',
+        'Custom AI chatbot integration that improved customer satisfaction scores by 35%.',
+        'Real-time analytics dashboard enabling data-driven decision making.',
+      ],
+      'Finance': [
+        'Successful Series B funding round, raising $15M for continued growth.',
+        'Payment platform scaling that now processes 1M+ transactions daily.',
+      ],
+      'Marketing': [
+        'Award-winning rebrand that increased brand recognition by 40%.',
+        'Responsive web design that boosted mobile conversions by 55%.',
+        'Sustainable packaging design reducing environmental impact.',
+      ],
+      'Consulting': [
+        'Market entry strategy that achieved 20% market share within first year.',
+      ],
+    };
+    const categoryDescriptions = descriptions[category] || ['Professional work delivered on time and within budget.'];
+    return categoryDescriptions[index % categoryDescriptions.length];
+  }
 
   // User management
   getUser(userId: string) {
@@ -137,7 +394,7 @@ class MockApiService {
   // Auth
   async register(data: { email: string; password: string; name?: string; firstName?: string; lastName?: string; role?: string }) {
     await delay(500);
-    
+
     const userId = `user-${Date.now()}`;
     const user = {
       id: userId,
@@ -169,21 +426,43 @@ class MockApiService {
       }
     }
 
-    // If user doesn't exist, create a mock user
+    // If user doesn't exist, create or use demo user
     if (!user) {
-      const userId = `user-${Date.now()}`;
-      user = {
-        id: userId,
-        email,
-        name: email.split('@')[0],
-        firstName: null,
-        lastName: null,
-        role: email.includes('admin') ? 'ADMIN' : email.includes('partner') ? 'PARTNER' : 'CONSUMER',
-        avatarUrl: null,
-        location: null,
-        createdAt: new Date().toISOString(),
-      };
-      mockStorage.setUser(userId, user);
+      // For consumer logins, use demo consumer to show dummy data
+      const isPartner = email.includes('partner');
+      const isAdmin = email.includes('admin');
+
+      if (!isPartner && !isAdmin) {
+        // Use demo consumer to show dummy data
+        user = mockStorage.users.get('demo-consumer-1');
+        if (user) {
+          // Update email to match login
+          user = { ...user, email };
+        }
+      }
+
+      // If still no user, create new one
+      if (!user) {
+        const userId = isPartner ? 'demo-partner-1' : `user-${Date.now()}`;
+        const existingUser = mockStorage.users.get(userId);
+
+        if (existingUser) {
+          user = { ...existingUser, email };
+        } else {
+          user = {
+            id: userId,
+            email,
+            name: email.split('@')[0],
+            firstName: null,
+            lastName: null,
+            role: isAdmin ? 'ADMIN' : isPartner ? 'PARTNER' : 'CONSUMER',
+            avatarUrl: null,
+            location: null,
+            createdAt: new Date().toISOString(),
+          };
+          mockStorage.setUser(userId, user);
+        }
+      }
     }
 
     const token = generateMockToken(user.id);
@@ -215,6 +494,7 @@ class MockApiService {
   async getCompanies(params?: {
     category?: string;
     location?: string;
+    postalCode?: string;
     verifiedOnly?: boolean;
     search?: string;
     page?: number;
@@ -235,6 +515,10 @@ class MockApiService {
       companies = companies.filter(c => c.location === params.location);
     }
 
+    if (params?.postalCode) {
+      companies = companies.filter(c => c.postalCode === params.postalCode);
+    }
+
     if (params?.verifiedOnly) {
       companies = companies.filter(c => c.isVerified);
     }
@@ -247,6 +531,13 @@ class MockApiService {
         c.shortDescription.toLowerCase().includes(searchLower)
       );
     }
+
+    // Sort logic: Gold first
+    companies.sort((a, b) => {
+      if (a.pricingTier === 'Gold' && b.pricingTier !== 'Gold') return -1;
+      if (a.pricingTier !== 'Gold' && b.pricingTier === 'Gold') return 1;
+      return 0;
+    });
 
     // Pagination
     const page = params?.page || 1;
@@ -569,18 +860,18 @@ class MockApiService {
     }
 
     const company = mockStorage.getCompanies().find(c => c.id === userId);
-    
+
     if (!company) {
       return { step: 0, hasCompany: false, onboardingCompleted: false };
     }
 
     // If onboarding is completed, return that status
     if (company.onboardingCompleted) {
-      return { 
-        step: 5, 
-        hasCompany: true, 
+      return {
+        step: 5,
+        hasCompany: true,
         onboardingCompleted: true,
-        company 
+        company
       };
     }
 
@@ -590,15 +881,15 @@ class MockApiService {
     if (company.logoUrl || company.bannerUrl) step = 3;
     if (company.cvrNumber || company.permitType) step = 4; // Step 4 is verification
 
-    return { 
-      step, 
-      hasCompany: true, 
+    return {
+      step,
+      hasCompany: true,
       onboardingCompleted: company.onboardingCompleted || false,
-      company 
+      company
     };
   }
 
-  async saveOnboardingStep1(data: { name: string; category: string; location: string; contactEmail: string; website?: string; phone?: string }) {
+  async saveOnboardingStep1(data: { name: string; category: string; location: string; contactEmail: string; website?: string; phone?: string; cvrNumber?: string; address?: string }) {
     await delay(400);
     const userId = getCurrentUserId();
     if (!userId) {
@@ -614,6 +905,7 @@ class MockApiService {
       name: data.name,
       shortDescription: '',
       description: '',
+      address: data.address || '',
       logoUrl: '',
       bannerUrl: '',
       isVerified: false,
@@ -625,6 +917,8 @@ class MockApiService {
       pricingTier: 'Standard',
       contactEmail: contactEmail,
       website: data.website || '',
+      phone: data.phone || '',
+      cvrNumber: data.cvrNumber || '',
       services: [],
       portfolio: [],
       testimonials: [],
@@ -639,6 +933,8 @@ class MockApiService {
         location: data.location,
         contactEmail: contactEmail,
         website: data.website,
+        phone: data.phone,
+        cvrNumber: data.cvrNumber,
       });
     } else {
       mockStorage.companies.push(company);
@@ -683,7 +979,8 @@ class MockApiService {
     company.logoUrl = data.logoUrl || null;
     company.bannerUrl = data.bannerUrl || null;
     if (data.gallery) {
-      company.portfolio = data.gallery.map(item => ({
+      company.portfolio = data.gallery.map((item, idx) => ({
+        id: `port-${Date.now()}-${idx}`,
         title: item.title,
         category: item.category,
         imageUrl: item.imageUrl,
@@ -693,16 +990,16 @@ class MockApiService {
     return { company, step: 3 };
   }
 
-  async saveOnboardingStep4(data: { 
-    cvrNumber?: string; 
-    vatNumber?: string; 
-    legalName?: string; 
-    businessAddress?: string; 
-    cvrLookupUrl?: string; 
-    permitType?: string; 
-    permitIssuer?: string; 
-    permitNumber?: string; 
-    permitDocuments?: string[]; 
+  async saveOnboardingStep4(data: {
+    cvrNumber?: string;
+    vatNumber?: string;
+    legalName?: string;
+    businessAddress?: string;
+    cvrLookupUrl?: string;
+    permitType?: string;
+    permitIssuer?: string;
+    permitNumber?: string;
+    permitDocuments?: string[];
     requestVerification?: boolean;
   }) {
     await delay(400);
@@ -717,7 +1014,7 @@ class MockApiService {
     }
 
     // Set verification status based on request
-    const verificationStatus = data.requestVerification ? 'pending' : 'unverified';
+    const verificationStatus = (data.requestVerification ? 'pending' : 'unverified') as VerificationStatus;
 
     Object.assign(company, {
       cvrNumber: data.cvrNumber || null,
@@ -729,8 +1026,8 @@ class MockApiService {
       permitIssuer: data.permitIssuer || null,
       permitNumber: data.permitNumber || null,
       permitDocuments: data.permitDocuments || [],
-      verificationStatus: verificationStatus,
-      // Only set isVerified to true if status is verified (admin action)
+      verificationStatus: verificationStatus as VerificationStatus,
+      // Only set isVerified to true if status is verified
       isVerified: verificationStatus === 'verified',
     });
 
@@ -1028,6 +1325,291 @@ class MockApiService {
       ],
     };
   }
+
+  async getSubscription(): Promise<{ subscription: any }> {
+    await delay(200);
+    const userId = getCurrentUserId();
+    if (!userId) {
+      throw new Error('Not authenticated');
+    }
+
+    const company = mockStorage.getCompanies().find(c => c.id === userId);
+    if (!company) {
+      throw new Error('Company not found');
+    }
+
+    // Return mock subscription
+    return {
+      subscription: {
+        id: 'sub_1',
+        companyId: company.id,
+        tier: 'Premium',
+        status: 'active',
+        billingCycle: 'monthly',
+        currentPeriodStart: new Date().toISOString(),
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        stripeCustomerId: 'cus_mock',
+        stripeSubscriptionId: 'sub_mock',
+      },
+    };
+  }
+
+  // Stripe Payment - Mock Checkout Session
+  async createCheckoutSession(billingCycle: 'monthly' | 'annual', tier?: 'Standard' | 'Premium' | 'Elite') {
+    await delay(500);
+    const userId = getCurrentUserId();
+    if (!userId) {
+      throw new Error('Not authenticated');
+    }
+
+    // In mock mode, simulate a successful checkout by redirecting to success page
+    // Generate a mock session ID
+    const mockSessionId = `cs_mock_${Date.now()}`;
+
+    // Return a URL that will redirect to the success page
+    // The PlanReview component will handle this URL
+    const successUrl = `/billing/success?session_id=${mockSessionId}`;
+
+    // For mock mode, we'll simulate the Stripe redirect by returning a local URL
+    // that the frontend can handle
+    return {
+      url: successUrl,
+      sessionId: mockSessionId
+    };
+  }
+  // 3 Quotes (Jobs) - Now supports guest submissions
+  async createJobRequest(data: {
+    title: string;
+    description: string;
+    category: string;
+    postalCode: string;
+    budget?: string;
+    images?: string[];
+    // Guest contact info (optional - for non-authenticated users)
+    guestName?: string;
+    guestEmail?: string;
+    guestPhone?: string;
+  }) {
+    await delay(600);
+    const userId = getCurrentUserId();
+
+    // Allow guest submissions - no authentication required
+    const isGuestSubmission = !userId && data.guestName && data.guestEmail && data.guestPhone;
+
+    if (!userId && !isGuestSubmission) {
+      throw new Error('Please provide contact information or log in');
+    }
+
+    const jobRequest = {
+      id: `job-${Date.now()}`,
+      consumerId: userId || `guest-${Date.now()}`, // Guest ID if not logged in
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      postalCode: data.postalCode,
+      budget: data.budget,
+      images: data.images || [],
+      status: 'open',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      // Guest contact info (only if guest submission)
+      ...(isGuestSubmission && {
+        isGuestRequest: true,
+        guestName: data.guestName,
+        guestEmail: data.guestEmail,
+        guestPhone: data.guestPhone,
+      }),
+    };
+
+    mockStorage.jobRequests.push(jobRequest);
+
+    // Simulate smart matching: find companies in same category OR all companies if no category match
+    let matchingCompanies = mockStorage.getCompanies().filter(c =>
+      c.category?.toLowerCase() === data.category.toLowerCase()
+    );
+
+    // If no category match, use any companies (fallback for demo)
+    if (matchingCompanies.length === 0) {
+      matchingCompanies = mockStorage.getCompanies();
+    }
+
+    const matchesToCreate = matchingCompanies.slice(0, 3); // Max 3 matches
+
+    matchesToCreate.forEach(company => {
+      mockStorage.leadMatches.push({
+        id: `match-${Date.now()}-${company.id}`,
+        jobRequestId: jobRequest.id,
+        companyId: company.id,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    });
+
+    console.log(`✅ Job request created: ${jobRequest.title} (${isGuestSubmission ? 'Guest' : 'User'}) - Matched to ${matchesToCreate.length} craftsmen`);
+
+    return {
+      message: 'Job request created successfully',
+      jobRequest,
+      matchCount: matchesToCreate.length
+    };
+  }
+
+  async getMyJobRequests() {
+    await delay(300);
+    const userId = getCurrentUserId();
+    if (!userId) {
+      throw new Error('Not authenticated');
+    }
+
+    const requests = mockStorage.jobRequests.filter(r => r.consumerId === userId);
+
+    // Add matches and quotes to each request
+    const enrichedRequests = requests.map(originalReq => {
+      const req = { ...originalReq };
+      const matches = mockStorage.leadMatches.filter(m => m.jobRequestId === req.id);
+      const enrichedMatches = matches.map(m => {
+        const company = mockStorage.getCompanies().find(c => c.id === m.companyId);
+        const quote = mockStorage.quotes.find(q => q.matchId === m.id);
+        return { ...m, company, quote };
+      });
+      return { ...req, matches: enrichedMatches };
+    });
+
+    return { requests: enrichedRequests };
+  }
+
+  async getAdminJobRequests() {
+    await delay(400);
+    // Return all requests with full details
+    const requests = mockStorage.jobRequests.map(originalReq => {
+      const req = { ...originalReq };
+      const consumer = mockStorage.users.get(req.consumerId);
+      const matches = mockStorage.leadMatches.filter(m => m.jobRequestId === req.id);
+      const enrichedMatches = matches.map(m => {
+        const company = mockStorage.getCompanies().find(c => c.id === m.companyId);
+        const quote = mockStorage.quotes.find(q => q.matchId === m.id);
+        return { ...m, company, quote };
+      });
+      return {
+        ...req,
+        consumer,
+        matches: enrichedMatches,
+        matchCount: matches.length,
+        quoteCount: enrichedMatches.filter(m => m.quote).length
+      };
+    });
+
+    return {
+      jobRequests: requests,
+      pagination: {
+        total: requests.length,
+        page: 1,
+        limit: 20,
+        totalPages: 1
+      }
+    };
+  }
+
+  async getPartnerLeads() {
+    await delay(300);
+    const userId = getCurrentUserId();
+    if (!userId) {
+      throw new Error('Not authenticated');
+    }
+
+    const matches = mockStorage.leadMatches.filter(m => m.companyId === userId);
+    const leads = matches.map(m => {
+      const jobRequest = mockStorage.jobRequests.find(r => r.id === m.jobRequestId) as any;
+      const quote = mockStorage.quotes.find(q => q.matchId === m.id);
+
+      // Get customer info - either from user (registered) or from guest info on job request
+      let customer = null;
+      if (jobRequest) {
+        if (jobRequest.isGuestRequest) {
+          // Guest customer - use info from job request
+          customer = {
+            name: jobRequest.guestName || 'Guest',
+            email: jobRequest.guestEmail || '',
+            phone: jobRequest.guestPhone || '',
+            isGuest: true,
+          };
+        } else {
+          // Registered customer - look up user
+          const consumerUser = mockStorage.getUser(jobRequest.consumerId);
+          customer = {
+            name: consumerUser?.name || consumerUser?.firstName || 'Customer',
+            email: consumerUser?.email || 'customer@example.com',
+            phone: consumerUser?.phone || '+45 12 34 56 78', // Mock phone for demo
+            isGuest: false,
+          };
+        }
+      }
+
+      // Return in format expected by PartnerLeadDashboard component
+      return {
+        id: m.id,
+        status: m.status,
+        createdAt: m.createdAt,
+        job: jobRequest ? {
+          id: jobRequest.id,
+          title: jobRequest.title,
+          description: jobRequest.description,
+          category: jobRequest.category,
+          postalCode: jobRequest.postalCode,
+          images: jobRequest.images || [],
+          createdAt: jobRequest.createdAt,
+        } : {
+          id: 'unknown',
+          title: 'Unknown Job',
+          description: 'Job details not available',
+          category: 'Unknown',
+          postalCode: '0000',
+          images: [],
+          createdAt: new Date().toISOString(),
+        },
+        customer, // Include customer contact info
+        quotes: quote ? [quote] : [],
+      };
+    });
+
+    return { leads };
+  }
+
+  async submitQuote(matchId: string, data: { price: number; message: string }) {
+    await delay(500);
+    const userId = getCurrentUserId();
+    if (!userId) {
+      throw new Error('Not authenticated');
+    }
+
+    const match = mockStorage.leadMatches.find(m => m.id === matchId);
+    if (!match) {
+      throw new Error('Lead match not found');
+    }
+
+    const quote = {
+      id: `quote-${Date.now()}`,
+      matchId,
+      price: data.price,
+      message: data.message,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockStorage.quotes.push(quote);
+    match.status = 'quoted';
+
+    return { message: 'Quote submitted successfully', quote };
+  }
 }
 
 export const mockApi = new MockApiService();
+
+
+
+
+
+
+

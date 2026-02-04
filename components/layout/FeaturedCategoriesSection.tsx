@@ -1,7 +1,19 @@
 import React from 'react';
 import { Language } from '../../types';
-import { CATEGORIES } from '../../constants';
-import { Briefcase, Zap, TrendingUp, Scale, Truck, Lightbulb } from 'lucide-react';
+import { POPULAR_CATEGORIES } from '../../constants';
+import { translations } from '../../translations';
+import {
+  Hammer,
+  Wrench,
+  Zap,
+  PaintBucket,
+  Flower2,
+  TreeDeciduous,
+  SquareStack,
+  Building2,
+  Sparkles,
+  Layers
+} from 'lucide-react';
 
 interface FeaturedCategoriesSectionProps {
   lang: Language;
@@ -9,34 +21,41 @@ interface FeaturedCategoriesSectionProps {
 }
 
 const FeaturedCategoriesSection: React.FC<FeaturedCategoriesSectionProps> = ({ lang, onCategorySelect }) => {
+  // Craftsman category icons
   const categoryIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-    Technology: Zap,
-    Finance: TrendingUp,
-    Marketing: Lightbulb,
-    Logistics: Truck,
-    Consulting: Briefcase,
-    Legal: Scale
+    'Tømrer': Hammer,
+    'Murer': Layers,
+    'VVS-installatør': Wrench,
+    'Elektriker': Zap,
+    'Maler': PaintBucket,
+    'Haveservice': Flower2,
+    'Anlægsgartner': TreeDeciduous,
+    'Brolægger': SquareStack,
+    'Entreprenør': Building2,
+    'Vinduespudser': Sparkles
   };
 
-  const featuredCategories = CATEGORIES.filter(cat => cat !== 'All').slice(0, 6);
+  const t = translations[lang];
+  const categoryNames = t.categoryNames as Record<string, string>;
 
   return (
     <div className="bg-white py-8 md:py-20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1D1D1F] mb-4">
-            {lang === 'da' ? 'Udforsk Kategorier' : 'Explore Categories'}
+            {lang === 'da' ? 'Populære Kategorier' : 'Popular Categories'}
           </h2>
           <p className="text-lg text-nexus-subtext max-w-2xl mx-auto">
             {lang === 'da'
-              ? 'Find specialiserede partnere inden for din branche'
-              : 'Find specialized partners within your industry'}
+              ? 'Find dygtige håndværkere til dit næste projekt'
+              : 'Find skilled craftsmen for your next project'}
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {featuredCategories.map((category) => {
-            const Icon = categoryIcons[category] || Briefcase;
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {POPULAR_CATEGORIES.map((category) => {
+            const Icon = categoryIcons[category] || Hammer;
+            const displayName = categoryNames[category] || category;
             return (
               <button
                 key={category}
@@ -47,7 +66,7 @@ const FeaturedCategoriesSection: React.FC<FeaturedCategoriesSectionProps> = ({ l
                   <Icon className="text-nexus-accent" size={32} />
                 </div>
                 <h3 className="text-sm font-bold text-[#1D1D1F] group-hover:text-nexus-accent transition-colors">
-                  {category}
+                  {displayName}
                 </h3>
               </button>
             );

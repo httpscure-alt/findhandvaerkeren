@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
 import { translations } from '../translations';
 import { api } from '../services/api';
-import { 
-  BarChart3, 
-  MessageSquare, 
-  Heart, 
-  Eye, 
-  Edit, 
+import {
+  BarChart3,
+  MessageSquare,
+  Heart,
+  Eye,
+  Edit,
   Image as ImageIcon,
   FileText,
   Settings,
@@ -21,6 +21,7 @@ interface BusinessDashboardProps {
   onManagePortfolio: () => void;
   onManageTestimonials: () => void;
   onViewInquiries: () => void;
+  onViewGrowth: () => void;
 }
 
 const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
@@ -30,6 +31,7 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
   onManagePortfolio,
   onManageTestimonials,
   onViewInquiries,
+  onViewGrowth,
 }) => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
@@ -73,7 +75,7 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
           {lang === 'da' ? 'Business Dashboard' : 'Business Dashboard'}
         </h1>
         <p className="text-nexus-subtext">
-          {lang === 'da' 
+          {lang === 'da'
             ? 'Administrer din virksomhedsprofil og se din ydeevne'
             : 'Manage your business profile and view your performance'}
         </p>
@@ -166,6 +168,19 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
             {lang === 'da' ? 'Se og besvar henvendelser' : 'View and respond to inquiries'}
           </p>
         </button>
+
+        <button
+          onClick={onViewGrowth}
+          className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all text-left group"
+        >
+          <BarChart3 className="text-purple-500 mb-3" size={24} />
+          <h3 className="font-bold text-[#1D1D1F] mb-1 group-hover:text-purple-500 transition-colors">
+            {lang === 'da' ? 'Vækst Center' : 'Growth Hub'}
+          </h3>
+          <p className="text-sm text-nexus-subtext">
+            {lang === 'da' ? 'SEO & Google Ads styring' : 'SEO & Google Ads management'}
+          </p>
+        </button>
       </div>
 
       {/* Recent Inquiries */}
@@ -182,11 +197,10 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                     <p className="font-medium text-[#1D1D1F]">{inquiry.consumer?.name || 'Anonymous'}</p>
                     <p className="text-sm text-nexus-subtext">{inquiry.consumer?.email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    inquiry.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                    inquiry.status === 'RESPONDED' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${inquiry.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                      inquiry.status === 'RESPONDED' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-700'
+                    }`}>
                     {inquiry.status}
                   </span>
                 </div>
@@ -208,7 +222,7 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
               {lang === 'da' ? 'Abonnement' : 'Subscription'}
             </h3>
             <p className="text-sm text-nexus-subtext">
-              {lang === 'da' 
+              {lang === 'da'
                 ? `Nuværende plan: ${company?.pricingTier || 'Standard'}`
                 : `Current plan: ${company?.pricingTier || 'Standard'}`}
             </p>
@@ -223,3 +237,10 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
 };
 
 export default BusinessDashboard;
+
+
+
+
+
+
+

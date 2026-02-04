@@ -12,7 +12,7 @@ async function main() {
 
   // Create admin user
   const adminPassword = await hashPassword('admin123');
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@findhandvaerkeren.dk' },
     update: {},
     create: {
@@ -20,6 +20,21 @@ async function main() {
       password: adminPassword,
       name: 'Admin User',
       role: 'ADMIN',
+      isVerified: true,
+    },
+  });
+
+  // Create superadmin user (requested)
+  const superAdminPassword = await hashPassword('superadmin123');
+  const superAdmin = await prisma.user.upsert({
+    where: { email: 'superadmin@findhandvaerkeren.dk' },
+    update: {},
+    create: {
+      email: 'superadmin@findhandvaerkeren.dk',
+      password: superAdminPassword,
+      name: 'Super Admin',
+      role: 'ADMIN', // Highest role available
+      isVerified: true,
     },
   });
 
@@ -35,6 +50,7 @@ async function main() {
       location: 'København',
       avatarUrl: 'https://i.pravatar.cc/150?img=11',
       role: 'CONSUMER',
+      isVerified: true,
     },
   });
 
@@ -48,17 +64,34 @@ async function main() {
       password: partnerPassword,
       name: 'Nexus Solutions',
       role: 'PARTNER',
+      isVerified: true,
     },
   });
 
   // Create categories
   const categories = [
-    { name: 'Technology', slug: 'technology', description: 'Tech companies and services' },
-    { name: 'Finance', slug: 'finance', description: 'Financial services' },
-    { name: 'Marketing', slug: 'marketing', description: 'Marketing and advertising' },
-    { name: 'Logistics', slug: 'logistics', description: 'Logistics and supply chain' },
-    { name: 'Consulting', slug: 'consulting', description: 'Business consulting' },
-    { name: 'Legal', slug: 'legal', description: 'Legal services' },
+    { name: 'Tømrer', slug: 'tomrer', description: 'Alt inden for tømrer- og snedkerarbejde' },
+    { name: 'Murer', slug: 'murer', description: 'Murerarbejde, fliser og facaderenovering' },
+    { name: 'VVS-installatør', slug: 'vvs-installator', description: 'Vand, varme og sanitet' },
+    { name: 'Elektriker', slug: 'elektriker', description: 'Elarbejde og installationer' },
+    { name: 'Maler', slug: 'maler', description: 'Indvendigt og udvendigt malerarbejde' },
+    { name: 'Haveservice', slug: 'haveservice', description: 'Havearbejde og vedligeholdelse' },
+    { name: 'Anlægsgartner', slug: 'anlaegsgartner', description: 'Anlæg af haver og belægning' },
+    { name: 'Brolægger', slug: 'brolaegger', description: 'Belægning af indkørsler og terrasser' },
+    { name: 'Tagdækker', slug: 'tagdaekker', description: 'Tagarbejde og tagpap' },
+    { name: 'Glarmester', slug: 'glarmester', description: 'Glas- og vinduesarbejde' },
+    { name: 'Gulvlægger', slug: 'gulvlaegger', description: 'Lægning af alle typer gulve' },
+    { name: 'Snedker', slug: 'snedker', description: 'Specialfremstillede møbler og inventar' },
+    { name: 'Mekaniker', slug: 'mekaniker', description: 'Reparation og service af biler' },
+    { name: 'Entreprenør', slug: 'entreprenor', description: 'Større bygge- og anlægsopgaver' },
+    { name: 'Låsesmed', slug: 'laasesmed', description: 'Sikkerhed og oplukning' },
+    { name: 'Autohjælp', slug: 'autohjaelp' },
+    { name: 'Vinduespudser', slug: 'vinduespudser', description: 'Rene ruder til private og erhverv' },
+    { name: 'Flyttefirma', slug: 'flyttefirma', description: 'Hjælp til flytning' },
+    { name: 'Rengøring', slug: 'rengoering', description: 'Privat og erhvervsrengøring' },
+    { name: 'Skadedyrsbekæmpelse', slug: 'skadedyrsbekaempelse', description: 'Bekæmpelse af skadedyr' },
+    { name: 'Kloakmester', slug: 'kloakmester' },
+    { name: 'Alt-mulig-mand', slug: 'alt-mulig-mand' },
   ];
 
   for (const cat of categories) {
@@ -87,7 +120,7 @@ async function main() {
   }
 
   // Create test company
-  const company = await prisma.company.upsert({
+  await prisma.company.upsert({
     where: { ownerId: partner.id },
     update: {},
     create: {
@@ -141,8 +174,42 @@ async function main() {
     },
   });
 
+  // Create Showcase Company for Super Admin
+  await prisma.company.upsert({
+    where: { ownerId: superAdmin.id },
+    update: {},
+    create: {
+      name: 'SuperAdmin Pro Services',
+      description: 'Professional consulting and management services provided directly by the platform administration.',
+      shortDescription: 'Platform-backed professional services.',
+      logoUrl: 'https://picsum.photos/id/60/200/200',
+      bannerUrl: 'https://picsum.photos/id/61/1200/400',
+      isVerified: true,
+      rating: 5.0,
+      reviewCount: 50,
+      category: 'Consulting',
+      location: 'København',
+      tags: ['Management', 'Strategy', 'Admin'],
+      pricingTier: 'Elite',
+      contactEmail: 'admin@findhandvaerkeren.dk',
+      website: 'findhandvaerkeren.dk',
+      ownerId: superAdmin.id,
+      onboardingCompleted: true,
+      profileCompleted: true,
+      services: {
+        create: [
+          {
+            title: 'Platform Strategy',
+            description: 'We help you scale your business using our platform features.',
+          },
+        ],
+      },
+    },
+  });
+
   console.log('✅ Seeding completed!');
   console.log('📝 Test credentials:');
+  console.log('   SuperAdmin: superadmin@findhandvaerkeren.dk / superadmin123');
   console.log('   Admin: admin@findhandvaerkeren.dk / admin123');
   console.log('   Consumer: consumer@example.com / consumer123');
   console.log('   Partner: partner@nexussolutions.com / partner123');

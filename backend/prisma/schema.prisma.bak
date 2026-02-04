@@ -1,0 +1,386 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CONSUMER
+  PARTNER
+  ADMIN
+}
+
+enum PricingTier {
+  Standard
+  Premium
+  Elite
+}
+
+enum InquiryStatus {
+  PENDING
+  RESPONDED
+  CLOSED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(CONSUMER)
+  name      String?
+  firstName String?
+  lastName  String?
+  avatarUrl String?
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Verification
+  isVerified   Boolean   @default(false)
+  otpCode      String?
+  otpExpiresAt DateTime?
+
+  // Relations
+  ownedCompany    Company?
+  savedListings   SavedListing[]
+  sentInquiries   Inquiry[] @relation("ConsumerInquiries")
+  recentSearches  RecentSearch[]
+
+  @@index([email])
+  @@index([role])
+}
+
+enum VerificationStatus {
+  unverified
+  pending
+  verified
+}
+
+model Company {
+  id              String      @id @default(cuid())
+  name            String
+  description    String      @db.Text
+  shortDescription String
+  logoUrl        String?
+  bannerUrl      String?
+  isVerified     Boolean     @default(false)
+  rating         Float       @default(0) @db.DoublePrecision
+  reviewCount    Int         @default(0)
+  category       String
+  location       String
+  tags           String[]    @default([])
+  pricingTier    PricingTier @default(Standard)
+  contactEmail   String
+  website        String?
+  ownerId        String      @unique
+  companyCreated Boolean     @default(false)
+  profileCompleted Boolean   @default(false)
+  onboardingCompleted Boolean @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Danish verification fields
+  cvrNumber          String?
+  vatNumber          String?
+  legalName          String?
+  businessAddress    String?
+  cvrLookupUrl       String?
+  permitType         String?
+  permitIssuer       String?
+  permitNumber       String?
+  permitDocuments    String[]    @default([])
+  verificationStatus VerificationStatus @default(unverified)
+  verificationNotes  String?     @db.Text
+
+  // Relations
+  owner         User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  services      Service[]
+  portfolio     PortfolioItem[]
+  testimonials Testimonial[]
+  savedBy       SavedListing[]
+  inquiries     Inquiry[]    @relation("CompanyInquiries")
+  subscriptions Subscription[]
+  analytics     Analytics[]
+  permitDocumentRecords PermitDocument[]
+
+  @@index([category])
+  @@index([location])
+  @@index([isVerified])
+  @@index([pricingTier])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  companyId   String
+  title       String
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model PortfolioItem {
+  id        String   @id @default(cuid())
+  companyId String
+  title     String
+  imageUrl  String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  companyId String
+  author    String
+  role      String
+  company   String
+  content   String   @db.Text
+  rating    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyRelation Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model SavedListing {
+  id        String   @id @default(cuid())
+  consumerId String
+  companyId  String
+  createdAt  DateTime @default(now())
+
+  consumer User    @relation(fields: [consumerId], references: [id], onDelete: Cascade)
+  company  Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([consumerId, companyId])
+  @@index([consumerId])
+  @@index([companyId])
+}
+
+model Inquiry {
+  id        String        @id @default(cuid())
+  consumerId String
+  companyId  String
+  message   String        @db.Text
+  status    InquiryStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  consumer User    @relation("ConsumerInquiries", fields: [consumerId], references: [id], onDelete: Cascade)
+  company  Company @relation("CompanyInquiries", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([consumerId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Subscription {
+  id                  String      @id @default(cuid())
+  companyId           String
+  tier                PricingTier
+  status              String      @default("active")
+  billingCycle        String?     // 'monthly' or 'annual'
+  startDate           DateTime
+  endDate             DateTime?
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean     @default(false)
+  stripeCustomerId    String?
+  stripeSubscriptionId String?     @unique
+  stripePriceId       String?     // Stripe Price ID
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  transactions PaymentTransaction[]
+  history SubscriptionHistory[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([stripeCustomerId])
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  companyId String
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model PermitDocument {
+  id          String   @id @default(cuid())
+  companyId   String
+  fileName    String
+  fileUrl     String
+  fileType    String?  // 'pdf', 'image', etc.
+  fileSize    Int?     // in bytes
+  uploadedAt  DateTime @default(now())
+  verified    Boolean  @default(false)
+  verifiedAt  DateTime?
+  verifiedBy  String?  // Admin user ID
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([verified])
+}
+
+model AdminActivityLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  action      String   // 'verify_company', 'reject_verification', 'delete_user', etc.
+  targetType  String?  // 'Company', 'User', 'Subscription', etc.
+  targetId    String?
+  details     Json?    // Additional action details
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
+model PaymentTransaction {
+  id                  String    @id @default(cuid())
+  subscriptionId      String?
+  companyId           String?
+  stripePaymentIntentId String?  @unique
+  stripeInvoiceId     String?  @unique
+  amount              Float     @db.DoublePrecision
+  currency            String    @default("usd")
+  status              String    // 'pending', 'succeeded', 'failed', 'refunded'
+  paymentMethod       String?   // 'card', 'bank_transfer', etc.
+  billingCycle        String?   // 'monthly', 'annual'
+  tier                PricingTier?
+  description         String?
+  metadata            Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId])
+  @@index([companyId])
+  @@index([status])
+  @@index([stripePaymentIntentId])
+  @@index([createdAt])
+}
+
+model SubscriptionHistory {
+  id                  String      @id @default(cuid())
+  subscriptionId      String
+  action              String      // 'created', 'updated', 'canceled', 'renewed', 'tier_changed'
+  previousTier        PricingTier?
+  newTier             PricingTier?
+  previousStatus      String?
+  newStatus           String?
+  previousBillingCycle String?
+  newBillingCycle     String?
+  reason              String?     @db.Text
+  metadata            Json?
+  createdAt           DateTime    @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model EmailLog {
+  id            String    @id @default(cuid())
+  to            String
+  from          String?
+  subject       String
+  template      String?   // Email template name
+  status        String    @default("pending") // 'pending', 'sent', 'failed', 'bounced'
+  errorMessage  String?   @db.Text
+  metadata      Json?
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([to])
+  @@index([status])
+  @@index([createdAt])
+  @@index([template])
+}
+
+model PlatformSettings {
+  id              String   @id @default("singleton")
+  platformName    String   @default("Findhåndværkeren")
+  supportEmail    String   @default("support@findhandvaerkeren.dk")
+  maintenanceMode Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+model RecentSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  status    String   @default("unread") // 'unread', 'read', 'replied'
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}

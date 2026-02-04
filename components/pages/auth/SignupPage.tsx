@@ -3,6 +3,7 @@ import { Mail, Lock, User, ArrowRight, Loader2, X } from 'lucide-react';
 import { Language } from '../../../types';
 import { translations } from '../../../translations';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { SelectedPlan } from '../../../types';
 
 interface SignupPageProps {
@@ -13,18 +14,22 @@ interface SignupPageProps {
 }
 
 const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSuccess, onBack }) => {
-  // Determine role from localStorage or prop (pricing page sets this)
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const roleParam = searchParams.get('role') as 'CONSUMER' | 'PARTNER' | null;
+
+  // Determine role from URL, prop, or localStorage
   const savedRole = localStorage.getItem('signupRole') as 'CONSUMER' | 'PARTNER' | null;
-  const [userRole, setUserRole] = useState<'CONSUMER' | 'PARTNER'>(initialRole || savedRole || 'CONSUMER');
+  const [userRole, setUserRole] = useState<'CONSUMER' | 'PARTNER'>(roleParam || initialRole || savedRole || 'CONSUMER');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { register } = useAuth();
-  const t = translations[lang].auth;
+  const t = (translations[lang] as any).auth;
 
-  // If coming from pricing, force partner role
-  // Otherwise, respect the initialRole prop
   useEffect(() => {
-    if (initialRole) {
+    if (roleParam) {
+      setUserRole(roleParam);
+    } else if (initialRole) {
       setUserRole(initialRole);
     } else {
       const savedPlan = localStorage.getItem('selectedPlan');
@@ -33,7 +38,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
         setUserRole('PARTNER');
       }
     }
-  }, [initialRole]);
+  }, [initialRole, roleParam]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,19 +52,24 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
 
     try {
       if (userRole === 'PARTNER') {
-        // Partner signup - no company name, just email/password/name
-        await register(email, password, fullName || undefined, undefined, undefined, 'PARTNER');
+        // Partner signup
+        const response: any = await register(email, password, fullName || undefined, undefined, undefined, 'PARTNER');
+        if (response && response.requiresVerification) {
+          window.location.href = `/verify-email?email=${email}`;
+          return;
+        }
       } else {
-        // Consumer signup - split full name if provided
-        const nameParts = fullName ? fullName.trim().split(' ') : [];
-        const firstName = nameParts[0] || undefined;
-        const lastName = nameParts.slice(1).join(' ') || undefined;
-        await register(email, password, undefined, firstName, lastName, 'CONSUMER');
+        // Consumer signup
+        const response: any = await register(email, password, fullName || undefined, undefined, undefined, 'CONSUMER');
+        if (response && response.requiresVerification) {
+          window.location.href = `/verify-email?email=${email}`;
+          return;
+        }
       }
-      
+
       // Clear signup role from localStorage
       localStorage.removeItem('signupRole');
-      
+
       // Redirect immediately - no success page
       onSuccess(userRole);
     } catch (err: any) {
@@ -95,8 +105,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
             {lang === 'da' ? 'Opret konto' : 'Create Account'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {lang === 'da' 
-              ? 'Start din rejse i dag' 
+            {lang === 'da'
+              ? 'Start din rejse i dag'
               : 'Start your journey today'}
           </p>
         </div>
@@ -105,8 +115,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
         {userRole === 'PARTNER' && (
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl">
             <p className="text-sm text-blue-700 text-center">
-              {lang === 'da' 
-                ? 'Opretter partner konto' 
+              {lang === 'da'
+                ? 'Opretter partner konto'
                 : 'Creating partner account'}
             </p>
           </div>
@@ -194,3 +204,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
 };
 
 export default SignupPage;
+
+
+
+
+
+
+

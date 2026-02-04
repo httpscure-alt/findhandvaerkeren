@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { Company, Language } from '../../../types';
-import { User, Mail, MapPin, Globe, Save, Loader2 } from 'lucide-react';
+import { User, Mail, MapPin, Globe, Save, Loader2, Download, Shield, Trash2, Phone, FileText } from 'lucide-react';
+import { api } from '../../../services/api';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../hooks/useToast';
+import { ConfirmDialog } from '../../common/ConfirmDialog';
+import { FileUpload } from '../../common/FileUpload';
 
 interface PartnerAccountSettingsProps {
   company: Company;
   lang: Language;
   onBack: () => void;
-  onSave: (company: Partial<Company>) => void;
+  onSave: (company: Partial<Company>) => Promise<void>;
 }
 
 const PartnerAccountSettings: React.FC<PartnerAccountSettingsProps> = ({
@@ -15,21 +21,42 @@ const PartnerAccountSettings: React.FC<PartnerAccountSettingsProps> = ({
   onBack,
   onSave
 }) => {
+  const { logout } = useAuth();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     contactEmail: company.contactEmail,
-    website: company.website || ''
+    website: company.website || '',
+    phone: company.phone || '',
+    cvrNumber: company.cvrNumber || '',
+    logoUrl: company.logoUrl || ''
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    isDestructive?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    
-    setTimeout(() => {
-      onSave(formData);
+
+    try {
+      await onSave(formData);
       setIsSaving(false);
-      alert(lang === 'da' ? 'Indstillinger gemt!' : 'Settings saved!');
-    }, 1000);
+      toast.success(lang === 'da' ? 'Indstillinger gemt!' : 'Settings saved!');
+    } catch (error: any) {
+      setIsSaving(false);
+      toast.error(error.message || (lang === 'da' ? 'Fejl ved gemning' : 'Error saving settings'));
+    }
   };
 
   return (
@@ -48,6 +75,20 @@ const PartnerAccountSettings: React.FC<PartnerAccountSettingsProps> = ({
 
       <div className="bg-white rounded-3xl p-8 border border-gray-100">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Logo Upload */}
+          <FileUpload
+            label={lang === 'da' ? 'Virksomhedslogo' : 'Company Logo'}
+            lang={lang}
+            currentUrl={formData.logoUrl}
+            onUpload={async (file) => {
+              const result = await api.uploadLogo(file);
+              setFormData(prev => ({ ...prev, logoUrl: result.logoUrl }));
+              return result.logoUrl;
+            }}
+            accept="image/*"
+            maxSize={2}
+          />
+
           {/* Contact Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -78,6 +119,41 @@ const PartnerAccountSettings: React.FC<PartnerAccountSettingsProps> = ({
             />
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Phone size={16} />
+                {lang === 'da' ? 'Telefonnummer' : 'Phone Number'}
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                placeholder="+45 ..."
+              />
+            </div>
+
+            {/* CVR */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <FileText size={16} />
+                {lang === 'da' ? 'CVR-nummer' : 'CVR Number'}
+              </label>
+              <input
+                type="text"
+                value={formData.cvrNumber}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                  setFormData({ ...formData, cvrNumber: value });
+                }}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                placeholder="12345678"
+              />
+            </div>
+          </div>
+
           {/* Password Section */}
           <div className="pt-6 border-t border-gray-200">
             <h3 className="font-bold text-[#1D1D1F] mb-4">
@@ -102,6 +178,107 @@ const PartnerAccountSettings: React.FC<PartnerAccountSettingsProps> = ({
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* GDPR Section */}
+          <div className="pt-6 border-t border-gray-200">
+            <h3 className="font-bold text-[#1D1D1F] mb-4 flex items-center gap-2">
+              <Shield size={18} />
+              {lang === 'da' ? 'GDPR Rettigheder' : 'GDPR Rights'}
+            </h3>
+
+            {/* Export Data */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <h4 className="font-semibold text-[#1D1D1F] mb-2">
+                {lang === 'da' ? 'Eksporter Dine Data' : 'Export Your Data'}
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                {lang === 'da'
+                  ? 'Download en kopi af alle dine personlige data i JSON-format.'
+                  : 'Download a copy of all your personal data in JSON format.'}
+              </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsExporting(true);
+                  try {
+                    const response = await api.exportUserData();
+                    const dataStr = JSON.stringify(response.data, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `my-data-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    toast.success(lang === 'da' ? 'Data eksporteret!' : 'Data exported!');
+                  } catch (error: any) {
+                    toast.error(error.message || (lang === 'da' ? 'Fejl ved eksport' : 'Error exporting data'));
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="animate-spin" size={16} />
+                    {lang === 'da' ? 'Eksporterer...' : 'Exporting...'}
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} />
+                    {lang === 'da' ? 'Eksporter Data' : 'Export Data'}
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Delete Account */}
+            <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+              <h4 className="font-semibold text-red-600 mb-2">
+                {lang === 'da' ? 'Slet Konto' : 'Delete Account'}
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                {lang === 'da'
+                  ? 'Dette vil permanent slette din konto, virksomhedsprofil og alle dine data. Denne handling kan ikke fortrydes.'
+                  : 'This will permanently delete your account, company profile, and all your data. This action cannot be undone.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmDialog({
+                    isOpen: true,
+                    title: lang === 'da' ? 'Slet Konto' : 'Delete Account',
+                    message: lang === 'da'
+                      ? 'Er du sikker? Denne handling kan ikke fortrydes. Alle dine data vil blive slettet permanent.'
+                      : 'Are you sure? This action cannot be undone. All your data will be permanently deleted.',
+                    isDestructive: true,
+                    onConfirm: async () => {
+                      setIsSaving(true);
+                      try {
+                        await api.deleteUserAccount();
+                        toast.success(lang === 'da' ? 'Konto slettet' : 'Account deleted');
+                        logout();
+                        onBack();
+                        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                      } catch (error: any) {
+                        toast.error(error.message || (lang === 'da' ? 'Fejl ved sletning' : 'Error deleting account'));
+                      } finally {
+                        setIsSaving(false);
+                      }
+                    }
+                  });
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <Trash2 size={16} />
+                {lang === 'da' ? 'Slet Konto' : 'Delete Account'}
+              </button>
             </div>
           </div>
 
@@ -134,6 +311,17 @@ const PartnerAccountSettings: React.FC<PartnerAccountSettingsProps> = ({
           </div>
         </form>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => !isSaving && setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        isLoading={isSaving}
+        isDestructive={confirmDialog.isDestructive}
+        lang={lang}
+      />
     </div>
   );
 };

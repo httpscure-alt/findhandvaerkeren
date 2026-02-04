@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { ConsumerUser, Language } from '../../../types';
-import { User, Mail, MapPin, Save, Loader2, Trash2 } from 'lucide-react';
+import { User, Mail, MapPin, Save, Loader2, Trash2, Download, Shield, Phone } from 'lucide-react';
 import { translations } from '../../../translations';
 import { api } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
+
+import { useToast } from '../../../hooks/useToast';
+import { ConfirmDialog } from '../../common/ConfirmDialog';
 
 interface ConsumerAccountSettingsProps {
   user: ConsumerUser;
@@ -19,12 +23,12 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
   onSave
 }) => {
   const { logout } = useAuth();
+  const toast = useToast();
   const [formData, setFormData] = useState({
-    firstName: (user as any).firstName || '',
-    lastName: (user as any).lastName || '',
     name: user.name,
     email: user.email,
     location: user.location,
+    phone: (user as any).phone || '',
     avatarUrl: (user as any).avatarUrl || ''
   });
   const [passwordData, setPasswordData] = useState({
@@ -35,23 +39,35 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    isDestructive?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    
+
     try {
       await api.updateConsumerProfile({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
         name: formData.name,
         location: formData.location,
         avatarUrl: formData.avatarUrl,
+        phone: formData.phone,
       });
       onSave(formData);
-      alert(lang === 'da' ? 'Indstillinger gemt!' : 'Settings saved!');
+      toast.success(lang === 'da' ? 'Indstillinger gemt!' : 'Settings saved!');
     } catch (error: any) {
-      alert(error.message || (lang === 'da' ? 'Fejl ved gemning' : 'Error saving'));
+      toast.error(error.message || (lang === 'da' ? 'Fejl ved gemning' : 'Error saving'));
     } finally {
       setIsSaving(false);
     }
@@ -60,37 +76,71 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert(lang === 'da' ? 'Adgangskoder matcher ikke' : 'Passwords do not match');
+      toast.warning(lang === 'da' ? 'Adgangskoder matcher ikke' : 'Passwords do not match');
       return;
     }
-    
+
     setIsChangingPassword(true);
     try {
       await api.changePassword({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
-      alert(lang === 'da' ? 'Adgangskode ændret!' : 'Password changed!');
+      toast.success(lang === 'da' ? 'Adgangskode ændret!' : 'Password changed!');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error: any) {
-      alert(error.message || (lang === 'da' ? 'Fejl ved ændring af adgangskode' : 'Error changing password'));
+      toast.error(error.message || (lang === 'da' ? 'Fejl ved ændring af adgangskode' : 'Error changing password'));
     } finally {
       setIsChangingPassword(false);
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!confirm(lang === 'da' ? 'Er du sikker? Denne handling kan ikke fortrydes.' : 'Are you sure? This action cannot be undone.')) {
-      return;
-    }
-    
+  const handleExportData = async () => {
+    setIsExporting(true);
     try {
-      await api.deleteAccount();
-      logout();
-      onBack();
+      const response = await api.exportUserData();
+      // Create downloadable JSON file
+      const dataStr = JSON.stringify(response.data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `my-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success(lang === 'da' ? 'Data eksporteret!' : 'Data exported!');
     } catch (error: any) {
-      alert(error.message || (lang === 'da' ? 'Fejl ved sletning' : 'Error deleting account'));
+      toast.error(error.message || (lang === 'da' ? 'Fejl ved eksport' : 'Error exporting data'));
+    } finally {
+      setIsExporting(false);
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: lang === 'da' ? 'Slet Konto' : 'Delete Account',
+      message: lang === 'da'
+        ? 'Er du sikker? Denne handling kan ikke fortrydes. Alle dine data vil blive slettet permanent.'
+        : 'Are you sure? This action cannot be undone. All your data will be permanently deleted.',
+      isDestructive: true,
+      onConfirm: async () => {
+        setIsSaving(true);
+        try {
+          await api.deleteUserAccount();
+          toast.success(lang === 'da' ? 'Konto slettet' : 'Account deleted');
+          logout();
+          onBack();
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        } catch (error: any) {
+          toast.error(error.message || (lang === 'da' ? 'Fejl ved sletning' : 'Error deleting account'));
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    });
   };
 
   return (
@@ -127,46 +177,19 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
             </div>
           </div>
 
-          {/* First Name */}
+          {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <User size={16} />
-              {lang === 'da' ? 'Fornavn' : 'First Name'}
+              {lang === 'da' ? 'Navn' : 'Name'}
             </label>
             <input
               type="text"
-              value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
-            />
-          </div>
-
-          {/* Last Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <User size={16} />
-              {lang === 'da' ? 'Efternavn' : 'Last Name'}
-            </label>
-            <input
-              type="text"
-              value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
-            />
-          </div>
-
-          {/* Full Name (auto-generated or manual) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <User size={16} />
-              {lang === 'da' ? 'Fulde Navn' : 'Full Name'}
-            </label>
-            <input
-              type="text"
+              required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
-              placeholder={formData.firstName && formData.lastName ? `${formData.firstName} ${formData.lastName}` : ''}
+              placeholder={lang === 'da' ? 'Dit navn' : 'Your name'}
             />
           </div>
 
@@ -182,6 +205,21 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
               required
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <Phone size={16} />
+              {lang === 'da' ? 'Telefonnummer' : 'Phone Number'}
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+              placeholder="+45 ..."
             />
           </div>
 
@@ -247,7 +285,7 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
                 disabled={isChangingPassword}
                 className="px-4 py-2 bg-nexus-accent text-white rounded-xl text-sm font-medium hover:bg-nexus-accent/90 transition-colors disabled:opacity-50"
               >
-                {isChangingPassword 
+                {isChangingPassword
                   ? (lang === 'da' ? 'Ændrer...' : 'Changing...')
                   : (lang === 'da' ? 'Skift Adgangskode' : 'Change Password')}
               </button>
@@ -260,7 +298,7 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
               {lang === 'da' ? 'Slet Konto' : 'Delete Account'}
             </h3>
             <p className="text-sm text-nexus-subtext mb-4">
-              {lang === 'da' 
+              {lang === 'da'
                 ? 'Dette vil permanent slette din konto og alle dine data. Denne handling kan ikke fortrydes.'
                 : 'This will permanently delete your account and all your data. This action cannot be undone.'}
             </p>
@@ -302,6 +340,17 @@ const ConsumerAccountSettings: React.FC<ConsumerAccountSettingsProps> = ({
           </div>
         </form>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => !isSaving && setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        isLoading={isSaving}
+        isDestructive={confirmDialog.isDestructive}
+        lang={lang}
+      />
     </div>
   );
 };

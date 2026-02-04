@@ -32,13 +32,15 @@ export const saveBasicInfo = async (req: AuthRequest, res: Response): Promise<vo
         shortDescription: '',
         description: '',
         ownerId: userId,
+        companyCreated: true,
+        profileCompleted: false,
+        onboardingCompleted: false,
       },
     });
 
     res.json({ company, step: 1 });
   } catch (error) {
-    console.error('Save basic info error:', error);
-    res.status(500).json({ error: 'Failed to save basic info' });
+    throw new AppError('Failed to save basic info', 500);
   }
 };
 
@@ -58,8 +60,7 @@ export const saveDescriptions = async (req: AuthRequest, res: Response): Promise
 
     res.json({ company, step: 2 });
   } catch (error) {
-    console.error('Save descriptions error:', error);
-    res.status(500).json({ error: 'Failed to save descriptions' });
+    throw new AppError('Failed to save descriptions', 500);
   }
 };
 
@@ -105,8 +106,7 @@ export const saveImages = async (req: AuthRequest, res: Response): Promise<void>
 
     res.json({ company: updatedCompany, step: 3 });
   } catch (error) {
-    console.error('Save images error:', error);
-    res.status(500).json({ error: 'Failed to save images' });
+    throw new AppError('Failed to save images', 500);
   }
 };
 
@@ -114,17 +114,17 @@ export const saveImages = async (req: AuthRequest, res: Response): Promise<void>
 export const saveVerification = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { 
-      cvrNumber, 
-      vatNumber, 
-      legalName, 
-      businessAddress, 
-      cvrLookupUrl, 
-      permitType, 
-      permitIssuer, 
-      permitNumber, 
-      permitDocuments, 
-      requestVerification 
+    const {
+      cvrNumber,
+      vatNumber,
+      legalName,
+      businessAddress,
+      cvrLookupUrl,
+      permitType,
+      permitIssuer,
+      permitNumber,
+      permitDocuments,
+      requestVerification
     } = req.body;
 
     // Set verification status based on request
@@ -145,14 +145,13 @@ export const saveVerification = async (req: AuthRequest, res: Response): Promise
         permitDocuments: permitDocuments || [],
         verificationStatus: verificationStatus,
         // Only set isVerified to true if status is verified (admin action)
-        isVerified: verificationStatus === 'verified',
+        isVerified: verificationStatus === ('verified' as any),
       },
     });
 
     res.json({ company, step: 4 });
   } catch (error) {
-    console.error('Save verification error:', error);
-    res.status(500).json({ error: 'Failed to save verification info' });
+    throw new AppError('Failed to save verification info', 500);
   }
 };
 
@@ -165,6 +164,7 @@ export const completeOnboarding = async (req: AuthRequest, res: Response): Promi
     const company = await prisma.company.update({
       where: { ownerId: userId },
       data: {
+        profileCompleted: true,
         onboardingCompleted: true,
       },
       include: {
@@ -179,16 +179,16 @@ export const completeOnboarding = async (req: AuthRequest, res: Response): Promi
       return;
     }
 
-    res.json({ 
+    res.json({
       company,
       step: 5,
       completed: true,
+      profileCompleted: true,
       onboardingCompleted: true,
       message: 'Onboarding completed successfully'
     });
   } catch (error) {
-    console.error('Complete onboarding error:', error);
-    res.status(500).json({ error: 'Failed to complete onboarding' });
+    throw new AppError('Failed to complete onboarding', 500);
   }
 };
 
@@ -209,13 +209,15 @@ export const getOnboardingStatus = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    // If onboarding is completed, return that status
-    if (company.onboardingCompleted) {
-      res.json({ 
-        step: 5, 
-        hasCompany: true, 
+    // If profile is completed, return that status
+    if (company.profileCompleted && company.onboardingCompleted) {
+      res.json({
+        step: 5,
+        hasCompany: true,
+        companyCreated: company.companyCreated,
+        profileCompleted: true,
         onboardingCompleted: true,
-        company 
+        company
       });
       return;
     }
@@ -226,14 +228,17 @@ export const getOnboardingStatus = async (req: AuthRequest, res: Response): Prom
     if (company.logoUrl || company.bannerUrl) step = 3;
     if (company.cvrNumber || company.permitType) step = 4; // Step 4 is verification
 
-    res.json({ 
-      step, 
-      hasCompany: true, 
+    res.json({
+      step,
+      hasCompany: true,
+      companyCreated: company.companyCreated,
+      profileCompleted: company.profileCompleted || false,
       onboardingCompleted: company.onboardingCompleted || false,
-      company 
+      company
     });
   } catch (error) {
-    console.error('Get onboarding status error:', error);
-    res.status(500).json({ error: 'Failed to get onboarding status' });
+    throw new AppError('Failed to get onboarding status', 500);
   }
 };
+
+

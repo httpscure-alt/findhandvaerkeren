@@ -21,6 +21,9 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   isAuthenticated: boolean;
+  refreshUser: () => Promise<void>;
+  showAuthModal: boolean;
+  setShowAuthModal: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,11 +32,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    
+
     if (storedToken && storedUser) {
       // Use stored user data (offline mode)
       try {
@@ -41,7 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(storedToken);
         setUser(user);
         setIsLoading(false);
-        
+
         // Try to verify with API in background (non-blocking) - only if API is configured
         const apiUrl = import.meta.env.VITE_API_URL;
         if (apiUrl) {
@@ -92,25 +96,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setToken(token);
       setUser(user);
     } catch (error: any) {
-      // API not available, use mock login
-      if (error.message === 'API_NOT_AVAILABLE' || error.message.includes('fetch')) {
-        // Mock login for offline mode
-        const mockUser: User = {
-          id: 'mock-user',
-          email,
-          name: email.split('@')[0],
-          role: email.includes('admin') ? 'ADMIN' : email.includes('partner') ? 'PARTNER' : 'CONSUMER',
-          avatarUrl: null,
-          location: null,
-        };
-        const mockToken = 'mock-token-' + Date.now();
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        setToken(mockToken);
-        setUser(mockUser);
-      } else {
-        throw error;
-      }
+      // Re-throw the error - mockApi should handle offline mode now
+      throw error;
     }
   };
 
@@ -122,26 +109,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setToken(token);
       setUser(user);
     } catch (error: any) {
-      // API not available, use mock registration
-      if (error.message === 'API_NOT_AVAILABLE' || error.message.includes('fetch')) {
-        const mockUser: User = {
-          id: 'mock-user-' + Date.now(),
-          email,
-          name: name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || email.split('@')[0]),
-          firstName,
-          lastName,
-          role: (role as 'CONSUMER' | 'PARTNER' | 'ADMIN') || 'CONSUMER',
-          avatarUrl: null,
-          location: null,
-        };
-        const mockToken = 'mock-token-' + Date.now();
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        setToken(mockToken);
-        setUser(mockUser);
-      } else {
-        throw error;
-      }
+      // Re-throw the error - mockApi should handle offline mode now
+      throw error;
     }
   };
 
@@ -150,6 +119,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+  };
+
+  const refreshUser = async () => {
+    try {
+      const { user: freshUser } = await api.getMe();
+      setUser(freshUser);
+      localStorage.setItem('user', JSON.stringify(freshUser));
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
   };
 
   // Don't block rendering while loading - show app immediately
@@ -161,6 +140,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
+        refreshUser,
+        showAuthModal,
+        setShowAuthModal,
         isLoading: false, // Always false to prevent blocking
         isAuthenticated: !!user && !!token,
       }}

@@ -195,3 +195,10 @@ const ApiMonitoringPage: React.FC<ApiMonitoringPageProps> = ({ lang, onBack }) =
 };
 
 export default ApiMonitoringPage;
+
+
+
+
+
+
+

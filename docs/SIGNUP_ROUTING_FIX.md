@@ -160,3 +160,10 @@ Pricing Page → "Get Started" → Partner Signup Form → Onboarding Wizard Ste
 - [x] No auto-redirect for existing partners
 - [x] Pricing page flow still works (direct to partner register)
 - [x] Login flow unchanged
+
+
+
+
+
+
+

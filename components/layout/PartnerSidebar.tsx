@@ -1,5 +1,6 @@
 import React from 'react';
-import { ViewState, Language } from '../../types';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Language } from '../../types';
 import {
   LayoutDashboard,
   Building2,
@@ -10,61 +11,67 @@ import {
   Settings,
   LogOut,
   Star,
-  ShieldCheck
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 
 interface PartnerSidebarProps {
-  currentView: ViewState;
   lang: Language;
-  onNavigate: (view: ViewState) => void;
   onLogout: () => void;
 }
 
-const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ currentView, lang, onNavigate, onLogout }) => {
+const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ lang, onLogout }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const menuItems = [
     {
-      view: ViewState.PARTNER_DASHBOARD,
+      path: '/dashboard',
       icon: LayoutDashboard,
       label: lang === 'da' ? 'Dashboard' : 'Dashboard'
     },
     {
-      view: ViewState.PARTNER_PROFILE_EDIT,
+      path: '/dashboard/profile',
       icon: Building2,
       label: lang === 'da' ? 'Virksomhedsprofil' : 'Company Profile'
     },
     {
-      view: ViewState.PARTNER_SERVICES,
+      path: '/dashboard/services',
       icon: Briefcase,
       label: lang === 'da' ? 'Ydelser' : 'Services'
     },
     {
-      view: ViewState.PARTNER_PORTFOLIO,
+      path: '/dashboard/portfolio',
       icon: Image,
       label: lang === 'da' ? 'Portefølje' : 'Portfolio'
     },
     {
-      view: ViewState.PARTNER_TESTIMONIALS,
+      path: '/dashboard/testimonials',
       icon: Star,
       label: lang === 'da' ? 'Udtalelser' : 'Testimonials',
-      // Testimonials creation temporarily disabled until we finalise moderation rules.
     },
     {
-      view: ViewState.PARTNER_VERIFICATION,
+      path: '/dashboard/verification',
       icon: ShieldCheck,
       label: lang === 'da' ? 'Verificering' : 'Verification'
     },
     {
-      view: ViewState.PARTNER_LEADS,
+      path: '/dashboard/inquiries',
       icon: MessageSquare,
       label: lang === 'da' ? 'Leads & Beskeder' : 'Leads & Messages'
     },
     {
-      view: ViewState.PARTNER_BILLING,
+      path: '/dashboard/growth',
+      icon: Zap,
+      label: lang === 'da' ? 'Vækst' : 'Growth'
+    },
+    {
+      path: '/dashboard/billing',
       icon: CreditCard,
       label: lang === 'da' ? 'Abonnement' : 'Subscription'
     },
     {
-      view: ViewState.PARTNER_SETTINGS,
+      path: '/dashboard/settings',
       icon: Settings,
       label: lang === 'da' ? 'Indstillinger' : 'Settings'
     }
@@ -75,24 +82,23 @@ const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ currentView, lang, onNa
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentView === item.view;
-          
+          const isActive = location.pathname === item.path;
+
           return (
             <button
-              key={item.view}
-              onClick={() => onNavigate(item.view)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                isActive
-                  ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
-                  : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
-              }`}
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
+                : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
+                }`}
             >
               <Icon size={20} />
               <span>{item.label}</span>
             </button>
           );
         })}
-        
+
         <div className="pt-4 border-t border-gray-200 mt-4">
           <button
             onClick={onLogout}

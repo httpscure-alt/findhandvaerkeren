@@ -30,7 +30,7 @@ The frontend will:
 
 ### 2. Access the App
 
-Open: **http://localhost:3000**
+Open: *it**
 
 ## 🔐 Mock Login Credentials
 

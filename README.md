@@ -266,16 +266,62 @@ For issues or questions:
 2. Review [API documentation](./docs/API_DOCUMENTATION.md)
 3. Check deployment guide for setup issues
 
+## 🔒 GDPR Compliance
+
+The platform is GDPR-compliant with:
+- Cookie consent banner
+- Privacy policy page
+- Terms of service page
+- Data export functionality (`GET /api/gdpr/export-data`)
+- Account deletion functionality (`DELETE /api/gdpr/delete-account`)
+- Activity logging for all admin actions
+
+## 📚 Documentation
+
+- [API Documentation](./docs/API_DOCUMENTATION.md) - Complete API reference
+- [Architecture Documentation](./docs/ARCHITECTURE.md) - System architecture overview
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Deploy to Railway & Vercel
+- [Production Setup](./docs/PRODUCTION_SETUP.md) - Production configuration guide
+- [Phase Summaries](./docs/) - Implementation phase documentation
+
 ## 🎯 Roadmap
 
-- [ ] Payment integration (Stripe/Shopify)
-- [ ] Email notifications
-- [ ] Advanced analytics
+- [x] Payment integration (Stripe) ✅
+- [x] Email notifications (structure ready) ✅
+- [x] Advanced analytics ✅
 - [ ] Review/rating system
 - [ ] Messaging system
 - [ ] Mobile app
-- [ ] Multi-language support expansion
+- [x] Multi-language support (Danish/English) ✅
+
+## 🚀 Recent Updates
+
+### Phase 11 (Final)
+- ✅ Security Verification & Audit
+- ✅ Performance Optimizations (Chunk Splitting)
+- ✅ Code Quality Cleanup
+- ✅ Final Documentation Review
+
+### Phase 10
+- ✅ CI/CD Pipeline (GitHub Actions)
+- ✅ Standardized Environment Configuration
+- ✅ Deployment Guide
+
+### Phase 9
+- ✅ Monitoring & Logging (Sentry + Winston)
+- ✅ Health Checks
+
+### Phase 8
+- ✅ Testing Infrastructure (Vitest)
+- ✅ Unit & Integration Tests
+
+### Phase 7
+- ✅ File Upload System
+
+### Phase 6
+- ✅ GDPR compliance (cookie consent, privacy/terms, data export/deletion)
 
 ---
 
 Built with ❤️ for the Danish marketplace
+```

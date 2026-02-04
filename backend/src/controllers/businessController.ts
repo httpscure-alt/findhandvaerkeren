@@ -133,3 +133,46 @@ export const getBusinessAnalytics = async (req: AuthRequest, res: Response): Pro
     res.status(500).json({ error: 'Failed to get analytics' });
   }
 };
+
+// Get subscription details
+export const getSubscription = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId!;
+
+    const company = await prisma.company.findUnique({
+      where: { ownerId: userId },
+      select: { id: true },
+    });
+
+    if (!company) {
+      res.status(404).json({ error: 'Company not found' });
+      return;
+    }
+
+    // Get active subscription
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        companyId: company.id,
+        status: { in: ['active', 'past_due'] },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!subscription) {
+      res.status(404).json({ error: 'No active subscription found' });
+      return;
+    }
+
+    res.json({ subscription });
+  } catch (error) {
+    console.error('Get subscription error:', error);
+    res.status(500).json({ error: 'Failed to get subscription' });
+  }
+};
+
+
+
+
+
+
+

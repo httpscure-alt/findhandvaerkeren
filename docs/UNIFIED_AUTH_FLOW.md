@@ -193,3 +193,10 @@ After signup → Redirect based on role
 4. **Remember Me**
    - Add "Remember me" checkbox
    - Extend session duration
+
+
+
+
+
+
+

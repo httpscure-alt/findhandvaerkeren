@@ -1,5 +1,6 @@
 import React from 'react';
-import { ViewState, Language } from '../../types';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Language } from '../../types';
 import {
   LayoutDashboard,
   Building2,
@@ -16,102 +17,108 @@ import {
   DollarSign,
   Receipt,
   FileCheck,
-  Shield,
   Database,
-  Activity
+  Activity,
+  FileText
 } from 'lucide-react';
 
 interface AdminSidebarProps {
-  currentView: ViewState;
   lang: Language;
-  onNavigate: (view: ViewState) => void;
   onLogout: () => void;
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ currentView, lang, onNavigate, onLogout }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ lang, onLogout }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const menuItems = [
     {
-      view: ViewState.ADMIN,
+      path: '/admin',
       icon: LayoutDashboard,
       label: lang === 'da' ? 'Dashboard' : 'Dashboard'
     },
     {
-      view: ViewState.ADMIN_COMPANIES,
+      path: '/admin/companies',
       icon: Building2,
       label: lang === 'da' ? 'Virksomheder' : 'Companies'
     },
     {
-      view: ViewState.ADMIN_CONSUMERS,
+      path: '/admin/consumers',
       icon: Users,
       label: lang === 'da' ? 'Forbrugere' : 'Consumers'
     },
     {
-      view: ViewState.ADMIN_PARTNERS,
+      path: '/admin/partners',
       icon: Briefcase,
       label: lang === 'da' ? 'Partnere' : 'Partners'
     },
     {
-      view: ViewState.ADMIN_CATEGORIES,
+      path: '/admin/categories',
       icon: Tag,
       label: lang === 'da' ? 'Kategorier' : 'Categories'
     },
     {
-      view: ViewState.ADMIN_LOCATIONS,
+      path: '/admin/locations',
       icon: MapPin,
       label: lang === 'da' ? 'Lokationer' : 'Locations'
     },
     {
-      view: ViewState.ADMIN_SUBSCRIPTIONS,
+      path: '/admin/subscriptions',
       icon: CreditCard,
       label: lang === 'da' ? 'Abonnementer' : 'Subscriptions'
     },
     {
-      view: ViewState.ADMIN_INQUIRIES,
+      path: '/admin/inquiries',
       icon: MessageSquare,
       label: lang === 'da' ? 'Forespørgsler' : 'Inquiries'
     },
     {
-      view: ViewState.ADMIN_ANALYTICS,
+      path: '/admin/analytics',
       icon: BarChart3,
       label: lang === 'da' ? 'Analytics' : 'Analytics'
     },
     {
-      view: ViewState.ADMIN_SETTINGS,
+      path: '/admin/settings',
       icon: Settings,
       label: lang === 'da' ? 'Indstillinger' : 'Settings'
     },
     {
-      view: ViewState.ADMIN_USERS,
+      path: '/admin/users',
       icon: ShieldCheck,
       label: lang === 'da' ? 'Admin Brugere' : 'Admin Users'
     },
     {
-      view: ViewState.ADMIN_FINANCE,
+      path: '/admin/finance',
       icon: DollarSign,
       label: lang === 'da' ? 'Finans' : 'Finance'
     },
     {
-      view: ViewState.ADMIN_TRANSACTIONS,
+      path: '/admin/transactions',
       icon: Receipt,
       label: lang === 'da' ? 'Transaktioner' : 'Transactions'
     },
     {
-      view: ViewState.ADMIN_VERIFICATION_QUEUE,
+      path: '/admin/verification-queue',
       icon: FileCheck,
       label: lang === 'da' ? 'Verificeringskø' : 'Verification Queue'
     },
     {
-      view: ViewState.ADMIN_SECURITY_LOGS,
+      path: '/admin/activity-logs',
+      icon: FileText,
+      label: lang === 'da' ? 'Aktivitetslog' : 'Activity Logs'
+    },
+    {
+      path: '/admin/security-logs',
       icon: ShieldCheck,
       label: lang === 'da' ? 'Sikkerhedslog' : 'Security Logs'
     },
     {
-      view: ViewState.ADMIN_DATABASE,
+      path: '/admin/database',
       icon: Database,
       label: lang === 'da' ? 'Database' : 'Database'
     },
     {
-      view: ViewState.ADMIN_API_MONITORING,
+      path: '/admin/api-monitoring',
       icon: Activity,
       label: lang === 'da' ? 'API Monitoring' : 'API Monitoring'
     }
@@ -122,28 +129,23 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ currentView, lang, onNaviga
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentView === item.view;
-          
+          const isActive = location.pathname === item.path;
+
           return (
             <button
-              key={item.view}
-              onClick={() => onNavigate(item.view)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                isActive
-                  ? item.highlight 
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium shadow-lg'
-                    : 'bg-nexus-bg text-[#1D1D1F] font-medium'
-                  : item.highlight
-                  ? 'text-purple-600 hover:bg-purple-50 hover:text-purple-700'
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                  ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
                   : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
-              }`}
+                }`}
             >
               <Icon size={20} />
               <span>{item.label}</span>
             </button>
           );
         })}
-        
+
         <div className="pt-4 border-t border-gray-200 mt-4">
           <button
             onClick={onLogout}

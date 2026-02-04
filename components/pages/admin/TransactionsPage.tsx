@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Language } from '../../../types';
 import { Calendar, Download, Filter } from 'lucide-react';
 import { api } from '../../../services/api';
+import { LoadingSkeleton } from '../../common/LoadingSkeleton';
+import { ErrorState } from '../../common/ErrorState';
+import { EmptyState } from '../../common/EmptyState';
+import { exportTransactionsToCSV } from '../../../utils/csvExport';
+import { Receipt } from 'lucide-react';
 
 interface TransactionsPageProps {
   lang: Language;
@@ -14,83 +19,42 @@ interface Transaction {
   planName: string;
   billingCycle: 'monthly' | 'annual';
   amount: number;
-  status: 'paid' | 'failed' | 'upcoming';
+  currency: string;
+  status: 'paid' | 'failed' | 'upcoming' | 'succeeded';
   date: string;
   transactionId: string;
+  subscriptionId?: string;
+  eventType?: string;
+  createdAt: string;
 }
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({ lang, onBack }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'all' | 'month' | 'quarter' | 'year'>('all');
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const data = await api.getTransactions({ dateRange });
-        setTransactions(data.transactions);
-      } catch (error) {
-        console.error('Failed to fetch transactions:', error);
-        // Fallback to mock data if API fails
-        const mockData: Transaction[] = [
-          {
-            id: '1',
-            userOrCompany: 'Nexus Solutions',
-            planName: 'Partner Plan',
-            billingCycle: 'monthly',
-            amount: 49,
-            status: 'paid',
-            date: '2024-01-15',
-            transactionId: 'txn_abc123',
-          },
-          {
-            id: '2',
-            userOrCompany: 'Summit Capital',
-            planName: 'Partner Plan',
-            billingCycle: 'annual',
-            amount: 470.40,
-            status: 'paid',
-            date: '2024-01-14',
-            transactionId: 'txn_def456',
-          },
-          {
-            id: '3',
-            userOrCompany: 'TechFlow Inc',
-            planName: 'Partner Plan',
-            billingCycle: 'monthly',
-            amount: 49,
-            status: 'failed',
-            date: '2024-01-13',
-            transactionId: 'txn_ghi789',
-          },
-          {
-            id: '4',
-            userOrCompany: 'CloudBuilders',
-            planName: 'Partner Plan',
-            billingCycle: 'monthly',
-            amount: 49,
-            status: 'upcoming',
-            date: '2024-01-20',
-            transactionId: 'txn_jkl012',
-          },
-          {
-            id: '5',
-            userOrCompany: 'DataSync Pro',
-            planName: 'Partner Plan',
-            billingCycle: 'annual',
-            amount: 470.40,
-            status: 'paid',
-            date: '2024-01-12',
-        transactionId: 'txn_mno345',
-      },
-    ];
-        setTransactions(mockData);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTransactions();
   }, [dateRange]);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getTransactions({ dateRange });
+      setTransactions(data.transactions || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load transactions');
+      setTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    exportTransactionsToCSV(transactions);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -125,16 +89,6 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ lang, onBack }) => 
       </span>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-gray-500">{lang === 'da' ? 'Indlæser...' : 'Loading...'}</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fadeIn">
@@ -176,11 +130,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ lang, onBack }) => 
             <option value="year">{lang === 'da' ? 'Dette år' : 'This Year'}</option>
           </select>
           <button
-            onClick={() => {
-              // TODO: Implement CSV export
-              alert(lang === 'da' ? 'CSV-eksport kommer snart' : 'CSV export coming soon');
-            }}
-            className="ml-auto flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={handleExportCSV}
+            disabled={transactions.length === 0}
+            className="ml-auto flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download size={16} />
             {lang === 'da' ? 'Eksporter CSV' : 'Export CSV'}
@@ -189,20 +141,28 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ lang, onBack }) => 
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  {lang === 'da' ? 'Bruger / Virksomhed' : 'User or Company'}
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  {lang === 'da' ? 'Plan' : 'Plan Name'}
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  {lang === 'da' ? 'Faktureringscyklus' : 'Billing Cycle'}
-                </th>
+      {loading ? (
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden p-6">
+          <LoadingSkeleton variant="table" count={5} />
+        </div>
+      ) : error ? (
+        <ErrorState title="Failed to load transactions" message={error} onRetry={fetchTransactions} />
+      ) : (
+        <>
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {lang === 'da' ? 'Bruger / Virksomhed' : 'User or Company'}
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {lang === 'da' ? 'Plan' : 'Plan Name'}
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {lang === 'da' ? 'Faktureringscyklus' : 'Billing Cycle'}
+                    </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   {lang === 'da' ? 'Beløb' : 'Amount'}
                 </th>
@@ -215,48 +175,60 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ lang, onBack }) => 
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   {lang === 'da' ? 'Transaktions-ID' : 'Transaction ID'}
                 </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {transactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#1D1D1F]">
-                    {transaction.userOrCompany}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {transaction.planName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {transaction.billingCycle === 'monthly'
-                      ? (lang === 'da' ? 'Månedligt' : 'Monthly')
-                      : (lang === 'da' ? 'Årligt' : 'Annual')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#1D1D1F]">
-                    {formatCurrency(transaction.amount)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(transaction.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {formatDate(transaction.date)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                    {transaction.transactionId}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  {lang === 'da' ? 'Type' : 'Event Type'}
+                </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {transactions.map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#1D1D1F]">
+                        {transaction.userOrCompany}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {transaction.planName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {transaction.billingCycle === 'monthly'
+                          ? (lang === 'da' ? 'Månedligt' : 'Monthly')
+                          : (lang === 'da' ? 'Årligt' : 'Annual')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#1D1D1F]">
+                        {formatCurrency(transaction.amount)} {transaction.currency?.toUpperCase() || 'USD'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(transaction.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {formatDate(transaction.date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                        {transaction.transactionId}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {transaction.eventType || '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      {transactions.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          {lang === 'da' ? 'Ingen transaktioner fundet' : 'No transactions found'}
-        </div>
+          {transactions.length === 0 && !loading && (
+            <EmptyState
+              icon={Receipt}
+              title={lang === 'da' ? 'Ingen transaktioner fundet' : 'No transactions found'}
+              description={lang === 'da' ? 'Der er ingen transaktioner for den valgte periode.' : 'No transactions found for the selected period.'}
+            />
+          )}
+        </>
       )}
     </div>
   );
 };
 
 export default TransactionsPage;
+
+

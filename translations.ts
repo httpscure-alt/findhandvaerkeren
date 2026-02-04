@@ -1,275 +1,375 @@
 
 export const translations = {
-  en: {
-    nav: {
-      home: "Home",
-      browse: "Browse",
-      pricing: "Pricing",
-      login: "Log in",
-      loginConsumer: "For Consumers",
-      loginBusiness: "For Partners",
-      loginAdmin: "Admin Demo",
-      listBusiness: "List Business",
-      dashboard: "My Dashboard"
-    },
-    hero: {
-      tag: "The Premium B2B Network",
-      title: "Discover Trusted Partners.",
-      subtitle: "Connect with verified solutions and showcase your expertise.",
-      searchPlaceholder: "Search categories, services, companies...",
-      searchButton: "Search",
-      ctaPrimary: "Find Solutions",
-      ctaSecondary: "List Your Business"
-    },
-    listings: {
-      filters: "Filters",
-      categories: "Categories",
-      location: "Location",
-      allLocations: "All Locations",
-      trustLevel: "Trust Level",
-      verifiedOnly: "Verified Only",
-      sortBy: "Sort by",
-      noResults: "No results found",
-      clearFilters: "Clear all filters",
-      viewProfile: "View Profile",
-      premiumSelection: "Premium Selection",
-      verifiedPartner: "Verified Partner",
-      smartRec: "Smart Recommendation",
-      analyzing: "AI is analyzing your needs..."
-    },
-    profile: {
-      back: "Back to Directory",
-      about: "About",
-      services: "Services",
-      portfolio: "Portfolio",
-      testimonials: "Testimonials",
-      contactInfo: "Contact Information",
-      contactVendor: "Contact Vendor",
-      requestQuote: "Request Quote",
-      mission: "Our Mission",
-      globalReach: "Global Reach",
-      noContent: "No content available yet."
-    },
-    pricing: {
-      title: "Simple, transparent pricing.",
-      subtitle: "Choose the plan that fits your growth stage.",
-      tiers: {
-        basic: { name: "Basic", cta: "Start for Free", desc: "Essential visibility for new businesses." },
-        pro: { name: "Pro", cta: "Get Started", desc: "Enhanced presence and trust tools." },
-        elite: { name: "Elite", cta: "Contact Sales", desc: "Maximum exposure and dedicated support." }
-      },
-      features: {
-        listing: "Standard Listing Profile",
-        search1: "Searchable in 1 Category",
-        analytics: "Basic Analytics",
-        support: "Email Support",
-        priority: "Priority Search Ranking",
-        verified: "Verified Badge",
-        search3: "Searchable in 3 Categories",
-        messaging: "Direct Lead Messaging",
-        customHeader: "Custom Profile Header",
-        topPlacement: "Top of Category Placement",
-        unlimited: "Unlimited Categories",
-        video: "Video Profile Header",
-        manager: "Dedicated Success Manager",
-        api: "API Access"
-      },
-      checkout: {
-        processing: "Processing...",
-        redirecting: "Redirecting to Secure Checkout",
-        success: "Redirecting to payment..."
-      }
-    },
-    auth: {
-      createAccount: "Create Partner Account",
-      contactSales: "Contact Sales Team",
-      contactVendor: "Contact Partner",
-      companyName: "Company Name",
-      email: "Work Email",
-      phone: "Phone Number",
-      password: "Password",
-      message: "How can we help?",
-      submitReg: "Create Account",
-      submitSales: "Send Inquiry",
-      submitVendor: "Send Message",
-      terms: "By continuing, you agree to our Terms of Service."
-    },
-    admin: {
-      dashboard: "Dashboard",
-      listings: "Listings",
-      revenue: "Revenue",
-      totalCompanies: "Total Companies",
-      activeListings: "Active Listings",
-      pendingReview: "Pending Review",
-      monthlyRevenue: "Monthly Revenue",
-      recentActivity: "Recent Activity",
-      company: "Company",
-      status: "Status",
-      plan: "Plan",
-      actions: "Actions",
-      approve: "Approve",
-      reject: "Reject",
-      verified: "Verified",
-      pending: "Pending"
-    },
-    partner: {
-      welcome: "Welcome back",
-      editProfile: "Edit Profile",
-      viewPublic: "View Public Listing",
-      upgrade: "Upgrade Plan",
-      analytics: "Analytics",
-      profileViews: "Profile Views",
-      websiteClicks: "Profile Clicks",
-      searchAppearances: "Search Appearances",
-      leads: "New Leads",
-      listingStatus: "Listing Status",
-      active: "Active",
-      yourListing: "Your Listing Preview"
-    },
-    consumer: {
-      welcome: "Hello",
-      savedListings: "Saved Listings",
-      noSaved: "You haven't saved any listings yet.",
-      recentActivity: "Recent Activity",
-      browseNow: "Browse Now",
-      accountSettings: "Account Settings",
-      inquiries: "Active Inquiries"
-    }
-  },
   da: {
     nav: {
       home: "Hjem",
-      browse: "Gennemse",
+      findPros: "Find håndværkere",
       pricing: "Priser",
+      listBusiness: "Opret din virksomhed",
       login: "Log ind",
-      loginConsumer: "For Forbrugere",
-      loginBusiness: "For Partnere",
-      loginAdmin: "Admin Demo",
-      listBusiness: "Opret Virksomhed",
-      dashboard: "Mit Dashboard"
+      dashboard: "Mit Dashboard",
+      logout: "Log ud"
     },
     hero: {
-      tag: "Det Premium Netværk",
-      title: "Find Betroede Partnere.",
-      subtitle: "Forbind med verificerede løsninger og vis din ekspertise.",
-      searchPlaceholder: "Søg kategorier, services, firmaer...",
-      searchButton: "Søg",
-      ctaPrimary: "Find Løsninger",
-      ctaSecondary: "Opret Din Virksomhed"
-    },
-    listings: {
-      filters: "Filtre",
-      categories: "Kategorier",
-      location: "Lokation",
-      allLocations: "Alle Lokationer",
-      trustLevel: "Tillidsniveau",
-      verifiedOnly: "Kun Verificerede",
-      sortBy: "Sorter efter",
-      noResults: "Ingen resultater fundet",
-      clearFilters: "Ryd alle filtre",
-      viewProfile: "Se Profil",
-      premiumSelection: "Premium Udvalg",
-      verifiedPartner: "Verificeret Partner",
-      smartRec: "Smart Anbefaling",
-      analyzing: "AI analyserer dine behov..."
-    },
-    profile: {
-      back: "Tilbage til Oversigt",
-      about: "Om",
-      services: "Ydelser",
-      portfolio: "Portefølje",
-      testimonials: "Udtalelser",
-      contactInfo: "Kontaktinformation",
-      contactVendor: "Kontakt Firma",
-      requestQuote: "Indhent Tilbud",
-      mission: "Vores Mission",
-      globalReach: "Global Rækkevidde",
-      noContent: "Intet indhold tilgængeligt endnu."
-    },
-    pricing: {
-      title: "Enkel, gennemskuelig prissætning.",
-      subtitle: "Vælg den plan, der passer til din vækst.",
-      tiers: {
-        basic: { name: "Basis", cta: "Start Gratis", desc: "Grundlæggende synlighed for nye virksomheder." },
-        pro: { name: "Pro", cta: "Kom I Gang", desc: "Udvidet tilstedeværelse og tillidsværktøjer." },
-        elite: { name: "Elite", cta: "Kontakt Salg", desc: "Maksimal eksponering og dedikeret support." }
-      },
-      features: {
-        listing: "Standard Virksomhedsprofil",
-        search1: "Søgbar i 1 Kategori",
-        analytics: "Basis Analyse",
-        support: "Email Support",
-        priority: "Prioriteret Søgerangering",
-        verified: "Verificeret Badge",
-        search3: "Søgbar i 3 Kategorier",
-        messaging: "Direkte Beskeder",
-        customHeader: "Tilpasset Profilheader",
-        topPlacement: "Top Placering i Kategori",
-        unlimited: "Ubegrænsede Kategorier",
-        video: "Video Profilheader",
-        manager: "Dedikeret Success Manager",
-        api: "API Adgang"
-      },
-      checkout: {
-        processing: "Behandler...",
-        redirecting: "Viderestiller til Sikker Betaling",
-        success: "Viderestiller til betaling..."
+      headline: "Find pålidelige håndværkere. Få 3 tilbud – gratis.",
+      subheadline: "Bliv matchet med verificerede lokale fagfolk. Ingen forpligtelser. Ingen spam.",
+      primaryCTA: "Få 3 gratis tilbud",
+      secondaryCTA: "Gennemse håndværkere",
+      trustIndicators: [
+        "Manuelt verificerede virksomheder",
+        "Hurtige svartider",
+        "100 % gratis, ingen binding"
+      ],
+      socialProof: "Betroet af håndværkere i hele Danmark",
+      howItWorks: {
+        title: "Sådan fungerer det",
+        steps: [
+          "Beskriv din opgave",
+          "Modtag tilbud fra verificerede håndværkere",
+          "Vælg den rette og kom i gang"
+        ]
       }
     },
-    auth: {
-      createAccount: "Opret Partner Konto",
-      contactSales: "Kontakt Salgsteamet",
-      contactVendor: "Kontakt Partner",
-      companyName: "Virksomhedsnavn",
-      email: "Arbejdsmail",
-      phone: "Telefonnummer",
-      password: "Adgangskode",
-      message: "Hvordan kan vi hjælpe?",
-      submitReg: "Opret Konto",
-      submitSales: "Send Forespørgsel",
-      submitVendor: "Send Besked",
-      terms: "Ved at fortsætte accepterer du vores servicevilkår."
+    discovery: {
+      title: "Hvad har du brug for?",
+      subtitle: "Vælg en kategori for at finde verificerede fagmænd",
+      searchPlaceholder: "Søg efter håndværker type...",
+      locationPlaceholder: "By eller postnummer",
+      findButton: "Find fagmænd"
+    },
+    get3Quotes: {
+      step1: {
+        title: "Hvilken type opgave skal udføres?",
+        subtext: "Det tager under 1 minut at få 3 tilbud",
+        next: "Næste"
+      },
+      step2: {
+        title: "Fortæl os om opgaven",
+        subtext: "Jo flere detaljer, jo bedre tilbud",
+        placeholder: "Beskriv din opgave her...",
+        next: "Næste"
+      },
+      step3: {
+        title: "Hvor skal opgaven udføres?",
+        subtext: "Indtast postnummer",
+        placeholder: "Postnummer",
+        next: "Næste"
+      },
+      step4: {
+        title: "Dine kontaktoplysninger",
+        subtext: "Håndværkerne bruger disse til at sende tilbud",
+        name: "Navn",
+        email: "E-mail",
+        phone: "Telefon",
+        submit: "Få mine 3 tilbud"
+      },
+      success: {
+        title: "Tak for din forespørgsel!",
+        message: "Du vil modtage op til 3 tilbud inden for kort tid."
+      }
+    },
+    pros: {
+      featuredTitle: "Udvalgte håndværkere",
+      verified: "Verificeret",
+      recommended: "Anbefalet",
+      viewProfile: "Se profil",
+      rating: "Bedømmelse",
+      verifiedDisclaimer: "Verificeret betyder, at virksomheden har gennemgået grundlæggende identitets- eller virksomhedskontrol."
+    },
+    listings: {
+      location: "Lokation",
+      allLocations: "Alle byer",
+      categories: "Kategorier",
+      trustLevel: "Tillidsniveau",
+      verifiedOnly: "Kun verificerede",
+      verifiedPartner: "Verificeret partner",
+      premiumSelection: "Premium udvalg",
+      viewProfile: "Se profil",
+      analyzing: "Analyserer din forespørgsel...",
+      smartRec: "Smart anbefaling",
+      noResults: "Ingen håndværkere fundet"
+    },
+    supply: {
+      title: "Er du håndværker? Få flere kunder.",
+      button: "Opret din virksomhed",
+      onboarding: {
+        title: "Opret din virksomhed",
+        step1: "Virksomhedsinfo",
+        step2: "Kategorier",
+        step3: "Område",
+        step4: "Forhåndsvisning",
+        step5: "Vælg plan"
+      }
+    },
+    footer: {
+      about: "Om os",
+      contact: "Kontakt",
+      terms: "Vilkår",
+      privacy: "Privatliv",
+      rights: "Alle rettigheder forbeholdes."
     },
     admin: {
-      dashboard: "Dashboard",
+      dashboard: "Admin Dashboard",
+      totalCompanies: "Antal virksomheder",
+      activeListings: "Aktive annoncer",
+      monthlyRevenue: "Månedlig omsætning",
+      pendingReview: "Afventer gennemgang",
       listings: "Annoncer",
-      revenue: "Omsætning",
-      totalCompanies: "Totale Virksomheder",
-      activeListings: "Aktive Annoncer",
-      pendingReview: "Afventer Gennemgang",
-      monthlyRevenue: "Månedlig Omsætning",
-      recentActivity: "Seneste Aktivitet",
+      jobRequests: "Opgaveforespørgsler",
+      recentActivity: "Seneste aktivitet",
       company: "Virksomhed",
-      status: "Status",
       plan: "Plan",
+      status: "Status",
       actions: "Handlinger",
+      verified: "Verificeret",
+      pending: "Afventer",
       approve: "Godkend",
       reject: "Afvis",
-      verified: "Verificeret",
-      pending: "Afventer"
-    },
-    partner: {
-      welcome: "Velkommen tilbage",
-      editProfile: "Rediger Profil",
-      viewPublic: "Se Offentlig Profil",
-      upgrade: "Opgrader Plan",
-      analytics: "Analyse",
-      profileViews: "Profilvisninger",
-      websiteClicks: "Profilklik",
-      searchAppearances: "Søgevisninger",
-      leads: "Nye Leads",
-      listingStatus: "Annoncestatus",
-      active: "Aktiv",
-      yourListing: "Din Annoncevisning"
+      consumer: "Forbruger",
+      matches: "Match",
+      quotes: "Tilbud",
+      viewDetails: "Se detaljer",
+      noJobsFound: "Ingen opgaveforespørgsler fundet"
     },
     consumer: {
-      welcome: "Hej",
-      savedListings: "Gemte Annoncer",
-      noSaved: "Du har ikke gemt nogen annoncer endnu.",
-      recentActivity: "Seneste Aktivitet",
-      browseNow: "Gennemse Nu",
+      welcome: "Velkommen",
       accountSettings: "Kontoindstillinger",
-      inquiries: "Aktive Forespørgsler"
+      savedListings: "Gemte annoncer",
+      recentActivity: "Seneste aktivitet",
+      browseNow: "Gennemse nu",
+      noSaved: "Du har ikke gemt nogen annoncer endnu.",
+      inquiries: "Mine forespørgsler"
+    },
+    auth: {
+      email: "E-mail adresse",
+      password: "Adgangskode",
+      login: "Log ind",
+      signup: "Opret konto",
+      forgotPassword: "Glemt adgangskode?",
+      continue: "Fortsæt",
+      backToEmail: "← Tilbage til e-mail",
+      noAccount: "Har du ikke en konto? Opret konto",
+      alreadyHaveAccount: "Har du allerede en konto? Log ind",
+      submitReg: "Opret konto",
+      terms: "Ved at oprette en konto accepterer du vores vilkår for brug og privatlivspolitik."
+    },
+    categoryNames: {
+      All: "Alle",
+      Elektriker: "Elektriker",
+      VVS: "VVS",
+      Tømrer: "Tømrer",
+      Maler: "Maler",
+      Rengøring: "Rengøring",
+      Flytning: "Flytning",
+      Låsesmed: "Låsesmed",
+      Vinduespudser: "Vinduespudser",
+      Skadedyrsbekæmpelse: "Skadedyrsbekæmpelse",
+      Anlægsgartner: "Anlægsgartner",
+      Brolægger: "Brolægger",
+      Glarmester: "Glarmester",
+      Gulvlægger: "Gulvlægger",
+      Mekaniker: "Mekaniker",
+      Autohjælp: "Autohjælp",
+      Tagdækker: "Tagdækker",
+      Snedker: "Snedker",
+      Murer: "Murer",
+      Blikkenslager: "Blikkenslager",
+      Kloakmester: "Kloakmester",
+      Entreprenør: "Entreprenør",
+      Fugemand: "Fugemand",
+      Betonarbejder: "Betonarbejder",
+      Stilladsmontør: "Stilladsmontør",
+      Nedrivning: "Nedrivning",
+      Gulvsliber: "Gulvsliber",
+      Skorstensfejer: "Skorstensfejer",
+      SEO: "SEO & Digital Synlighed",
+      "Google Ads": "Google Ads (SEM)"
+    }
+  },
+  en: {
+    nav: {
+      home: "Home",
+      findPros: "Find professionals",
+      pricing: "Pricing",
+      listBusiness: "List Your Business",
+      login: "Log in",
+      dashboard: "My Dashboard",
+      logout: "Logout"
+    },
+    hero: {
+      headline: "Find Trusted Craftsmen. Get 3 Quotes — Free.",
+      subheadline: "Get matched with verified local professionals. No obligation. No spam.",
+      primaryCTA: "Get 3 Free Quotes",
+      secondaryCTA: "Browse professionals",
+      trustIndicators: [
+        "Manually verified businesses",
+        "Fast response times",
+        "100% free, no obligation"
+      ],
+      socialProof: "Trusted by professionals across Denmark",
+      howItWorks: {
+        title: "How it works",
+        steps: [
+          "Describe your job",
+          "Get quotes from verified professionals",
+          "Choose and get started"
+        ]
+      }
+    },
+    discovery: {
+      title: "What do you need?",
+      subtitle: "Choose a category to find verified professionals",
+      searchPlaceholder: "Search for craftsman type...",
+      locationPlaceholder: "City or postcode",
+      findButton: "Find professionals"
+    },
+    get3Quotes: {
+      step1: {
+        title: "What type of job needs to be done?",
+        subtext: "It takes less than 1 minute to get 3 quotes",
+        next: "Next"
+      },
+      step2: {
+        title: "Tell us about the job",
+        subtext: "The more details, the better quotes",
+        placeholder: "Describe your job here...",
+        next: "Next"
+      },
+      step3: {
+        title: "Where should the job be done?",
+        subtext: "Enter postcode",
+        placeholder: "Postcode",
+        next: "Next"
+      },
+      step4: {
+        title: "Your contact information",
+        subtext: "Craftsmen use these to send quotes",
+        name: "Name",
+        email: "Email",
+        phone: "Phone",
+        submit: "Get my 3 quotes"
+      },
+      success: {
+        title: "Thank you for your request!",
+        message: "You will receive up to 3 quotes shortly."
+      }
+    },
+    pros: {
+      featuredTitle: "Featured Professionals",
+      verified: "Verified",
+      recommended: "Recommended",
+      viewProfile: "View Profile",
+      rating: "Rating",
+      verifiedDisclaimer: "Verified means the business has passed basic identity or company checks."
+    },
+    listings: {
+      location: "Location",
+      allLocations: "All locations",
+      categories: "Categories",
+      trustLevel: "Trust Level",
+      verifiedOnly: "Verified only",
+      verifiedPartner: "Verified partner",
+      premiumSelection: "Premium selection",
+      viewProfile: "View Profile",
+      analyzing: "Analyzing your request...",
+      smartRec: "Smart Recommendation",
+      noResults: "No professionals found"
+    },
+    supply: {
+      title: "Are you a professional? Get more customers.",
+      button: "List Your Business",
+      onboarding: {
+        title: "List Your Business",
+        step1: "Business Info",
+        step2: "Categories",
+        step3: "Location",
+        step4: "Profile Preview",
+        step5: "Select Plan"
+      }
+    },
+    footer: {
+      about: "About Us",
+      contact: "Contact",
+      terms: "Terms",
+      privacy: "Privacy",
+      rights: "All rights reserved."
+    },
+    admin: {
+      dashboard: "Admin Dashboard",
+      totalCompanies: "Total Companies",
+      activeListings: "Active Listings",
+      monthlyRevenue: "Monthly Revenue",
+      pendingReview: "Pending Review",
+      listings: "Listings",
+      jobRequests: "Job Requests",
+      recentActivity: "Recent Activity",
+      company: "Company",
+      plan: "Plan",
+      status: "Status",
+      actions: "Actions",
+      verified: "Verified",
+      pending: "Pending",
+      approve: "Approve",
+      reject: "Reject",
+      consumer: "Consumer",
+      matches: "Matches",
+      quotes: "Quotes",
+      viewDetails: "View Details",
+      noJobsFound: "No job requests found"
+    },
+    consumer: {
+      welcome: "Welcome",
+      accountSettings: "Account Settings",
+      savedListings: "Saved Listings",
+      recentActivity: "Recent Activity",
+      browseNow: "Browse Now",
+      noSaved: "You haven't saved any listings yet.",
+      inquiries: "My Inquiries"
+    },
+    auth: {
+      email: "Email Address",
+      password: "Password",
+      login: "Log In",
+      signup: "Sign Up",
+      forgotPassword: "Forgot password?",
+      continue: "Continue",
+      backToEmail: "← Back to email",
+      noAccount: "Don't have an account? Sign Up",
+      alreadyHaveAccount: "Already have an account? Log In",
+      submitReg: "Create Account",
+      terms: "By creating an account, you agree to our Terms of Service and Privacy Policy."
+    },
+    categoryNames: {
+      All: "All",
+      Elektriker: "Electrician",
+      VVS: "Plumbing",
+      Tømrer: "Carpenter",
+      Maler: "Painter",
+      Rengøring: "Cleaning",
+      Flytning: "Moving",
+      Låsesmed: "Locksmith",
+      Vinduespudser: "Window Cleaning",
+      Skadedyrsbekæmpelse: "Pest Control",
+      Anlægsgartner: "Landscaper",
+      Brolægger: "Paver",
+      Glarmester: "Glazier",
+      Gulvlægger: "Floor Layer",
+      Mekaniker: "Mechanic",
+      Autohjælp: "Roadside Assistance",
+      Tagdækker: "Roofer",
+      Snedker: "Joiner",
+      Murer: "Bricklayer",
+      Blikkenslager: "Tinsmith",
+      Kloakmester: "Drain Expert",
+      Entreprenør: "Contractor",
+      Fugemand: "Caulker",
+      Betonarbejder: "Concrete Worker",
+      Stilladsmontør: "Scaffolder",
+      Nedrivning: "Demolition",
+      Gulvsliber: "Floor Sander",
+      Skorstensfejer: "Chimney Sweep",
+      SEO: "SEO & Digital Visibility",
+      "Google Ads": "Google Ads (SEM)"
     }
   }
 };

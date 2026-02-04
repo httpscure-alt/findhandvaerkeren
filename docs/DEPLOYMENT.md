@@ -247,6 +247,133 @@ VITE_SHOPIFY_STOREFRONT_TOKEN=optional
 
 ---
 
+## Production Environment Variables
+
+### Backend (Railway)
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=<strong-random-secret>
+PORT=5000
+NODE_ENV=production
+FRONTEND_URL=https://yourdomain.com
+
+# Stripe
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_MONTHLY=price_...
+STRIPE_PRICE_ANNUAL=price_...
+
+# Email
+FROM_EMAIL=noreply@findhandvaerkeren.dk
+
+# File Uploads
+UPLOAD_DIR=uploads
+```
+
+### Frontend (Vercel)
+```env
+VITE_API_URL=https://api.yourdomain.com/api
+VITE_GEMINI_API_KEY=...
+```
+
+## Database Backups
+
+### Automated Backups (Neon)
+Neon provides automatic daily backups. To enable:
+1. Go to Neon dashboard
+2. Navigate to project settings
+3. Enable "Point-in-time recovery"
+4. Set retention period (7-30 days recommended)
+
+### Manual Backup
+```bash
+# Using pg_dump
+pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
+
+# Restore
+psql $DATABASE_URL < backup_20240115.sql
+```
+
+### Backup Schedule
+- **Daily**: Automated via Neon
+- **Before major changes**: Manual backup
+- **Weekly**: Export to S3/cloud storage (optional)
+
+## SSL/HTTPS Setup
+
+### Railway (Backend)
+Railway provides SSL automatically. Ensure:
+- Custom domain configured in Railway
+- DNS records point to Railway
+- SSL certificate auto-provisioned
+
+### Vercel (Frontend)
+Vercel provides SSL automatically. Ensure:
+- Custom domain added in Vercel dashboard
+- DNS records configured
+- SSL certificate auto-provisioned
+
+### Domain Configuration
+1. **Backend Domain**: `api.yourdomain.com`
+   - A record or CNAME pointing to Railway
+   
+2. **Frontend Domain**: `yourdomain.com` or `www.yourdomain.com`
+   - A record or CNAME pointing to Vercel
+
+## Error Monitoring
+
+### Sentry Integration (Recommended)
+
+**Backend:**
+```bash
+npm install @sentry/node @sentry/profiling-node
+```
+
+Create `backend/src/utils/sentry.ts`:
+```typescript
+import * as Sentry from '@sentry/node';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: 1.0,
+});
+
+export default Sentry;
+```
+
+Add to `server.ts`:
+```typescript
+import Sentry from './utils/sentry';
+
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
+// ... routes
+app.use(Sentry.Handlers.errorHandler());
+```
+
+**Frontend:**
+```bash
+npm install @sentry/react
+```
+
+Add to `index.tsx`:
+```typescript
+import * as Sentry from '@sentry/react';
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+});
+```
+
+### Logflare Integration (Alternative)
+
+For structured logging:
+```bash
+npm install @logflare/pino-transport
+```
+
 ## Post-Deployment Checklist
 
 - [ ] Backend is accessible at Railway URL
@@ -257,7 +384,14 @@ VITE_SHOPIFY_STOREFRONT_TOKEN=optional
 - [ ] CORS configured correctly
 - [ ] Environment variables set
 - [ ] SSL certificates active
-- [ ] Error logging configured
+- [ ] Error monitoring configured (Sentry/Logflare)
+- [ ] Database backups enabled
+- [ ] Custom domain configured
+- [ ] Stripe webhooks configured
+- [ ] Health check endpoint working
+- [ ] GDPR compliance verified
+- [ ] Cookie consent banner working
+- [ ] Privacy policy and terms accessible
 
 ---
 

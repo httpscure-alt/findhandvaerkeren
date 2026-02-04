@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
-import { ViewState, Language } from '../../types';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { X, User, Briefcase, Shield } from 'lucide-react';
+import { Language } from '../../types';
 import { translations } from '../../translations';
 
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  setView: (view: ViewState) => void;
   lang: Language;
   isLoggedIn: boolean;
   userRole?: 'CONSUMER' | 'PARTNER' | 'ADMIN' | null;
@@ -20,264 +20,124 @@ interface MobileDrawerProps {
 const MobileDrawer: React.FC<MobileDrawerProps> = ({
   isOpen,
   onClose,
-  setView,
   lang,
   isLoggedIn,
   userRole,
-  onLoginPartner,
-  onLoginConsumer,
   onLogout,
-  company,
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const t = translations[lang].nav;
 
-  // Disable body scroll when drawer is open
+  // Prevent scroll when drawer is open
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
     return () => {
       document.body.style.overflow = '';
     };
   }, [isOpen]);
 
-  // Handle navigation and close
-  const handleNavigate = (view: ViewState) => {
-    setView(view);
+  const handleNavigate = (path: string) => {
+    navigate(path);
     onClose();
   };
 
-  // Don't render anything if not open
   if (!isOpen) return null;
 
-  // Render drawer content using Portal to document.body
-  const drawerContent = (
-    <>
-      {/* Backdrop - Semi-transparent overlay */}
+  return createPortal(
+    <div className="fixed inset-0 z-[100] md:hidden">
+      {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/40 z-[9998] md:hidden transition-opacity duration-300"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn"
         onClick={onClose}
-        aria-hidden="true"
       />
 
-      {/* Full-screen drawer with slide animation */}
-      <div
-        className="fixed inset-0 w-full h-full bg-white z-[9999] md:hidden overflow-y-auto transform transition-transform duration-300 ease-in-out translate-x-0"
-      >
-        {/* Header with logo and close button */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between z-10 shadow-sm">
+      {/* Drawer Content */}
+      <div className="absolute right-0 top-0 h-full w-[80%] max-w-sm bg-white shadow-2xl animate-slideInRight flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#1D1D1F] rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg">F</span>
             </div>
-            <span className="font-bold text-xl tracking-tight text-gray-800">Findhåndværkeren</span>
+            <span className="font-bold text-xl tracking-tight text-[#1D1D1F]">Findhåndværkeren</span>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-800 hover:text-gray-600 focus:outline-none p-2 transition-colors"
-            aria-label="Close menu"
-          >
+          <button onClick={onClose} className="p-2 text-[#86868B] hover:text-[#1D1D1F]">
             <X size={24} />
           </button>
         </div>
 
-        {/* Scrollable menu content */}
-        <div className="px-4 pt-4 pb-8 space-y-1">
-          {!isLoggedIn ? (
-            // Visitor mobile menu
-            <>
-              <button
-                onClick={() => handleNavigate(ViewState.HOME)}
-                className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                {t.home}
-              </button>
-              <button
-                onClick={() => handleNavigate(ViewState.LISTINGS)}
-                className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                {t.browse}
-              </button>
-              <button
-                onClick={() => handleNavigate(ViewState.CATEGORIES)}
-                className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                {lang === 'da' ? 'Kategorier' : 'Categories'}
-              </button>
-              <button
-                onClick={() => handleNavigate(ViewState.PRICING)}
-                className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                {t.pricing}
-              </button>
-              <button
-                onClick={() => handleNavigate(ViewState.ABOUT)}
-                className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                {lang === 'da' ? 'Om Os' : 'About'}
-              </button>
-              <button
-                onClick={() => handleNavigate(ViewState.CONTACT)}
-                className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                {lang === 'da' ? 'Kontakt' : 'Contact'}
-              </button>
-              <div className="border-t border-gray-200 my-4"></div>
-              <button
-                onClick={() => {
-                  // Save placeholder plan to indicate partner signup
-                  localStorage.setItem('selectedPlan', JSON.stringify({ id: 'partner', name: 'Partner', monthlyPrice: 0, billingPeriod: 'monthly' }));
-                  handleNavigate(ViewState.SIGNUP);
-                }}
-                className="block w-full text-center px-4 py-3 bg-[#1D1D1F] text-white rounded-lg font-medium hover:bg-black transition-colors mt-4"
-              >
-                {t.listBusiness}
-              </button>
-              <div className="border-t border-gray-200 my-4"></div>
-              <div className="px-4 py-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t.login}</span>
-                <div className="mt-2 space-y-1">
-                  <button
-                    onClick={() => {
-                      handleNavigate(ViewState.AUTH);
-                    }}
-                    className="block w-full text-left px-4 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {t.login}
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Navigate to AUTH with signup mode
-                      handleNavigate(ViewState.AUTH);
-                      // Use setTimeout to ensure navigation happens first, then update URL
-                      setTimeout(() => {
-                        window.history.replaceState({}, '', window.location.pathname + '?mode=signup');
-                        // Trigger a re-render by updating the view state (but keep it as AUTH)
-                        // The AuthPage component will read the URL param on mount
-                      }, 0);
-                    }}
-                    className="block w-full text-left px-4 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Opret konto' : 'Create Account'}
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Logged in mobile menu
-            <>
-              {userRole === 'CONSUMER' && (
-                <>
-                  <button
-                    onClick={() => handleNavigate(ViewState.CONSUMER_DASHBOARD)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Dashboard' : 'Dashboard'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.CONSUMER_SAVED_LISTINGS)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Gemte Annoncer' : 'Saved Listings'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.CONSUMER_INQUIRIES)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Mine Forespørgsler' : 'My Inquiries'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.CONSUMER_SETTINGS)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Indstillinger' : 'Settings'}
-                  </button>
-                </>
-              )}
-              {userRole === 'PARTNER' && (
-                <>
-                  <button
-                    onClick={() => {
-                      // If onboarding not completed, redirect to onboarding, else to dashboard
-                      if (company && !company.onboardingCompleted) {
-                        handleNavigate(ViewState.PARTNER_ONBOARDING_STEP_1);
-                      } else {
-                        handleNavigate(ViewState.PARTNER_DASHBOARD);
-                      }
-                    }}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Dashboard' : 'Dashboard'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.PARTNER_PROFILE_EDIT)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Profil' : 'Profile'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.PARTNER_SERVICES)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Ydelser' : 'Services'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.PARTNER_LEADS)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Leads' : 'Leads'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.PARTNER_SETTINGS)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Indstillinger' : 'Settings'}
-                  </button>
-                </>
-              )}
-              {userRole === 'ADMIN' && (
-                <>
-                  <button
-                    onClick={() => handleNavigate(ViewState.ADMIN)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Dashboard' : 'Dashboard'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.ADMIN_COMPANIES)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Virksomheder' : 'Companies'}
-                  </button>
-                  <button
-                    onClick={() => handleNavigate(ViewState.ADMIN_ANALYTICS)}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Analytics' : 'Analytics'}
-                  </button>
-                </>
-              )}
-              {onLogout && (
-                <>
-                  <div className="border-t border-gray-200 my-4"></div>
-                  <button
-                    onClick={() => {
-                      onLogout();
-                      onClose();
-                    }}
-                    className="block w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    {lang === 'da' ? 'Log Ud' : 'Logout'}
-                  </button>
-                </>
-              )}
-            </>
-          )}
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6">
+          <div className="flex flex-col space-y-4">
+            <button
+              onClick={() => handleNavigate('/')}
+              className={`text-lg font-bold text-left ${location.pathname === '/' ? 'text-[#1D1D1F]' : 'text-[#86868B]'}`}
+            >
+              {t.home}
+            </button>
+            <button
+              onClick={() => handleNavigate('/browse')}
+              className={`text-lg font-bold text-left ${location.pathname === '/browse' ? 'text-[#1D1D1F]' : 'text-[#86868B]'}`}
+            >
+              {t.findPros}
+            </button>
+            <button
+              onClick={() => handleNavigate('/pricing')}
+              className={`text-lg font-bold text-left ${location.pathname === '/pricing' ? 'text-[#1D1D1F]' : 'text-[#86868B]'}`}
+            >
+              {t.pricing}
+            </button>
+          </div>
+
+          <div className="border-t border-gray-100 pt-6 space-y-4">
+            {isLoggedIn ? (
+              <>
+                <button
+                  onClick={() => handleNavigate('/dashboard')}
+                  className="w-full py-4 px-4 rounded-xl bg-gray-50 text-[#1D1D1F] font-bold text-left flex items-center gap-3 transition-colors active:bg-gray-100"
+                >
+                  <Briefcase size={20} />
+                  {t.dashboard}
+                </button>
+                <button
+                  onClick={() => { onLogout?.(); onClose(); }}
+                  className="w-full py-4 px-4 text-red-500 font-bold text-left flex items-center gap-3"
+                >
+                  <Shield size={20} />
+                  {t.logout}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleNavigate('/auth')}
+                  className="w-full py-4 px-4 rounded-xl text-[#1D1D1F] font-bold text-left flex items-center gap-3 transition-colors active:bg-gray-50 border border-gray-100"
+                >
+                  <User size={20} />
+                  {t.login}
+                </button>
+                <button
+                  onClick={() => handleNavigate('/signup?role=PARTNER')}
+                  className="w-full py-4 px-4 rounded-xl bg-[#1D1D1F] text-white font-bold text-left flex items-center gap-3 transition-transform active:scale-[0.98]"
+                >
+                  <Briefcase size={20} />
+                  {t.listBusiness}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+          <p className="text-[10px] text-gray-400 font-medium">© 2024 Findhåndværkeren</p>
         </div>
       </div>
-    </>
+    </div>,
+    document.body
   );
-
-  // Render to document.body using Portal
-  return createPortal(drawerContent, document.body);
 };
 
 export default MobileDrawer;

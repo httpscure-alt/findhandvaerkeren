@@ -1,15 +1,52 @@
 
 import { Company, ConsumerUser } from './types';
 
-export const CATEGORIES = [
-  "All",
-  "Technology",
-  "Finance",
-  "Marketing",
-  "Logistics",
-  "Consulting",
-  "Legal"
+// Popular categories are listed first (indices 1-10), followed by other categories
+
+export interface Category {
+  id: string;
+  isCore: boolean; // Bucket A: Shown everywhere
+  isLongTail: boolean; // Bucket B: Hidden by default, searchable
+}
+
+export const CATEGORY_LIST: Category[] = [
+  // Bucket A: CORE (shown everywhere)
+  { id: "Elektriker", isCore: true, isLongTail: false },
+  { id: "VVS", isCore: true, isLongTail: false },
+  { id: "Tømrer", isCore: true, isLongTail: false },
+  { id: "Maler", isCore: true, isLongTail: false },
+  { id: "Murer", isCore: true, isLongTail: false },
+  { id: "Anlægsgartner", isCore: true, isLongTail: false },
+  { id: "Rengøring", isCore: true, isLongTail: false },
+  { id: "Flytning", isCore: true, isLongTail: false },
+  { id: "Låsesmed", isCore: true, isLongTail: false },
+  { id: "Vinduespudser", isCore: true, isLongTail: false },
+
+  // Bucket B: LONG-TAIL (searchable, specific pages)
+  { id: "Snedker", isCore: false, isLongTail: true },
+  { id: "Blikkenslager", isCore: false, isLongTail: true },
+  { id: "Kloakmester", isCore: false, isLongTail: true },
+  { id: "Entreprenør", isCore: false, isLongTail: true },
+  { id: "Tagdækker", isCore: false, isLongTail: true },
+  { id: "Glarmester", isCore: false, isLongTail: true },
+  { id: "Gulvlægger", isCore: false, isLongTail: true },
+  { id: "Fugemand", isCore: false, isLongTail: true },
+  { id: "Brolægger", isCore: false, isLongTail: true },
+  { id: "Betonarbejder", isCore: false, isLongTail: true },
+  { id: "Stilladsmontør", isCore: false, isLongTail: true },
+  { id: "Nedrivning", isCore: false, isLongTail: true },
+  { id: "Gulvsliber", isCore: false, isLongTail: true },
+  { id: "Skorstensfejer", isCore: false, isLongTail: true },
+  { id: "Skadedyrsbekæmpelse", isCore: false, isLongTail: true },
+  { id: "Mekaniker", isCore: false, isLongTail: true },
+  { id: "Autohjælp", isCore: false, isLongTail: true },
+  { id: "SEO", isCore: false, isLongTail: true },
+  { id: "Google Ads", isCore: false, isLongTail: true },
 ];
+
+export const CATEGORIES = ["All", ...CATEGORY_LIST.map(c => c.id)];
+export const CORE_CATEGORIES = CATEGORY_LIST.filter(c => c.isCore).map(c => c.id);
+export const POPULAR_CATEGORIES = CORE_CATEGORIES;
 
 export const MOCK_CONSUMER: ConsumerUser = {
   id: 'c1',
@@ -22,164 +59,145 @@ export const MOCK_CONSUMER: ConsumerUser = {
 export const MOCK_COMPANIES: Company[] = [
   {
     id: '1',
-    name: 'Nexus Solutions',
-    shortDescription: 'Enterprise-grade cloud architecture and AI integration services.',
-    description: 'Nexus Solutions is a premier technology consultancy specializing in scalable cloud infrastructure and artificial intelligence integration for Fortune 500 companies. We bridge the gap between legacy systems and future-tech.',
+    name: 'Mesterbyg Tømrer & Snedker',
+    shortDescription: 'Kvalitetsarbejde inden for tømrer- og snedkerfaget.',
+    description: 'Vi er din lokale tømrermester i København med over 20 års erfaring. Vi klarer alt fra tagudskiftning til specialfremstillede møbler og køkkener. Vi lægger vægt på høj kvalitet og godt solidt håndværk.',
     logoUrl: 'https://picsum.photos/id/42/200/200',
     bannerUrl: 'https://picsum.photos/id/48/1200/400',
     isVerified: true,
     rating: 4.9,
     reviewCount: 124,
-    category: 'Technology',
+    category: 'Tømrer',
     location: 'København',
-    tags: ['Cloud', 'AI', 'Enterprise'],
-    pricingTier: 'Elite',
-    contactEmail: 'hello@nexussolutions.com',
-    website: 'nexussolutions.com',
+    postalCode: '2100',
+    tags: ['Tagarbejde', 'Køkken', 'Vinduer'],
+    pricingTier: 'Gold',
+    contactEmail: 'info@mesterbyg.dk',
+    website: 'mesterbyg.dk',
     services: [
-      { title: 'Cloud Migration', description: 'Seamless transition of on-premise infrastructure to AWS, Azure, or GCP.' },
-      { title: 'AI Integration', description: 'Custom machine learning models integrated into your existing business workflows.' },
-      { title: 'Cybersecurity Audit', description: 'Comprehensive security analysis and penetration testing.' }
+      { id: 's1', title: 'Tagarbejde', description: 'Nyt tag eller reparation af det gamle. Vi arbejder med alle typer materialer.' },
+      { id: 's2', title: 'Køkkenmontering', description: 'Vi monterer dit nye drømmekøkken med præcision og finish.' },
+      { id: 's3', title: 'Vinduer & Døre', description: 'Udskiftning af vinduer og døre for bedre isolering og æstetik.' }
     ],
     portfolio: [
-      { title: 'FinTech Core Overhaul', category: 'Development', imageUrl: 'https://picsum.photos/id/6/600/400' },
-      { title: 'Retail AI Assistant', category: 'AI', imageUrl: 'https://picsum.photos/id/119/600/400' },
-      { title: 'Logistics Dashboard', category: 'UX/UI', imageUrl: 'https://picsum.photos/id/180/600/400' }
+      { id: 'p1', title: 'Nyt Tag på Villia', category: 'Tag', imageUrl: 'https://picsum.photos/id/6/600/400' },
+      { id: 'p2', title: 'Snedkerkøkken', category: 'Køkken', imageUrl: 'https://picsum.photos/id/119/600/400' },
+      { id: 'p3', title: 'Speciallavet Trappe', category: 'Snedker', imageUrl: 'https://picsum.photos/id/180/600/400' }
     ],
     testimonials: [
-      { author: 'Lars Hansen', role: 'CTO', company: 'Nordic Bank', content: 'Nexus Solutions transformed our infrastructure. Highly recommended.', rating: 5 },
-      { author: 'Sarah Jensen', role: 'Product Owner', company: 'RetailGiant', content: 'Their AI team is top-notch. Delivered ahead of schedule.', rating: 5 }
+      { id: 't1', author: 'Lars Hansen', role: 'Boligejer', company: 'Privat', content: 'Mesterbyg leverede et fantastisk resultat på vores nye tag. Punktlige og professionelle.', rating: 5 },
+      { id: 't2', author: 'Sarah Jensen', role: 'Boligejer', company: 'Privat', content: 'Super flot snedkerarbejde i vores køkken. Kan varmt anbefales!', rating: 5 }
     ]
   },
   {
     id: '2',
-    name: 'Summit Capital',
-    shortDescription: 'Strategic venture funding for Series A+ startups.',
-    description: 'We provide more than just capital. Summit Capital offers strategic mentorship, network access, and operational support to high-growth startups in the fintech and healthtech sectors.',
+    name: 'Jensen & Sønns Murerfirma',
+    shortDescription: 'Alt i murerarbejde – fra fliser til facaderenovering.',
+    description: 'Vi udfører alle former for murerarbejde med fokus på kvalitet og holdbarhed. Specialister i badeværelser og pudseopgaver.',
     logoUrl: 'https://picsum.photos/id/60/200/200',
     bannerUrl: 'https://picsum.photos/id/20/1200/400',
     isVerified: true,
     rating: 4.8,
     reviewCount: 89,
-    category: 'Finance',
+    category: 'Murer',
     location: 'Aarhus',
-    tags: ['VC', 'Funding', 'Growth'],
-    pricingTier: 'Premium',
-    contactEmail: 'partners@summitcap.com',
-    website: 'summitcap.com',
+    postalCode: '8000',
+    tags: ['Badeværelse', 'Fliser', 'Facade'],
+    pricingTier: 'Gold',
+    contactEmail: 'murer@jensenson.dk',
+    website: 'jensenson.dk',
     services: [
-      { title: 'Series A Funding', description: 'Capital injection for scaling operations and market reach.' },
-      { title: 'Strategic Mentorship', description: 'Access to our network of industry veterans.' },
-      { title: 'IPO Preparation', description: 'Guidance on financial structuring for public listing.' }
+      { id: 's4', title: 'Badeværelsesrenovering', description: 'Komplet murerarbejde ved renovering af bad og toilet.' },
+      { id: 's5', title: 'Flisearbejde', description: 'Præcis opsætning af fliser og klinker i alle rum.' },
+      { id: 's6', title: 'Facadepuds', description: 'Giv dit hus et nyt liv med en professionel facadepuds.' }
     ],
     portfolio: [
-      { title: 'MediTech Growth', category: 'Healthcare', imageUrl: 'https://picsum.photos/id/201/600/400' },
-      { title: 'PayFast Scaling', category: 'Fintech', imageUrl: 'https://picsum.photos/id/20/600/400' }
+      { id: 'p4', title: 'Moderne Badeværelse', category: 'Bad', imageUrl: 'https://picsum.photos/id/201/600/400' },
+      { id: 'p5', title: 'Havemur i Natursten', category: 'Udendørs', imageUrl: 'https://picsum.photos/id/20/600/400' }
     ],
     testimonials: [
-      { author: 'Mads Mikkelsen', role: 'Founder', company: 'StartUp X', content: 'Summit Capital was the catalyst we needed.', rating: 5 }
+      { id: 't3', author: 'Mads Mikkelsen', role: 'Husejer', company: 'Privat', content: 'Flot arbejde på vores facade. De kom som aftalt.', rating: 5 }
     ]
   },
   {
     id: '3',
-    name: 'Alpha Design Studio',
-    shortDescription: 'Minimalist branding for modern businesses.',
-    description: 'Alpha Design Studio creates visual identities that stand the test of time. Less is more.',
+    name: 'Hansen VVS-Service',
+    shortDescription: 'Din trygge partner til alle VVS-opgaver.',
+    description: 'Vi løser alt fra dryppende vandhaner til installation af varmepumper. Altid med kunden i fokus.',
     logoUrl: 'https://picsum.photos/id/96/200/200',
     bannerUrl: 'https://picsum.photos/id/1/1200/400',
     isVerified: false,
     rating: 4.5,
     reviewCount: 32,
-    category: 'Marketing',
+    category: 'VVS-installatør',
     location: 'Odense',
-    tags: ['Branding', 'UI/UX'],
+    postalCode: '5000',
+    tags: ['VVS', 'Varme', 'Afløb'],
     pricingTier: 'Standard',
-    contactEmail: 'design@alpha.com',
-    website: 'alphadesign.com',
+    contactEmail: 'vvs@hansen-service.dk',
+    website: 'hansenvvs.dk',
     services: [
-      { title: 'Brand Identity', description: 'Logo, typography, and color palette creation.' },
-      { title: 'Web Design', description: 'Responsive and aesthetic websites.' }
+      { id: 's7', title: 'Vand & Sanitet', description: 'Reparation og installation af alt inden for vand og sanitet.' },
+      { id: 's8', title: 'Varmeinstallation', description: 'Optimering og vedligeholdelse af dit varmeanlæg.' }
     ],
     portfolio: [
-      { title: 'Coffee Shop Rebrand', category: 'Branding', imageUrl: 'https://picsum.photos/id/225/600/400' },
-      { title: 'Tech Corp UI', category: 'Web', imageUrl: 'https://picsum.photos/id/3/600/400' },
-      { title: 'Eco Packaging', category: 'Print', imageUrl: 'https://picsum.photos/id/5/600/400' }
+      { id: 'p6', title: 'Udskiftning af Faldstamme', category: 'VVS', imageUrl: 'https://picsum.photos/id/225/600/400' },
+      { id: 'p7', title: 'Nyt Gasfyr', category: 'Varme', imageUrl: 'https://picsum.photos/id/3/600/400' }
     ],
     testimonials: [
-      { author: 'Peter Nielsen', role: 'CEO', company: 'GreenEnergy', content: 'Clean, modern, and exactly what we asked for.', rating: 4 }
+      { id: 't4', author: 'Peter Nielsen', role: 'Ejer', company: 'Ejendomsinvest', content: 'Hurtig og effektiv service da vi havde rørsprængning.', rating: 4 }
     ]
   },
   {
     id: '4',
-    name: 'Swift Logistics',
-    shortDescription: 'Global supply chain optimization.',
-    description: 'Efficient, reliable, and transparent logistics solutions for international trade.',
+    name: 'Aalborg Malerforretning',
+    shortDescription: 'Professionelt malerarbejde til private og erhverv.',
+    description: 'Vi maler alt fra små lejligheder til store erhvervsbyggerier. Kvalitet og finish er vores varemærke.',
     logoUrl: 'https://picsum.photos/id/119/200/200',
     bannerUrl: 'https://picsum.photos/id/195/1200/400',
     isVerified: false,
     rating: 4.2,
     reviewCount: 15,
-    category: 'Logistics',
+    category: 'Maler',
     location: 'Aalborg',
-    tags: ['Shipping', 'Supply Chain'],
+    postalCode: '9000',
+    tags: ['Maling', 'Tapet', 'Finish'],
     pricingTier: 'Standard',
-    contactEmail: 'ops@swift.com',
-    website: 'swiftlogistics.com',
+    contactEmail: 'aalborg@maler.dk',
+    website: 'aalborgmaler.dk',
     services: [
-      { title: 'Freight Forwarding', description: 'Air, sea, and land transport coordination.' },
-      { title: 'Warehousing', description: 'Secure storage solutions across Europe.' }
+      { id: 's9', title: 'Indvendig Maling', description: 'Vi maler vægge, lofter og træværk med øje for detaljen.' },
+      { id: 's10', title: 'Facademaling', description: 'Beskyt dit hus med en professionel facademaling.' }
     ],
-    portfolio: [],
+    portfolio: [
+      { id: 'p9', title: 'Lejlighedsrenovering', category: 'Maling', imageUrl: 'https://picsum.photos/id/225/600/400' }
+    ],
     testimonials: []
   },
   {
     id: '5',
-    name: 'Vanguard Legal',
-    shortDescription: 'Corporate law and IP protection specialists.',
-    description: 'Protecting your intellectual property and ensuring corporate compliance in over 50 jurisdictions.',
+    name: 'Københavns El-Service',
+    shortDescription: 'Din autoriserede el-installatør i hovedstaden.',
+    description: 'Vi udfører alle typer el-installationer for både private og erhverv. Hurtig udrykning ved akutte problemer.',
     logoUrl: 'https://picsum.photos/id/160/200/200',
     bannerUrl: 'https://picsum.photos/id/180/1200/400',
     isVerified: true,
-    rating: 5.0,
-    reviewCount: 210,
-    category: 'Legal',
+    rating: 4.8,
+    reviewCount: 95,
+    category: 'Elektriker',
     location: 'København',
-    tags: ['IP Law', 'Corporate'],
-    pricingTier: 'Premium',
-    contactEmail: 'contact@vanguard.law',
-    website: 'vanguard.law',
+    postalCode: '1000',
+    tags: ['El-installation', 'Akut', 'Belysning'],
+    pricingTier: 'Gold',
+    contactEmail: 'info@kbh-el.dk',
+    website: 'kbh-el.dk',
     services: [
-      { title: 'IP Registration', description: 'Trademark and patent filing globally.' },
-      { title: 'Contract Review', description: 'Thorough legal analysis of business agreements.' }
+      { id: 's11', title: 'Eltjek', description: 'Gennemgang af din boligs el-installationer.' },
+      { id: 's12', title: 'Lysstyring', description: 'Intelligent belysning og lysdæmpning.' }
     ],
     portfolio: [],
     testimonials: [
-       { author: 'Anna K.', role: 'Director', company: 'InnovateDK', content: 'Saved us from a major lawsuit. Worth every penny.', rating: 5 }
+      { id: 't5', author: 'Anna K.', role: 'Ejer', company: 'InnovateDK', content: 'Hurtig hjælp og god pris.', rating: 5 }
     ]
-  },
-  {
-    id: '6',
-    name: 'Nordic Consult',
-    shortDescription: 'Business strategy for Scandinavian markets.',
-    description: 'Helping foreign businesses enter and thrive in the Danish and Swedish markets with local expertise.',
-    logoUrl: 'https://picsum.photos/id/180/200/200',
-    bannerUrl: 'https://picsum.photos/id/200/1200/400',
-    isVerified: true,
-    rating: 4.7,
-    reviewCount: 56,
-    category: 'Consulting',
-    location: 'Roskilde',
-    tags: ['Strategy', 'Market Entry'],
-    pricingTier: 'Premium',
-    contactEmail: 'info@nordicconsult.dk',
-    website: 'nordicconsult.dk',
-    services: [
-      { title: 'Market Analysis', description: 'Deep dive into Scandinavian consumer behavior.' },
-      { title: 'Regulatory Compliance', description: 'Navigating local laws and tax regulations.' }
-    ],
-    portfolio: [
-       { title: 'US Tech Expansion', category: 'Strategy', imageUrl: 'https://picsum.photos/id/101/600/400' }
-    ],
-    testimonials: []
   }
 ];

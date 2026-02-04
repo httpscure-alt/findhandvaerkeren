@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { ServiceItem, Language } from '../../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2 } from 'lucide-react';
+import { api } from '../../../services/api';
+import { useToast } from '../../../hooks/useToast';
 
 interface ServicesManagementProps {
   services: ServiceItem[];
+  companyId: string;
   lang: Language;
-  onSave: (services: ServiceItem[]) => void;
+  onSave: () => void;
   onBack: () => void;
 }
 
-const ServicesManagement: React.FC<ServicesManagementProps> = ({ services, lang, onSave, onBack }) => {
+const ServicesManagement: React.FC<ServicesManagementProps> = ({ services, companyId, lang, onSave, onBack }) => {
+  const toast = useToast();
   const [items, setItems] = useState<ServiceItem[]>(services);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAdd = () => {
-    setItems([...items, { title: '', description: '' }]);
+    setItems([...items, { id: `new-${Date.now()}`, title: '', description: '' }]);
     setEditingId(`new-${Date.now()}`);
   };
 
@@ -29,18 +35,66 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ services, lang,
     setItems(updated);
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
+    const item = items[index];
+
+    // If it's an existing service (has an id that's not a new-*), delete from API
+    if (item.id && !item.id.startsWith('new-')) {
+      try {
+        setIsSaving(true);
+        await api.deleteService(companyId, item.id);
+        toast.success(lang === 'da' ? 'Ydelse slettet' : 'Service deleted');
+      } catch (err: any) {
+        toast.error(err.message || (lang === 'da' ? 'Kunne ikke slette service' : 'Failed to delete service'));
+        return;
+      } finally {
+        setIsSaving(false);
+      }
+    }
+
+    // Remove from local state
     setItems(items.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      onSave(items);
-      setIsSaving(false);
+    setError(null);
+
+    try {
+      const updatedServices: ServiceItem[] = [];
+
+      // Save each service
+      for (const item of items) {
+        if (!item.title.trim()) {
+          continue; // Skip empty services
+        }
+
+        if (item.id && item.id.startsWith('new-')) {
+          // Create new service
+          const result = await api.createService(companyId, {
+            title: item.title,
+            description: item.description || '',
+          });
+          updatedServices.push(result.service);
+        } else if (item.id) {
+          // Update existing service
+          const result = await api.updateService(companyId, item.id, {
+            title: item.title,
+            description: item.description || '',
+          });
+          updatedServices.push(result.service);
+        }
+      }
+
+      setItems(updatedServices);
+      toast.success(lang === 'da' ? 'Services gemt!' : 'Services saved!');
+      onSave();
       setEditingId(null);
-      alert(lang === 'da' ? 'Services gemt!' : 'Services saved!');
-    }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || (lang === 'da' ? 'Kunne ikke gemme services' : 'Failed to save services'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -136,6 +190,12 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ services, lang,
           >
             {lang === 'da' ? 'Tilføj Første Service' : 'Add First Service'}
           </button>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          {error}
         </div>
       )}
 

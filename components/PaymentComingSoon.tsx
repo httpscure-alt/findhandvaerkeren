@@ -84,3 +84,10 @@ const PaymentComingSoon: React.FC<PaymentComingSoonProps> = ({ lang, onBack, onC
 };
 
 export default PaymentComingSoon;
+
+
+
+
+
+
+

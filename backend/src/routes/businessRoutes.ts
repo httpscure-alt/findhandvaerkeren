@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { 
   getBusinessDashboard, 
   updateCompanyListing,
-  getBusinessAnalytics 
+  getBusinessAnalytics,
+  getSubscription
 } from '../controllers/businessController';
 import { authenticate, requireRole } from '../middleware/auth';
 
@@ -15,5 +16,13 @@ router.use(requireRole('PARTNER'));
 router.get('/dashboard', getBusinessDashboard);
 router.put('/listing', updateCompanyListing);
 router.get('/analytics', getBusinessAnalytics);
+router.get('/subscription', getSubscription);
 
 export default router;
+
+
+
+
+
+
+

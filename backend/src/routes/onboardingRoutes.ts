@@ -23,3 +23,10 @@ router.post('/step-4', saveVerification);
 router.post('/complete', completeOnboarding);
 
 export default router;
+
+
+
+
+
+
+

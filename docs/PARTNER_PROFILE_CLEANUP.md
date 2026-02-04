@@ -300,3 +300,10 @@ export interface Company {
 3. **Stripe Integration:**
    - Replace `PAYMENT_COMING_SOON` with actual Stripe checkout
    - Handle subscription creation
+
+
+
+
+
+
+

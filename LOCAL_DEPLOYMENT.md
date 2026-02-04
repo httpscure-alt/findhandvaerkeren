@@ -19,7 +19,7 @@ If you just want to see the frontend with mock data:
 
 ```bash
 # Install dependencies
-npm install
+npm installhe
 
 # Start frontend
 npm run dev
@@ -380,3 +380,10 @@ npm run start
 ---
 
 **Happy coding! 🚀**
+
+
+
+
+
+
+

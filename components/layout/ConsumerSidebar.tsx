@@ -1,39 +1,40 @@
 import React from 'react';
-import { ViewState, Language } from '../../types';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Language } from '../../types';
 import { LayoutDashboard, Heart, Clock, MessageSquare, Settings, LogOut } from 'lucide-react';
-import { translations } from '../../translations';
 
 interface ConsumerSidebarProps {
-  currentView: ViewState;
   lang: Language;
-  onNavigate: (view: ViewState) => void;
   onLogout: () => void;
 }
 
-const ConsumerSidebar: React.FC<ConsumerSidebarProps> = ({ currentView, lang, onNavigate, onLogout }) => {
+const ConsumerSidebar: React.FC<ConsumerSidebarProps> = ({ lang, onLogout }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const menuItems = [
     {
-      view: ViewState.CONSUMER_DASHBOARD,
+      path: '/dashboard',
       icon: LayoutDashboard,
       label: lang === 'da' ? 'Dashboard' : 'Dashboard'
     },
     {
-      view: ViewState.CONSUMER_SAVED_LISTINGS,
+      path: '/dashboard/saved',
       icon: Heart,
       label: lang === 'da' ? 'Gemte Annoncer' : 'Saved Listings'
     },
     {
-      view: ViewState.CONSUMER_RECENT_SEARCHES,
+      path: '/dashboard/recent',
       icon: Clock,
       label: lang === 'da' ? 'Seneste Søgninger' : 'Recent Searches'
     },
     {
-      view: ViewState.CONSUMER_INQUIRIES,
+      path: '/dashboard/inquiries',
       icon: MessageSquare,
       label: lang === 'da' ? 'Mine Forespørgsler' : 'My Inquiries'
     },
     {
-      view: ViewState.CONSUMER_SETTINGS,
+      path: '/dashboard/settings',
       icon: Settings,
       label: lang === 'da' ? 'Kontoindstillinger' : 'Account Settings'
     }
@@ -44,24 +45,23 @@ const ConsumerSidebar: React.FC<ConsumerSidebarProps> = ({ currentView, lang, on
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentView === item.view;
-          
+          const isActive = location.pathname === item.path;
+
           return (
             <button
-              key={item.view}
-              onClick={() => onNavigate(item.view)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                isActive
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
                   ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
                   : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
-              }`}
+                }`}
             >
               <Icon size={20} />
               <span>{item.label}</span>
             </button>
           );
         })}
-        
+
         <div className="pt-4 border-t border-gray-200 mt-4">
           <button
             onClick={onLogout}

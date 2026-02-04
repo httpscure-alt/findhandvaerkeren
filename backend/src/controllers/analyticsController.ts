@@ -88,3 +88,97 @@ export const getCompanyAnalytics = async (req: AuthRequest, res: Response): Prom
     res.status(500).json({ error: 'Failed to fetch analytics' });
   }
 };
+
+export const getPlatformAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== 'ADMIN') {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    const [
+      totalVisits,
+      uniqueUsers,
+      totalSearches,
+      totalConversions,
+      newRegistrations,
+      newCompanies,
+      newInquiries,
+      topSearches
+    ] = await Promise.all([
+      // Total Visits (Profile views and other events)
+      prisma.analytics.count({
+        where: { createdAt: { gte: thirtyDaysAgo } }
+      }),
+      // Unique Users (Count distinct users who had activity)
+      prisma.user.count({
+        where: { createdAt: { gte: thirtyDaysAgo } }
+      }),
+      // Total Searches
+      prisma.recentSearch.count({
+        where: { createdAt: { gte: thirtyDaysAgo } }
+      }),
+      // Total Conversions (Inquiries)
+      prisma.analytics.count({
+        where: {
+          eventType: 'INQUIRY',
+          createdAt: { gte: thirtyDaysAgo }
+        }
+      }),
+      // New Registrations this month
+      prisma.user.count({
+        where: { createdAt: { gte: startOfMonth } }
+      }),
+      // New Companies this month
+      prisma.company.count({
+        where: { createdAt: { gte: startOfMonth } }
+      }),
+      // New Inquiries this month
+      prisma.analytics.count({
+        where: {
+          eventType: 'INQUIRY',
+          createdAt: { gte: startOfMonth }
+        }
+      }),
+      // Top Searches
+      prisma.recentSearch.groupBy({
+        by: ['query'],
+        _count: {
+          query: true,
+        },
+        orderBy: {
+          _count: {
+            query: 'desc',
+          },
+        },
+        take: 5,
+      })
+    ]);
+
+    res.json({
+      metrics: {
+        totalVisits,
+        uniqueUsers,
+        totalSearches,
+        totalConversions,
+      },
+      activity: {
+        newRegistrations,
+        newCompanies,
+        newInquiries,
+      },
+      topSearches: topSearches.map(s => ({
+        query: s.query,
+        count: s._count.query
+      }))
+    });
+  } catch (error) {
+    console.error('Get platform analytics error:', error);
+    res.status(500).json({ error: 'Failed to fetch platform analytics' });
+  }
+};

@@ -307,3 +307,10 @@ if (currentView === ViewState.PARTNER_DASHBOARD) {
 ---
 
 **All changes maintain existing styling and behavior!** ✅
+
+
+
+
+
+
+

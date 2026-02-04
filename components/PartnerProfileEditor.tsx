@@ -4,6 +4,8 @@ import { api } from '../services/api';
 import { X, Plus, Trash2, Loader2, Save } from 'lucide-react';
 import { translations } from '../translations';
 
+import { useToast } from '../hooks/useToast';
+
 interface PartnerProfileEditorProps {
   company: Company;
   lang: Language;
@@ -18,6 +20,7 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({
   onCancel,
 }) => {
   const t = translations[lang];
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: company.name,
@@ -41,9 +44,10 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({
         ...formData,
         tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
       });
+      toast.success(lang === 'da' ? 'Profil opdateret!' : 'Profile updated!');
       onSave(updated.company);
-    } catch (error) {
-      alert('Failed to update company');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update company');
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +84,7 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({
           {/* Basic Info */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-[#1D1D1F]">Basic Information</h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
               <input

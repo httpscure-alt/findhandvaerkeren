@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,393 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  password       String
+  role           UserRole       @default(CONSUMER)
+  name           String?
+  firstName      String?
+  lastName       String?
+  avatarUrl      String?
+  location       String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  isVerified     Boolean        @default(false)
+  otpCode        String?
+  otpExpiresAt   DateTime?
+  ownedCompany   Company?
+  sentInquiries  Inquiry[]      @relation("ConsumerInquiries")
+  jobRequests    JobRequest[]
+  recentSearches RecentSearch[]
+  savedListings  SavedListing[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Company {
+  id                    String             @id @default(cuid())
+  name                  String
+  description           String
+  shortDescription      String
+  logoUrl               String?
+  bannerUrl             String?
+  isVerified            Boolean            @default(false)
+  rating                Float              @default(0)
+  reviewCount           Int                @default(0)
+  category              String
+  location              String
+  tags                  String[]           @default([])
+  pricingTier           PricingTier        @default(Standard)
+  contactEmail          String
+  website               String?
+  ownerId               String             @unique
+  companyCreated        Boolean            @default(false)
+  profileCompleted      Boolean            @default(false)
+  onboardingCompleted   Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  cvrNumber             String?
+  vatNumber             String?
+  legalName             String?
+  businessAddress       String?
+  cvrLookupUrl          String?
+  permitType            String?
+  permitIssuer          String?
+  permitNumber          String?
+  permitDocuments       String[]           @default([])
+  verificationStatus    VerificationStatus @default(unverified)
+  verificationNotes     String?
+  analytics             Analytics[]
+  owner                 User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  inquiries             Inquiry[]          @relation("CompanyInquiries")
+  leadMatches           LeadMatch[]
+  permitDocumentRecords PermitDocument[]
+  portfolio             PortfolioItem[]
+  savedBy               SavedListing[]
+  services              Service[]
+  subscriptions         Subscription[]
+  testimonials          Testimonial[]
+
+  @@index([category])
+  @@index([location])
+  @@index([isVerified])
+  @@index([pricingTier])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  companyId   String
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model PortfolioItem {
+  id        String   @id @default(cuid())
+  companyId String
+  title     String
+  imageUrl  String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model Testimonial {
+  id              String   @id @default(cuid())
+  companyId       String
+  author          String
+  role            String
+  company         String
+  content         String
+  rating          Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  companyRelation Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model SavedListing {
+  id         String   @id @default(cuid())
+  consumerId String
+  companyId  String
+  createdAt  DateTime @default(now())
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  consumer   User     @relation(fields: [consumerId], references: [id], onDelete: Cascade)
+
+  @@unique([consumerId, companyId])
+  @@index([consumerId])
+  @@index([companyId])
+}
+
+model Inquiry {
+  id         String        @id @default(cuid())
+  consumerId String
+  companyId  String
+  message    String
+  status     InquiryStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  company    Company       @relation("CompanyInquiries", fields: [companyId], references: [id], onDelete: Cascade)
+  consumer   User          @relation("ConsumerInquiries", fields: [consumerId], references: [id], onDelete: Cascade)
+
+  @@index([consumerId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Subscription {
+  id                   String                @id @default(cuid())
+  companyId            String
+  tier                 PricingTier
+  status               String                @default("active")
+  billingCycle         String?
+  startDate            DateTime
+  endDate              DateTime?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean               @default(false)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?               @unique
+  stripePriceId        String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  transactions         PaymentTransaction[]
+  company              Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  history              SubscriptionHistory[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@index([stripeCustomerId])
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  companyId String
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model PermitDocument {
+  id         String    @id @default(cuid())
+  companyId  String
+  fileName   String
+  fileUrl    String
+  fileType   String?
+  fileSize   Int?
+  uploadedAt DateTime  @default(now())
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+  verifiedBy String?
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([verified])
+}
+
+model AdminActivityLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  targetType String?
+  targetId   String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
+model PaymentTransaction {
+  id                    String        @id @default(cuid())
+  subscriptionId        String?
+  companyId             String?
+  stripePaymentIntentId String?       @unique
+  stripeInvoiceId       String?       @unique
+  amount                Float
+  currency              String        @default("usd")
+  status                String
+  paymentMethod         String?
+  billingCycle          String?
+  tier                  PricingTier?
+  description           String?
+  metadata              Json?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([companyId])
+  @@index([status])
+  @@index([stripePaymentIntentId])
+  @@index([createdAt])
+}
+
+model SubscriptionHistory {
+  id                   String       @id @default(cuid())
+  subscriptionId       String
+  action               String
+  previousTier         PricingTier?
+  newTier              PricingTier?
+  previousStatus       String?
+  newStatus            String?
+  previousBillingCycle String?
+  newBillingCycle      String?
+  reason               String?
+  metadata             Json?
+  createdAt            DateTime     @default(now())
+  subscription         Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model EmailLog {
+  id           String    @id @default(cuid())
+  to           String
+  from         String?
+  subject      String
+  template     String?
+  status       String    @default("pending")
+  errorMessage String?
+  metadata     Json?
+  sentAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([to])
+  @@index([status])
+  @@index([createdAt])
+  @@index([template])
+}
+
+model PlatformSettings {
+  id              String   @id @default("singleton")
+  platformName    String   @default("Findhåndværkeren")
+  supportEmail    String   @default("support@findhandvaerkeren.dk")
+  maintenanceMode Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+model RecentSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("unread")
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model JobRequest {
+  id          String      @id @default(cuid())
+  consumerId  String?
+  title       String
+  description String
+  category    String
+  postalCode  String
+  budget      String?
+  images      String[]
+  status      String      @default("open")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  guestEmail  String?
+  guestName   String?
+  guestPhone  String?
+  consumer    User?       @relation(fields: [consumerId], references: [id], onDelete: Cascade)
+  matches     LeadMatch[]
+
+  @@index([consumerId])
+  @@index([status])
+  @@index([category])
+  @@index([postalCode])
+}
+
+model LeadMatch {
+  id           String     @id @default(cuid())
+  jobRequestId String
+  companyId    String
+  status       String     @default("pending")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  job          JobRequest @relation(fields: [jobRequestId], references: [id], onDelete: Cascade)
+  quotes       Quote[]
+
+  @@unique([jobRequestId, companyId])
+  @@index([companyId])
+  @@index([status])
+}
+
+model Quote {
+  id        String    @id @default(cuid())
+  matchId   String
+  price     Float?
+  message   String
+  status    String    @default("sent")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  match     LeadMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
 }
 
 enum UserRole {
@@ -28,205 +412,8 @@ enum InquiryStatus {
   CLOSED
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      UserRole @default(CONSUMER)
-  name      String?
-  firstName String?
-  lastName  String?
-  avatarUrl String?
-  location  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  ownedCompany    Company?
-  savedListings   SavedListing[]
-  sentInquiries   Inquiry[] @relation("ConsumerInquiries")
-
-  @@index([email])
-  @@index([role])
-}
-
 enum VerificationStatus {
   unverified
   pending
   verified
-}
-
-model Company {
-  id              String      @id @default(cuid())
-  name            String
-  description    String      @db.Text
-  shortDescription String
-  logoUrl        String?
-  bannerUrl      String?
-  isVerified     Boolean     @default(false)
-  rating         Float       @default(0) @db.DoublePrecision
-  reviewCount    Int         @default(0)
-  category       String
-  location       String
-  tags           String[]    @default([])
-  pricingTier    PricingTier @default(Standard)
-  contactEmail   String
-  website        String?
-  ownerId        String      @unique
-  onboardingCompleted Boolean @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-
-  // Danish verification fields
-  cvrNumber          String?
-  vatNumber          String?
-  legalName          String?
-  businessAddress    String?
-  cvrLookupUrl       String?
-  permitType         String?
-  permitIssuer       String?
-  permitNumber       String?
-  permitDocuments    String[]    @default([])
-  verificationStatus VerificationStatus @default(unverified)
-  verificationNotes  String?     @db.Text
-
-  // Relations
-  owner         User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  services      Service[]
-  portfolio     PortfolioItem[]
-  testimonials Testimonial[]
-  savedBy       SavedListing[]
-  inquiries     Inquiry[]    @relation("CompanyInquiries")
-  subscriptions Subscription[]
-  analytics     Analytics[]
-
-  @@index([category])
-  @@index([location])
-  @@index([isVerified])
-  @@index([pricingTier])
-}
-
-model Service {
-  id          String   @id @default(cuid())
-  companyId   String
-  title       String
-  description String   @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-}
-
-model PortfolioItem {
-  id        String   @id @default(cuid())
-  companyId String
-  title     String
-  imageUrl  String
-  category  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-}
-
-model Testimonial {
-  id        String   @id @default(cuid())
-  companyId String
-  author    String
-  role      String
-  company   String
-  content   String   @db.Text
-  rating    Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  companyRelation Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-}
-
-model SavedListing {
-  id        String   @id @default(cuid())
-  consumerId String
-  companyId  String
-  createdAt  DateTime @default(now())
-
-  consumer User    @relation(fields: [consumerId], references: [id], onDelete: Cascade)
-  company  Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@unique([consumerId, companyId])
-  @@index([consumerId])
-  @@index([companyId])
-}
-
-model Inquiry {
-  id        String        @id @default(cuid())
-  consumerId String
-  companyId  String
-  message   String        @db.Text
-  status    InquiryStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  consumer User    @relation("ConsumerInquiries", fields: [consumerId], references: [id], onDelete: Cascade)
-  company  Company @relation("CompanyInquiries", fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([consumerId])
-  @@index([companyId])
-  @@index([status])
-}
-
-model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([slug])
-}
-
-model Location {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([slug])
-}
-
-model Subscription {
-  id        String      @id @default(cuid())
-  companyId String
-  tier      PricingTier
-  status    String      @default("active")
-  startDate DateTime
-  endDate   DateTime?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime   @updatedAt
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-  @@index([status])
-}
-
-model Analytics {
-  id        String   @id @default(cuid())
-  companyId String
-  eventType String
-  metadata  Json?
-  createdAt DateTime @default(now())
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-  @@index([eventType])
-  @@index([createdAt])
 }

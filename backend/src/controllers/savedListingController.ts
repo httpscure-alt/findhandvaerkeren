@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
+import { AppError } from '../middleware/errorHandler';
 
 const prisma = new PrismaClient();
 
@@ -24,8 +25,7 @@ export const getSavedListings = async (req: AuthRequest, res: Response): Promise
 
     res.json({ savedListings });
   } catch (error) {
-    console.error('Get saved listings error:', error);
-    res.status(500).json({ error: 'Failed to fetch saved listings' });
+    throw new AppError('Failed to fetch saved listings', 500);
   }
 };
 
@@ -56,8 +56,7 @@ export const saveListing = async (req: AuthRequest, res: Response): Promise<void
       res.status(400).json({ error: 'Listing already saved' });
       return;
     }
-    console.error('Save listing error:', error);
-    res.status(500).json({ error: 'Failed to save listing' });
+    throw new AppError('Failed to save listing', 500);
   }
 };
 
@@ -75,7 +74,6 @@ export const unsaveListing = async (req: AuthRequest, res: Response): Promise<vo
 
     res.json({ message: 'Listing unsaved' });
   } catch (error) {
-    console.error('Unsave listing error:', error);
-    res.status(500).json({ error: 'Failed to unsave listing' });
+    throw new AppError('Failed to unsave listing', 500);
   }
 };

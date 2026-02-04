@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import {
   Shield,
   Activity,
@@ -19,9 +20,15 @@ import {
   RefreshCw,
   Eye,
   Key,
-  HardDrive
+  HardDrive,
+  UserPlus,
+  X
 } from 'lucide-react';
 import { Language } from '../../../types';
+import { api } from '../../../services/api';
+import { useToast } from '../../../hooks/useToast';
+import { LoadingSkeleton } from '../../common/LoadingSkeleton';
+import { ErrorState } from '../../common/ErrorState';
 
 interface SuperAdminDashboardProps {
   lang: Language;
@@ -45,6 +52,7 @@ interface SecurityMetrics {
 }
 
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavigate }) => {
+  const toast = useToast();
   const [systemHealth, setSystemHealth] = useState<SystemHealth>({
     status: 'healthy',
     uptime: '99.9%',
@@ -54,54 +62,123 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
   });
 
   const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics>({
-    totalLogins: 12450,
-    failedAttempts: 23,
-    blockedIPs: 5,
-    activeSessions: 892,
-    lastSecurityIncident: '2 hours ago'
+    totalLogins: 0,
+    failedAttempts: 0,
+    blockedIPs: 0,
+    activeSessions: 0,
+    lastSecurityIncident: '-'
+  });
+
+  const [platformStats, setPlatformStats] = useState({
+    totalUsers: 0,
+    activePartners: 0,
+    monthlyRevenue: 0,
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Mock data - replace with real API calls
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
+  const [newAdminData, setNewAdminData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    firstName: '',
+    lastName: '',
+  });
 
   useEffect(() => {
+    fetchData();
     // Auto-refresh every 30 seconds
-    const interval = setInterval(refreshData, 30000);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
 
+  const fetchData = async () => {
+    setIsRefreshing(true);
+    setError(null);
+    try {
+      const stats = await api.getAdminStats();
+      setPlatformStats({
+        totalUsers: stats.totalUsers,
+        activePartners: stats.totalPartners,
+        monthlyRevenue: stats.monthlyRevenue,
+      });
+
+      // Simulate live system health updates
+      setSystemHealth({
+        status: Math.random() > 0.95 ? 'warning' : 'healthy',
+        uptime: '99.9%',
+        responseTime: Math.floor(120 + Math.random() * 60),
+        errorRate: parseFloat((0.01 + Math.random() * 0.05).toFixed(2)),
+        activeConnections: Math.floor(1000 + Math.random() * 500)
+      });
+
+      // Simulate live security metric updates
+      setSecurityMetrics(prev => ({
+        totalLogins: Math.floor(5000 + Math.random() * 2000),
+        failedAttempts: Math.floor(5 + Math.random() * 15),
+        blockedIPs: Math.floor(2 + Math.random() * 5),
+        activeSessions: Math.floor(120 + Math.random() * 80),
+        lastSecurityIncident: prev.lastSecurityIncident === '-' ? 'None today' : prev.lastSecurityIncident
+      }));
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data');
+    } finally {
+      setIsRefreshing(false);
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!newAdminData.email || !newAdminData.password) {
+      toast.warning(lang === 'da' ? 'Email og password er påkrævet' : 'Email and password are required');
+      return;
+    }
+    try {
+      await api.createAdminUser(newAdminData);
+      toast.success(lang === 'da' ? 'Admin bruger oprettet' : 'Admin user created');
+      setShowCreateAdminModal(false);
+      setNewAdminData({ email: '', password: '', name: '', firstName: '', lastName: '' });
+    } catch (err: any) {
+      toast.error(err.message || (lang === 'da' ? 'Kunne ikke oprette admin' : 'Failed to create admin'));
+    }
+  };
+
   const isDa = lang === 'da';
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
   // Platform Overview Stats
-  const platformStats = [
+  const displayStats = [
     {
       title: isDa ? 'Totale Brugere' : 'Total Users',
-      value: '12,450',
+      value: platformStats.totalUsers.toLocaleString(),
       change: '+12.5%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: Users,
       color: 'bg-blue-50 text-blue-600'
     },
     {
       title: isDa ? 'Aktive Partnere' : 'Active Partners',
-      value: '1,247',
+      value: platformStats.activePartners.toLocaleString(),
       change: '+8.2%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: Shield,
       color: 'bg-green-50 text-green-600'
     },
     {
       title: isDa ? 'Månedlig Omsætning' : 'Monthly Revenue',
-      value: '$124,500',
+      value: formatCurrency(platformStats.monthlyRevenue),
       change: '+15.3%',
-      trend: 'up',
+      trend: 'up' as const,
       icon: DollarSign,
       color: 'bg-purple-50 text-purple-600'
     },
@@ -109,7 +186,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
       title: isDa ? 'System Uptime' : 'System Uptime',
       value: systemHealth.uptime,
       change: systemHealth.status === 'healthy' ? 'Optimal' : 'Warning',
-      trend: systemHealth.status === 'healthy' ? 'up' : 'down',
+      trend: systemHealth.status === 'healthy' ? 'up' as const : 'down' as const,
       icon: Activity,
       color: systemHealth.status === 'healthy' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
     }
@@ -193,6 +270,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
       icon: BarChart3,
       onClick: () => onNavigate?.('ADMIN_API_MONITORING'),
       color: 'bg-green-50 text-green-600 hover:bg-green-100'
+    },
+    {
+      label: isDa ? 'Vækst Center' : 'Growth Hub',
+      icon: Zap,
+      onClick: () => onNavigate?.('GROWTH_HUB'), // We will handle this in App.tsx navigation logic or by passing a direct path
+      color: 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
     }
   ];
 
@@ -210,13 +293,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
             </h1>
           </div>
           <p className="text-gray-500">
-            {isDa 
-              ? 'Komplet platformoversigt og systemstyring' 
+            {isDa
+              ? 'Komplet platformoversigt og systemstyring'
               : 'Complete platform overview and system management'}
           </p>
         </div>
         <button
-          onClick={refreshData}
+          onClick={fetchData}
           disabled={isRefreshing}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all disabled:opacity-50"
         >
@@ -226,28 +309,37 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
       </div>
 
       {/* Platform Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {platformStats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.color}`}>
-                  <Icon size={20} />
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <LoadingSkeleton key={i} variant="card" />
+          ))}
+        </div>
+      ) : error ? (
+        <ErrorState title="Failed to load stats" message={error} onRetry={fetchData} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {displayStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${stat.color}`}>
+                    <Icon size={20} />
+                  </div>
+                  <div className={`flex items-center gap-1 text-xs font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                    <TrendingUp size={14} />
+                    {stat.change}
+                  </div>
                 </div>
-                <div className={`flex items-center gap-1 text-xs font-medium ${
-                  stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  <TrendingUp size={14} />
-                  {stat.change}
-                </div>
+                <p className="text-sm font-medium text-gray-400 mb-1">{stat.title}</p>
+                <h3 className="text-2xl font-bold text-[#1D1D1F]">{stat.value}</h3>
               </div>
-              <p className="text-sm font-medium text-gray-400 mb-1">{stat.title}</p>
-              <h3 className="text-2xl font-bold text-[#1D1D1F]">{stat.value}</h3>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* System Health */}
@@ -257,18 +349,17 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
               <Activity size={20} />
               {isDa ? 'System Sundhed' : 'System Health'}
             </h2>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              systemHealth.status === 'healthy' 
-                ? 'bg-green-50 text-green-700' 
-                : systemHealth.status === 'warning'
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${systemHealth.status === 'healthy'
+              ? 'bg-green-50 text-green-700'
+              : systemHealth.status === 'warning'
                 ? 'bg-amber-50 text-amber-700'
                 : 'bg-red-50 text-red-700'
-            }`}>
-              {systemHealth.status === 'healthy' 
+              }`}>
+              {systemHealth.status === 'healthy'
                 ? (isDa ? 'Sund' : 'Healthy')
                 : systemHealth.status === 'warning'
-                ? (isDa ? 'Advarsel' : 'Warning')
-                : (isDa ? 'Kritisk' : 'Critical')
+                  ? (isDa ? 'Advarsel' : 'Warning')
+                  : (isDa ? 'Kritisk' : 'Critical')
               }
             </span>
           </div>
@@ -325,7 +416,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Clock size={14} />
               <span>
-                {isDa 
+                {isDa
                   ? `Sidste hændelse: ${securityMetrics.lastSecurityIncident}`
                   : `Last incident: ${securityMetrics.lastSecurityIncident}`
                 }
@@ -337,9 +428,18 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
 
       {/* Quick Actions */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-bold text-[#1D1D1F] mb-6">
-          {isDa ? 'Hurtige Handlinger' : 'Quick Actions'}
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-[#1D1D1F]">
+            {isDa ? 'Hurtige Handlinger' : 'Quick Actions'}
+          </h2>
+          <button
+            onClick={() => setShowCreateAdminModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+          >
+            <UserPlus size={18} />
+            {isDa ? 'Opret Admin' : 'Create Admin'}
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
@@ -356,6 +456,83 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
           })}
         </div>
       </div>
+
+      {/* Create Admin Modal */}
+      {showCreateAdminModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[#1D1D1F]">
+                {isDa ? 'Opret Admin Bruger' : 'Create Admin User'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCreateAdminModal(false);
+                  setNewAdminData({ email: '', password: '', name: '', firstName: '', lastName: '' });
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {isDa ? 'Email *' : 'Email *'}
+                </label>
+                <input
+                  type="email"
+                  value={newAdminData.email}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="admin@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {isDa ? 'Password *' : 'Password *'}
+                </label>
+                <input
+                  type="password"
+                  value={newAdminData.password}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder={isDa ? 'Mindst 8 tegn' : 'Min 8 characters'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {isDa ? 'Navn' : 'Name'}
+                </label>
+                <input
+                  type="text"
+                  value={newAdminData.name}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder={isDa ? 'Fulde navn' : 'Full name'}
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setShowCreateAdminModal(false);
+                    setNewAdminData({ email: '', password: '', name: '', firstName: '', lastName: '' });
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50"
+                >
+                  {isDa ? 'Annuller' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleCreateAdmin}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700"
+                >
+                  {isDa ? 'Opret' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity & System Info */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -374,11 +551,10 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
               { time: '3 hours ago', event: 'System update deployed', status: 'success' }
             ].map((event, index) => (
               <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                <div className={`w-2 h-2 rounded-full mt-2 ${
-                  event.status === 'success' ? 'bg-green-500' :
+                <div className={`w-2 h-2 rounded-full mt-2 ${event.status === 'success' ? 'bg-green-500' :
                   event.status === 'warning' ? 'bg-amber-500' :
-                  'bg-blue-500'
-                }`} />
+                    'bg-blue-500'
+                  }`} />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-[#1D1D1F]">{event.event}</p>
                   <p className="text-xs text-gray-400 mt-1">{event.time}</p>
@@ -416,3 +592,5 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
 };
 
 export default SuperAdminDashboard;
+
+

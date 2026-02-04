@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger';
 
 export class AppError extends Error {
   statusCode: number;
@@ -21,9 +22,11 @@ export const errorHandler = (
   const statusCode = err instanceof AppError ? err.statusCode : 500;
   const message = err.message || 'Internal server error';
 
-  console.error('Error:', {
+  logger.error('Unhandled Error:', {
     message,
     statusCode,
+    path: req.path,
+    method: req.method,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 
@@ -32,3 +35,4 @@ export const errorHandler = (
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
+

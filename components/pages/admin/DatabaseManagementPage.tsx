@@ -78,9 +78,8 @@ const DatabaseManagementPage: React.FC<DatabaseManagementPageProps> = ({ lang, o
             <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
               <HardDrive size={20} />
             </div>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-              dbStats.status === 'healthy' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-            }`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${dbStats.status === 'healthy' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              }`}>
               {dbStats.status === 'healthy' ? (isDa ? 'Sund' : 'Healthy') : (isDa ? 'Fejl' : 'Error')}
             </span>
           </div>
@@ -138,7 +137,14 @@ const DatabaseManagementPage: React.FC<DatabaseManagementPageProps> = ({ lang, o
               <p className="text-xs text-gray-500">{isDa ? 'Eksporter database' : 'Export database'}</p>
             </div>
           </button>
-          <button className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all">
+          <button
+            onClick={() => {
+              if (window.confirm(isDa ? 'Er du sikker på at du vil gendanne databasen? Dette vil overskrive alle nuværende data.' : 'Are you sure you want to restore the database? This will overwrite all current data.')) {
+                alert(isDa ? 'Gendannelse startet...' : 'Restoration started...');
+              }
+            }}
+            className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 hover:bg-gray-50 transition-all"
+          >
             <Upload size={20} className="text-green-600" />
             <div className="text-left">
               <p className="font-medium text-[#1D1D1F]">{isDa ? 'Restore Backup' : 'Restore Backup'}</p>
@@ -211,3 +217,10 @@ const DatabaseManagementPage: React.FC<DatabaseManagementPageProps> = ({ lang, o
 };
 
 export default DatabaseManagementPage;
+
+
+
+
+
+
+

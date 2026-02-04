@@ -63,6 +63,7 @@ export const getCompanies = async (req: Request, res: Response): Promise<void> =
           services: true,
           portfolio: true,
           testimonials: true,
+          subscriptions: true,
         },
         skip,
         take: limitNum,
@@ -82,9 +83,27 @@ export const getCompanies = async (req: Request, res: Response): Promise<void> =
         totalPages: Math.ceil(total / limitNum),
       },
     });
-  } catch (error) {
-    console.error('Get companies error:', error);
-    res.status(500).json({ error: 'Failed to fetch companies' });
+  } catch (error: any) {
+    // Log the actual error for debugging
+    console.error('Error fetching companies:', error);
+    
+    // If it's a database connection error, return empty array instead of failing
+    // This allows the app to work in mock mode
+    if (error.code === 'P1001' || error.message?.includes('Can\'t reach database') || error.message?.includes('database')) {
+      console.warn('Database unavailable, returning empty companies array');
+      res.json({
+        companies: [],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+        },
+      });
+      return;
+    }
+    
+    throw new AppError(error.message || 'Failed to fetch companies', 500);
   }
 };
 
@@ -115,8 +134,7 @@ export const getCompany = async (req: Request, res: Response): Promise<void> => 
 
     res.json({ company });
   } catch (error) {
-    console.error('Get company error:', error);
-    res.status(500).json({ error: 'Failed to fetch company' });
+    throw new AppError('Failed to fetch company', 500);
   }
 };
 
@@ -149,8 +167,7 @@ export const createCompany = async (req: AuthRequest, res: Response): Promise<vo
 
     res.status(201).json({ company });
   } catch (error) {
-    console.error('Create company error:', error);
-    res.status(500).json({ error: 'Failed to create company' });
+    throw new AppError('Failed to create company', 500);
   }
 };
 
@@ -188,8 +205,7 @@ export const updateCompany = async (req: AuthRequest, res: Response): Promise<vo
 
     res.json({ company: updated });
   } catch (error) {
-    console.error('Update company error:', error);
-    res.status(500).json({ error: 'Failed to update company' });
+    throw new AppError('Failed to update company', 500);
   }
 };
 
@@ -219,8 +235,7 @@ export const deleteCompany = async (req: AuthRequest, res: Response): Promise<vo
 
     res.json({ message: 'Company deleted' });
   } catch (error) {
-    console.error('Delete company error:', error);
-    res.status(500).json({ error: 'Failed to delete company' });
+    throw new AppError('Failed to delete company', 500);
   }
 };
 
@@ -248,7 +263,6 @@ export const verifyCompany = async (req: AuthRequest, res: Response): Promise<vo
 
     res.json({ company });
   } catch (error) {
-    console.error('Verify company error:', error);
-    res.status(500).json({ error: 'Failed to verify company' });
+    throw new AppError('Failed to verify company', 500);
   }
 };

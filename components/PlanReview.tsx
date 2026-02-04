@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Check, ArrowRight, CreditCard } from 'lucide-react';
+import { Check, ArrowRight, CreditCard, Loader2 } from 'lucide-react';
 import { Language, SelectedPlan } from '../types';
 import { translations } from '../translations';
 import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES, formatPrice } from '../constants/pricing';
+import { api } from '../services/api';
 
 interface PlanReviewProps {
   lang: Language;
@@ -80,6 +81,68 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
 
   const priceInfo = getPriceInfo();
   const features = PARTNER_PLAN_FEATURES.PRO;
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleContinueToPayment = async () => {
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      // Get billing cycle from current pricing mode
+      const billingCycle = pricingMode;
+      
+      // Call Stripe checkout API
+      const { url } = await api.createCheckoutSession(billingCycle);
+      
+      if (url) {
+        // ONLY redirect if it's a Stripe checkout URL
+        if (url.startsWith('https://checkout.stripe.com') || url.includes('stripe.com')) {
+          // Redirect to Stripe Checkout - this is what we want!
+          console.log('✅ Redirecting to Stripe Checkout:', url);
+          window.location.href = url;
+          return;
+        }
+        
+        // If we get a mock URL or local URL, that's an error - backend should return Stripe URL
+        if (url.startsWith('/billing/success') || url.startsWith('/billing/coming-soon')) {
+          console.error('❌ Got mock/local URL instead of Stripe URL:', url);
+          throw new Error('Backend returned a local URL instead of Stripe checkout URL. Please check Stripe configuration.');
+        }
+        
+        // If it's not a Stripe URL, that's unexpected - show error
+        console.error('❌ Unexpected URL format:', url);
+        throw new Error(`Invalid checkout URL format: ${url}. Expected Stripe checkout URL.`);
+      } else {
+        throw new Error('No checkout URL returned from backend');
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      // Show more helpful error messages
+      let errorMessage = 'Failed to create checkout session. Please try again.';
+      
+      if (err.message) {
+        if (err.message.includes('Stripe') || err.message.includes('stripe')) {
+          errorMessage = lang === 'da' 
+            ? 'Stripe er ikke konfigureret korrekt. Kontakt support for hjælp.'
+            : 'Stripe is not configured correctly. Please contact support for assistance.';
+        } else if (err.message.includes('Authentication') || err.message.includes('token')) {
+          errorMessage = lang === 'da'
+            ? 'Du skal være logget ind for at fortsætte. Log venligst ind igen.'
+            : 'You must be logged in to continue. Please log in again.';
+        } else if (err.message.includes('API_NOT_AVAILABLE') || err.message.includes('USE_MOCK_API') || err.message.includes('backend is not available') || err.message.includes('API URL is not configured')) {
+          errorMessage = lang === 'da'
+            ? 'Backend er ikke tilgængelig. Sørg for at backend kører på http://localhost:4000 og at VITE_API_URL er sat i .env.local filen.'
+            : 'Backend is not available. Please ensure the backend is running on http://localhost:4000 and that VITE_API_URL is set in your .env.local file.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fadeIn">
@@ -192,13 +255,30 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             </button>
           )}
           <button
-            onClick={onContinueToPayment}
-            className="flex-1 py-3 px-6 rounded-xl font-medium bg-[#1D1D1F] text-white hover:bg-black shadow-lg transition-all flex items-center justify-center gap-2"
+            onClick={handleContinueToPayment}
+            disabled={isProcessing}
+            className="flex-1 py-3 px-6 rounded-xl font-medium bg-[#1D1D1F] text-white hover:bg-black shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {lang === 'da' ? 'Fortsæt til betaling (Stripe kommer snart)' : 'Continue to Payment (Stripe coming soon)'}
-            <ArrowRight size={18} />
+            {isProcessing ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                {lang === 'da' ? 'Opretter betalingssession...' : 'Creating checkout session...'}
+              </>
+            ) : (
+              <>
+                {lang === 'da' ? 'Fortsæt til betaling' : 'Continue to Payment'}
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
 
         {/* Security Note */}
         <p className="text-xs text-center text-gray-400 mt-6">
@@ -212,3 +292,5 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
 };
 
 export default PlanReview;
+
+

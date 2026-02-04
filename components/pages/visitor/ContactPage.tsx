@@ -1,40 +1,80 @@
 import React, { useState } from 'react';
 import { Language } from '../../../types';
 import { translations } from '../../../translations';
-import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, Paperclip, X } from 'lucide-react';
+import { api } from '../../../services/api';
+import { FileUpload } from '../../common/FileUpload';
 
 interface ContactPageProps {
   lang: Language;
 }
 
 const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const t = translations[lang].contact;
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+    files: [] as string[]
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      await api.submitContactForm(formData);
       setIsSubmitting(false);
       setIsSubmitted(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-      setTimeout(() => setIsSubmitted(false), 3000);
-    }, 1500);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+        files: []
+      });
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setError(err.message || t.error);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      const url = await api.uploadDocument(file);
+      setFormData(prev => ({
+        ...prev,
+        files: [...prev.files, url]
+      }));
+      return url;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      files: prev.files.filter((_, i) => i !== index)
+    }));
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fadeIn">
       <div className="text-center mb-12">
         <h1 className="text-5xl font-bold text-[#1D1D1F] mb-4">
-          {lang === 'da' ? 'Kontakt Os' : 'Contact Us'}
+          {t.title}
         </h1>
         <p className="text-xl text-nexus-subtext max-w-2xl mx-auto">
-          {lang === 'da'
-            ? 'Har du spørgsmål? Vi er her for at hjælpe.'
-            : 'Have questions? We\'re here to help.'}
+          {t.subtitle}
         </p>
       </div>
 
@@ -45,19 +85,28 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
             <div className="w-12 h-12 bg-nexus-bg rounded-xl flex items-center justify-center mb-4">
               <Mail className="text-nexus-accent" size={24} />
             </div>
-            <h3 className="font-bold text-[#1D1D1F] mb-2">
-              {lang === 'da' ? 'Email' : 'Email'}
-            </h3>
-            <p className="text-nexus-subtext">hello@findhandvaerkeren.dk</p>
+            <h3 className="font-bold text-[#1D1D1F] mb-2">{t.email}</h3>
+            <div className="space-y-1 text-sm">
+              <p className="text-nexus-subtext flex justify-between">
+                <span>General:</span>
+                <a href="mailto:hello@findhandvaerkeren.dk" className="text-nexus-accent hover:underline">hello@findhandvaerkeren.dk</a>
+              </p>
+              <p className="text-nexus-subtext flex justify-between">
+                <span>Private:</span>
+                <a href="mailto:privat@findhandvaerkeren.dk" className="text-nexus-accent hover:underline">privat@findhandvaerkeren.dk</a>
+              </p>
+              <p className="text-nexus-subtext flex justify-between">
+                <span>Partners:</span>
+                <a href="mailto:partner@findhandvaerkeren.dk" className="text-nexus-accent hover:underline">partner@findhandvaerkeren.dk</a>
+              </p>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
             <div className="w-12 h-12 bg-nexus-bg rounded-xl flex items-center justify-center mb-4">
               <Phone className="text-nexus-accent" size={24} />
             </div>
-            <h3 className="font-bold text-[#1D1D1F] mb-2">
-              {lang === 'da' ? 'Telefon' : 'Phone'}
-            </h3>
+            <h3 className="font-bold text-[#1D1D1F] mb-2">{t.phone}</h3>
             <p className="text-nexus-subtext">+45 12 34 56 78</p>
           </div>
 
@@ -65,9 +114,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
             <div className="w-12 h-12 bg-nexus-bg rounded-xl flex items-center justify-center mb-4">
               <MapPin className="text-nexus-accent" size={24} />
             </div>
-            <h3 className="font-bold text-[#1D1D1F] mb-2">
-              {lang === 'da' ? 'Adresse' : 'Address'}
-            </h3>
+            <h3 className="font-bold text-[#1D1D1F] mb-2">{t.address}</h3>
             <p className="text-nexus-subtext">København, Denmark</p>
           </div>
         </div>
@@ -80,22 +127,14 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Send className="text-green-600" size={32} />
                 </div>
-                <h3 className="text-2xl font-bold text-[#1D1D1F] mb-2">
-                  {lang === 'da' ? 'Tak for din besked!' : 'Thank You!'}
-                </h3>
-                <p className="text-nexus-subtext">
-                  {lang === 'da'
-                    ? 'Vi vender tilbage inden for 24 timer.'
-                    : 'We\'ll get back to you within 24 hours.'}
-                </p>
+                <h3 className="text-2xl font-bold text-[#1D1D1F] mb-2">{t.successTitle}</h3>
+                <p className="text-nexus-subtext">{t.successMessage}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {lang === 'da' ? 'Navn' : 'Name'}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t.nameLabel}</label>
                     <input
                       type="text"
                       required
@@ -105,9 +144,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {lang === 'da' ? 'Email' : 'Email'}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t.emailLabel}</label>
                     <input
                       type="email"
                       required
@@ -117,30 +154,75 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {lang === 'da' ? 'Emne' : 'Subject'}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
-                  />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t.phoneLabel}</label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t.subjectLabel}</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {lang === 'da' ? 'Besked' : 'Message'}
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.messageLabel}</label>
                   <textarea
                     required
-                    rows={6}
+                    rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent resize-none"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.fileLabel}</label>
+                  <FileUpload
+                    onUpload={handleFileUpload}
+                    type="document"
+                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                    maxSize={5}
+                    lang={lang}
+                  />
+                  {formData.files.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {formData.files.map((fileUrl, index) => (
+                        <div key={index} className="flex items-center gap-2 bg-nexus-bg px-3 py-1.5 rounded-full text-xs text-nexus-text border border-nexus-accent/10">
+                          <Paperclip size={12} className="text-nexus-accent" />
+                          <span className="truncate max-w-[150px]">{fileUrl.split('/').pop()}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2">{t.fileHelp}</p>
+                </div>
+
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">
+                    {error}
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -149,12 +231,12 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="animate-spin" size={20} />
-                      {lang === 'da' ? 'Sender...' : 'Sending...'}
+                      {t.sendingButton}
                     </>
                   ) : (
                     <>
                       <Send size={20} />
-                      {lang === 'da' ? 'Send Besked' : 'Send Message'}
+                      {t.sendButton}
                     </>
                   )}
                 </button>

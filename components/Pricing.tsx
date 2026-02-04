@@ -1,158 +1,191 @@
 import React, { useState } from 'react';
-import { Check } from 'lucide-react';
-import { Language, ModalState, SelectedPlan } from '../types';
+import { Check, Star, Zap, ShieldCheck, TrendingUp, Users } from 'lucide-react';
+import { Language, SelectedPlan } from '../types';
 import { translations } from '../translations';
 import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES, formatPrice } from '../constants/pricing';
 
 interface PricingProps {
   lang: Language;
-  onOpenModal: (type: ModalState) => void;
-  onPlanSelected?: (plan: SelectedPlan) => void;
+  user?: any;
+  onSelectPlan?: (plan: SelectedPlan) => void;
+  isEmbedded?: boolean;
 }
 
 type PricingMode = 'monthly' | 'annual';
 
-const Pricing: React.FC<PricingProps> = ({ lang, onOpenModal, onPlanSelected }) => {
-  const [pricingMode, setPricingMode] = useState<PricingMode>('monthly');
-  const t = translations[lang].pricing;
+const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = false }) => {
+  const [pricingMode] = useState<PricingMode>('monthly');
+  const t = translations[lang];
 
-  // Use centralized pricing format function
   const getPriceInfo = (monthlyPrice: number) => {
     return formatPrice(monthlyPrice, pricingMode, lang);
   };
 
-  const handlePlanSelect = (tierName: string, isPaid: boolean, monthlyPrice: number) => {
-    // Save plan and redirect to Partner Signup
+  const handlePlanSelect = (tierName: string, monthlyPrice: number) => {
     const selectedPlan: SelectedPlan = {
-      id: 'partner',
-      name: 'Partner Plan',
+      id: tierName.toLowerCase(),
+      name: tierName,
       monthlyPrice,
       billingPeriod: pricingMode,
     };
-    
-    // Save plan to localStorage for later use
     localStorage.setItem('selectedPlan', JSON.stringify(selectedPlan));
-    
-    // Set role to partner
     localStorage.setItem('signupRole', 'PARTNER');
-    
-    // Notify parent component if callback provided
-    onPlanSelected?.(selectedPlan);
-    
-    // Parent component will handle redirect to signup page
+    onSelectPlan?.(selectedPlan);
   };
 
   const tiers = [
     {
-      id: 'Pro',
-      name: 'Partner Plan', // Single plan for partners
+      id: 'Standard',
+      name: lang === 'da' ? 'Partner Basis' : 'Partner Basic',
       monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
-      description: t.tiers.pro.desc,
+      description: lang === 'da' ? 'Ideelt for selvstændige håndværkere der ønsker flere opgaver.' : 'Perfect for independent craftsmen looking for more jobs.',
       features: PARTNER_PLAN_FEATURES.PRO,
-      cta: lang === 'da' ? 'Fortsæt til betaling (Stripe kommer snart)' : 'Continue to Payment (Stripe coming soon)',
+      cta: lang === 'da' ? 'Vælg Basis' : 'Choose Basic',
+      highlight: false,
+      icon: ShieldCheck
+    },
+    {
+      id: 'Gold',
+      name: lang === 'da' ? 'Partner Guld' : 'Partner Gold',
+      monthlyPrice: PARTNER_PLAN_PRICING.GOLD_MONTHLY,
+      description: lang === 'da' ? 'Maksimal synlighed og flest henvendelser. Bliv "Featured professional".' : 'Maximum visibility and most inquiries. Become a "Featured professional".',
+      features: PARTNER_PLAN_FEATURES.GOLD,
+      cta: lang === 'da' ? 'Vælg Guld' : 'Choose Gold',
       highlight: true,
-      paid: true
+      icon: Star
     }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fadeIn relative z-0">
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <h2 className="text-4xl font-bold text-[#1D1D1F] mb-4 tracking-tight">{t.title}</h2>
-        <p className="text-xl text-[#86868B] mb-8">{t.subtitle}</p>
-        
-        {/* Pricing Toggle */}
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <span 
-            className={`text-sm font-medium transition-colors duration-200 ${
-              pricingMode === 'monthly' ? 'text-[#1D1D1F]' : 'text-[#86868B]'
-            }`}
-          >
-            {lang === 'da' ? 'Månedligt' : 'Monthly'}
-          </span>
-          <button
-            onClick={() => setPricingMode(pricingMode === 'monthly' ? 'annual' : 'monthly')}
-            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-nexus-accent focus:ring-offset-2 ${
-              pricingMode === 'annual' ? 'bg-[#1D1D1F]' : 'bg-gray-300'
-            }`}
-            aria-label={lang === 'da' ? 'Skift prisperiode' : 'Toggle pricing period'}
-          >
-            <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
-                pricingMode === 'annual' ? 'translate-x-8' : 'translate-x-1'
-              }`}
-            />
-          </button>
-          <span 
-            className={`text-sm font-medium transition-colors duration-200 ${
-              pricingMode === 'annual' ? 'text-[#1D1D1F]' : 'text-[#86868B]'
-            }`}
-          >
-            {lang === 'da' ? 'Årligt (Spar 20%)' : 'Annual (Save 20%)'}
-          </span>
-        </div>
-      </div>
+    <div className={`bg-white ${isEmbedded ? '' : 'min-h-screen'}`}>
+      {/* Hero Header */}
+      {!isEmbedded && (
+        <section className="pt-32 pb-20 bg-[#FBFBFD] border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-[#1D1D1F] tracking-tight mb-6">
+              {lang === 'da' ? 'Vækst din virksomhed' : 'Grow Your Business'}
+            </h1>
+            <p className="max-w-2xl mx-auto text-xl text-[#86868B] mb-10 font-medium">
+              {lang === 'da'
+                ? 'Findhåndværkeren hjælper dig med at blive set af de rette kunder. Start i dag – helt uforpligtende.'
+                : 'Findhåndværkeren helps you get noticed by the right customers. Start today – zero commitment.'}
+            </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-2xl mx-auto">
-        {tiers.map((tier) => {
-          const priceInfo = getPriceInfo(tier.monthlyPrice);
-          
-          return (
-            <div 
-              key={tier.name} 
-              className={`relative rounded-3xl p-8 flex flex-col transition-all duration-300 
-                ${tier.highlight 
-                  ? 'bg-white shadow-xl scale-105 border border-gray-100 z-10' 
-                  : 'bg-[#F5F5F7]/50 border border-white hover:bg-white hover:shadow-lg'
-                }`}
-            >
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-[#1D1D1F] mb-2">{tier.name}</h3>
-                <div className="mb-2">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-[#1D1D1F] transition-all duration-300">
-                      {priceInfo.price}
-                    </span>
-                    {priceInfo.period && (
-                      <span className="text-lg font-medium text-[#86868B] transition-all duration-300">
+            <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-6 py-3 rounded-2xl text-sm font-bold border border-green-100 shadow-sm animate-pulse">
+              <Zap size={18} fill="currentColor" />
+              {lang === 'da' ? 'FØRSTE 3 MÅNEDER 0 KR.' : 'FIRST 3 MONTHS 0 KR.'}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Main Pricing Section */}
+      <section className={isEmbedded ? 'py-4' : 'py-24'}>
+        <div className={`max-w-6xl mx-auto ${isEmbedded ? '' : 'px-4 sm:px-6 lg:px-8'}`}>
+          <div className={`grid grid-cols-1 ${isEmbedded ? 'sm:grid-cols-2' : 'md:grid-cols-2'} gap-6 md:gap-10 items-stretch`}>
+            {tiers.map((tier) => {
+              const priceInfo = getPriceInfo(tier.monthlyPrice);
+              const isGold = tier.id === 'Gold';
+              const Icon = tier.icon;
+
+              return (
+                <div
+                  key={tier.id}
+                  className={`relative rounded-[2.5rem] p-10 md:p-12 flex flex-col transition-all duration-500 border
+                    ${isGold
+                      ? 'bg-white border-[#1D1D1F]/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] scale-105 z-10'
+                      : 'bg-white text-[#1D1D1F] shadow-xl border-gray-100'
+                    }`}
+                >
+                  {isGold && (
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#1D1D1F] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-xl">
+                      {lang === 'da' ? 'ANBEFALET' : 'RECOMMENDED'}
+                    </div>
+                  )}
+
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center 
+                        ${isGold ? 'bg-[#1D1D1F] text-white' : 'bg-[#F5F5F7] text-[#1D1D1F]'}`}>
+                        <Icon size={28} />
+                      </div>
+                      {isGold && (
+                        <div className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-full uppercase tracking-wider">
+                          {lang === 'da' ? 'Mest populær' : 'Most popular'}
+                        </div>
+                      )}
+                    </div>
+
+                    <h3 className="text-2xl font-black text-[#1D1D1F] mb-1">{tier.name}</h3>
+                    <p className="text-sm font-bold text-[#86868B] leading-relaxed mb-8">
+                      {tier.description}
+                    </p>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-black text-[#1D1D1F] tracking-tighter">{priceInfo.price}</span>
+                      <span className="text-sm font-bold text-[#86868B]">
                         {priceInfo.period}
                       </span>
-                    )}
+                    </div>
                   </div>
-                  {priceInfo.billing && (
-                    <p className="text-xs text-[#86868B] mt-1 transition-all duration-300">
-                      {priceInfo.billing}
-                    </p>
-                  )}
+
+                  <div className="border-t border-gray-100 mb-8" />
+
+                  <ul className="space-y-4 mb-10 flex-1">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-4">
+                        <div className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isGold ? 'bg-[#1D1D1F]' : 'bg-gray-100'}`}>
+                          <Check size={12} className={isGold ? 'text-white' : 'text-[#86868B]'} />
+                        </div>
+                        <span className="text-sm font-bold text-[#1D1D1F]">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => handlePlanSelect(tier.id, tier.monthlyPrice)}
+                    className={`w-full py-5 rounded-2xl font-black text-sm transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] shadow-lg
+                      ${isGold
+                        ? 'bg-[#1D1D1F] text-white hover:bg-black hover:shadow-2xl'
+                        : 'bg-transparent border-2 border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#F5F5F7]'
+                      }`}
+                  >
+                    {tier.cta}
+                  </button>
                 </div>
-                <p className="text-sm text-[#86868B]">{tier.description}</p>
-              </div>
-
-            <ul className="space-y-4 mb-8 flex-1">
-              {tier.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-3">
-                  <div className="mt-0.5 p-0.5 rounded-full bg-green-100">
-                    <Check size={12} className="text-green-600" />
-                  </div>
-                  <span className="text-sm text-[#1D1D1F]">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button 
-              onClick={() => handlePlanSelect(tier.id, tier.paid, tier.monthlyPrice)}
-              className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2
-                ${tier.highlight 
-                  ? 'bg-[#1D1D1F] text-white hover:bg-black shadow-lg' 
-                  : 'bg-white text-[#1D1D1F] border border-gray-200 hover:bg-gray-50'
-                }`}
-            >
-              {tier.cta}
-            </button>
+              );
+            })}
           </div>
-        );
-        })}
-      </div>
+        </div>
+      </section>
+
+      {/* Value Props Section */}
+      {!isEmbedded && (
+        <section className="py-24 bg-[#FBFBFD]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-extrabold text-[#1D1D1F]">{lang === 'da' ? 'Hvorfor Findhåndværkeren?' : 'Why Findhåndværkeren?'}</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+              {[
+                { icon: TrendingUp, title: lang === 'da' ? 'Flere Leads' : 'More Leads', desc: lang === 'da' ? 'Vi sender dig kun relevante opgaver i dit område.' : 'We only send you relevant jobs in your area.' },
+                { icon: Users, title: lang === 'da' ? 'Nye Kunder' : 'New Customers', desc: lang === 'da' ? 'Skab tætte kunderelationer gennem høj synlighed.' : 'Build strong customer relationships through high visibility.' },
+                { icon: Zap, title: lang === 'da' ? 'Ingen Binding' : 'No Commitment', desc: lang === 'da' ? 'Opsig når som helst. Ingen skjulte gebyrer.' : 'Cancel anytime. No hidden fees.' }
+              ].map((prop, i) => (
+                <div key={i} className="space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-[1.5rem] shadow-sm text-[#1D1D1F]">
+                    <prop.icon size={28} />
+                  </div>
+                  <h3 className="text-xl font-bold text-[#1D1D1F]">{prop.title}</h3>
+                  <p className="text-[#86868B] font-medium leading-relaxed">{prop.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

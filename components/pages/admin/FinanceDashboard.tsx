@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Language } from '../../../types';
 import { DollarSign, TrendingUp, Users, Calendar, ArrowUp, ArrowDown, Download } from 'lucide-react';
 import { api } from '../../../services/api';
+import { useToast } from '../../../hooks/useToast';
+import { exportFinanceMetricsToCSV } from '../../../utils/csvExport';
 
 interface FinanceDashboardProps {
   lang: Language;
@@ -18,6 +21,7 @@ interface FinanceMetrics {
 }
 
 const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ lang, onBack }) => {
+  const toast = useToast();
   const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,16 +32,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ lang, onBack }) => 
         setMetrics(data);
       } catch (error) {
         console.error('Failed to fetch finance metrics:', error);
-        // Fallback to mock data if API fails
-        const mockData: FinanceMetrics = {
-          totalRevenue: 125430.50,
-          monthlyRecurringRevenue: 12450.00,
-          activeSubscriptions: 254,
-          newSubscriptionsThisMonth: 23,
-          cancellationsThisMonth: 5,
-          upcomingRenewals: 42,
-        };
-        setMetrics(mockData);
+        toast.error(lang === 'da' ? 'Kunne ikke indlæse finansielle data' : 'Failed to load finance data');
       } finally {
         setLoading(false);
       }
@@ -208,8 +203,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ lang, onBack }) => 
       <div className="flex justify-end mb-6">
         <button
           onClick={() => {
-            // TODO: Implement CSV export
-            alert(lang === 'da' ? 'CSV-eksport kommer snart' : 'CSV export coming soon');
+            if (metrics) {
+              exportFinanceMetricsToCSV(metrics);
+            }
           }}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
@@ -222,3 +218,10 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ lang, onBack }) => 
 };
 
 export default FinanceDashboard;
+
+
+
+
+
+
+

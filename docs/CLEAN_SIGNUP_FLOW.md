@@ -196,3 +196,10 @@ Step 4 Complete → PLAN_REVIEW (if plan saved) → PAYMENT_COMING_SOON
 - [x] Step 4 completion redirects to plan review
 - [x] No "Account Created" page shown
 - [x] Consumers never enter wizard
+
+
+
+
+
+
+

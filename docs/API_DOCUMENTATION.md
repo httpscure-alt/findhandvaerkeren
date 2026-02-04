@@ -376,6 +376,400 @@ GET /analytics/company/:companyId
 
 ---
 
+---
+
+## Stripe Payment Endpoints
+
+### Create Checkout Session
+```http
+POST /stripe/create-checkout-session
+```
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Body:**
+```json
+{
+  "billingCycle": "monthly" | "annual",
+  "tier": "Standard" | "Premium" | "Elite"
+}
+```
+
+**Response:**
+```json
+{
+  "url": "https://checkout.stripe.com/..."
+}
+```
+
+### Get Session Details
+```http
+GET /stripe/session-details?session_id=cs_xxx
+```
+
+**Response:**
+```json
+{
+  "session": {
+    "id": "cs_xxx",
+    "status": "complete",
+    "paymentStatus": "paid",
+    "billingCycle": "monthly",
+    "amountTotal": 49.00,
+    "currency": "USD"
+  },
+  "subscription": { ... }
+}
+```
+
+### Create Billing Portal Session
+```http
+POST /stripe/create-portal-session
+```
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "url": "https://billing.stripe.com/..."
+}
+```
+
+### Webhook Handler
+```http
+POST /stripe/webhook
+```
+
+**Headers:** `stripe-signature: <signature>`
+
+**Body:** Raw Stripe event JSON
+
+Handles events:
+- `checkout.session.completed`
+- `invoice.payment_succeeded`
+- `invoice.payment_failed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+
+---
+
+## Admin Endpoints
+
+All admin endpoints require `ADMIN` role.
+
+### Get Admin Stats
+```http
+GET /admin/stats
+```
+
+**Response:**
+```json
+{
+  "totalCompanies": 150,
+  "verifiedCompanies": 45,
+  "pendingVerifications": 12,
+  "totalUsers": 500,
+  "totalPartners": 120,
+  "totalConsumers": 380,
+  "activeSubscriptions": 95,
+  "monthlyRevenue": 4655.00
+}
+```
+
+### Get Admin Users
+```http
+GET /admin/users?role=PARTNER&page=1&limit=50&search=query
+```
+
+**Query Parameters:**
+- `role` (optional): CONSUMER | PARTNER | ADMIN
+- `page` (optional): Page number
+- `limit` (optional): Items per page
+- `search` (optional): Search query
+
+### Get User Details
+```http
+GET /admin/users/:id
+```
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "...",
+    "email": "...",
+    "name": "...",
+    "ownedCompany": { ... },
+    "savedListings": [ ... ],
+    "sentInquiries": [ ... ]
+  }
+}
+```
+
+### Suspend User
+```http
+POST /admin/users/:id/suspend
+```
+
+**Body:**
+```json
+{
+  "reason": "Violation of terms"
+}
+```
+
+### Delete User
+```http
+DELETE /admin/users/:id
+```
+
+### Reset User Password
+```http
+POST /admin/users/:id/reset-password
+```
+
+**Body:**
+```json
+{
+  "newPassword": "newpassword123"
+}
+```
+
+### Reset Partner Profile
+```http
+POST /admin/users/:id/reset-profile
+```
+
+### Update User Role
+```http
+PATCH /admin/users/:id/role
+```
+
+**Body:**
+```json
+{
+  "role": "ADMIN" | "PARTNER" | "CONSUMER"
+}
+```
+
+### Get Verification Queue
+```http
+GET /admin/verification-queue
+```
+
+**Response:**
+```json
+{
+  "requests": [
+    {
+      "id": "...",
+      "companyName": "...",
+      "cvrNumber": "...",
+      "status": "pending",
+      "permitDocuments": [...]
+    }
+  ]
+}
+```
+
+### Approve Verification
+```http
+POST /admin/verification-queue/:id/approve
+```
+
+### Reject Verification
+```http
+POST /admin/verification-queue/:id/reject
+```
+
+**Body:**
+```json
+{
+  "reason": "Documents incomplete"
+}
+```
+
+### Get Transactions
+```http
+GET /admin/transactions?dateRange=month
+```
+
+**Query Parameters:**
+- `dateRange` (optional): all | month | quarter | year
+
+**Response:**
+```json
+{
+  "transactions": [
+    {
+      "id": "...",
+      "userOrCompany": "...",
+      "amount": 49.00,
+      "currency": "usd",
+      "status": "paid",
+      "subscriptionId": "...",
+      "eventType": "payment_succeeded",
+      "createdAt": "..."
+    }
+  ]
+}
+```
+
+### Get Activity Logs
+```http
+GET /admin/activity-logs?action=suspend_user&targetType=User&page=1&limit=50
+```
+
+**Query Parameters:**
+- `action` (optional): Filter by action type
+- `targetType` (optional): Filter by target type
+- `page` (optional): Page number
+- `limit` (optional): Items per page
+
+### Create Admin User (Super Admin)
+```http
+POST /admin/admins
+```
+
+**Body:**
+```json
+{
+  "email": "admin@example.com",
+  "password": "password123",
+  "name": "Admin Name",
+  "firstName": "Admin",
+  "lastName": "User"
+}
+```
+
+---
+
+## GDPR Endpoints
+
+All GDPR endpoints require authentication.
+
+### Export User Data
+```http
+GET /gdpr/export-data
+```
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "data": {
+    "user": { ... },
+    "company": { ... },
+    "savedListings": [ ... ],
+    "inquiries": [ ... ],
+    "exportedAt": "2024-01-15T10:00:00Z"
+  }
+}
+```
+
+### Delete User Account
+```http
+DELETE /gdpr/delete-account
+```
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "message": "Account deleted successfully",
+  "deletedAt": "2024-01-15T10:00:00Z"
+}
+```
+
+**Note:** Cannot delete admin accounts via this endpoint.
+
+---
+
+## File Upload Endpoints
+
+All upload endpoints require `PARTNER` role.
+
+### Upload Logo
+```http
+POST /upload/logo
+```
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Body:** `multipart/form-data`
+- `file`: Image file (JPEG, PNG, WebP)
+- `type`: "logo"
+
+**Response:**
+```json
+{
+  "logoUrl": "/uploads/logo/filename.jpg",
+  "message": "Logo uploaded successfully"
+}
+```
+
+### Upload Banner
+```http
+POST /upload/banner
+```
+
+**Body:** `multipart/form-data`
+- `file`: Image file
+- `type`: "banner"
+
+### Upload Document
+```http
+POST /upload/document
+```
+
+**Body:** `multipart/form-data`
+- `file`: PDF or image file
+- `type`: "document"
+
+**Response:**
+```json
+{
+  "document": {
+    "id": "...",
+    "fileName": "permit.pdf",
+    "fileUrl": "/uploads/document/filename.pdf",
+    "fileType": "pdf",
+    "fileSize": 123456
+  }
+}
+```
+
+---
+
+## Company Sub-Resource Endpoints
+
+### Get Company Services
+```http
+GET /companies/:companyId/services
+```
+
+**Response:**
+```json
+{
+  "services": [ ... ]
+}
+```
+
+### Get Company Portfolio
+```http
+GET /companies/:companyId/portfolio
+```
+
+### Get Company Testimonials
+```http
+GET /companies/:companyId/testimonials
+```
+
+---
+
 ## Error Responses
 
 All errors follow this format:
@@ -393,3 +787,17 @@ All errors follow this format:
 - `403` - Forbidden
 - `404` - Not Found
 - `500` - Internal Server Error
+
+---
+
+## Rate Limiting
+
+Currently no rate limiting implemented. Consider adding for production.
+
+## CORS
+
+CORS is configured to allow requests from `FRONTEND_URL` environment variable.
+
+## Webhooks
+
+Stripe webhooks require signature verification. Configure `STRIPE_WEBHOOK_SECRET` in environment.

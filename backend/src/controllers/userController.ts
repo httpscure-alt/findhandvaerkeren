@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { hashPassword } from '../utils/password';
 import { AuthRequest } from '../middleware/auth';
+import { AppError } from '../middleware/errorHandler';
 
 const prisma = new PrismaClient();
 
@@ -36,8 +37,7 @@ export const getConsumerProfile = async (req: AuthRequest, res: Response): Promi
 
     res.json({ user });
   } catch (error) {
-    console.error('Get consumer profile error:', error);
-    res.status(500).json({ error: 'Failed to get profile' });
+    throw new AppError('Failed to get profile', 500);
   }
 };
 
@@ -70,8 +70,7 @@ export const updateConsumerProfile = async (req: AuthRequest, res: Response): Pr
 
     res.json({ user });
   } catch (error) {
-    console.error('Update consumer profile error:', error);
-    res.status(500).json({ error: 'Failed to update profile' });
+    throw new AppError('Failed to update profile', 500);
   }
 };
 
@@ -110,8 +109,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
 
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ error: 'Failed to change password' });
+    throw new AppError('Failed to change password', 500);
   }
 };
 
@@ -126,7 +124,8 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
 
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {
-    console.error('Delete account error:', error);
-    res.status(500).json({ error: 'Failed to delete account' });
+    throw new AppError('Failed to delete account', 500);
   }
 };
+
+

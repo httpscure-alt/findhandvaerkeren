@@ -1,34 +1,110 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Language } from '../../../types';
-import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Loader2, Edit2, X, MapPin } from 'lucide-react';
+import { api } from '../../../services/api';
+import { LoadingSkeleton } from '../../common/LoadingSkeleton';
+import { ErrorState } from '../../common/ErrorState';
+import { EmptyState } from '../../common/EmptyState';
+import { useToast } from '../../../hooks/useToast';
+import { ConfirmDialog } from '../../common/ConfirmDialog';
 
 interface LocationsManagementProps {
   lang: Language;
   onBack: () => void;
 }
 
-const LocationsManagement: React.FC<LocationsManagementProps> = ({ lang, onBack }) => {
-  const [locations, setLocations] = useState(['København', 'Aarhus', 'Odense', 'Aalborg', 'Roskilde']);
-  const [newLocation, setNewLocation] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+interface Location {
+  id: string;
+  name: string;
+  slug: string;
+}
 
-  const handleAdd = () => {
-    if (newLocation.trim()) {
-      setLocations([...locations, newLocation.trim()]);
-      setNewLocation('');
+const LocationsManagement: React.FC<LocationsManagementProps> = ({ lang, onBack }) => {
+  const toast = useToast();
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [newLocation, setNewLocation] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    isDestructive?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.getLocations();
+      setLocations(response.locations || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load locations');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDelete = (location: string) => {
-    setLocations(locations.filter(l => l !== location));
+  const handleAdd = async () => {
+    if (!newLocation.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const response = await api.createLocation(newLocation.trim());
+      setLocations([...locations, response.location]);
+      setNewLocation('');
+      toast.success(lang === 'da' ? 'Lokation tilføjet' : 'Location added');
+    } catch (err: any) {
+      toast.error(err.message || (lang === 'da' ? 'Kunne ikke tilføje lokation' : 'Failed to add location'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      alert(lang === 'da' ? 'Lokationer gemt!' : 'Locations saved!');
-    }, 1000);
+  const handleDelete = async (locationId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: lang === 'da' ? 'Slet Lokation' : 'Delete Location',
+      message: lang === 'da' ? 'Er du sikker på at du vil slette denne lokation?' : 'Are you sure you want to delete this location?',
+      isDestructive: true,
+      onConfirm: async () => {
+        setIsSaving(true);
+        try {
+          await api.deleteLocation(locationId);
+          setLocations(locations.filter(l => l.id !== locationId));
+          toast.success(lang === 'da' ? 'Lokation slettet' : 'Location deleted');
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          toast.error(err.message || (lang === 'da' ? 'Kunne ikke slette lokation' : 'Failed to delete location'));
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    });
+  };
+
+  const handleUpdate = async (locationId: string, name: string) => {
+    try {
+      const response = await api.updateLocation(locationId, name);
+      setLocations(locations.map(l => l.id === locationId ? response.location : l));
+      setEditingId(null);
+      toast.success(lang === 'da' ? 'Lokation opdateret' : 'Location updated');
+    } catch (err: any) {
+      toast.error(err.message || (lang === 'da' ? 'Kunne ikke opdatere lokation' : 'Failed to update location'));
+    }
   };
 
   return (
@@ -55,35 +131,102 @@ const LocationsManagement: React.FC<LocationsManagementProps> = ({ lang, onBack 
           />
           <button
             onClick={handleAdd}
-            className="px-4 py-2 bg-nexus-accent text-white rounded-xl font-medium hover:bg-blue-600 transition-colors flex items-center gap-2"
+            disabled={isSaving || !newLocation.trim()}
+            className="w-full px-4 py-2 bg-nexus-accent text-white rounded-xl font-medium hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Plus size={18} />
-            {lang === 'da' ? 'Tilføj' : 'Add'}
+            {isSaving ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                {lang === 'da' ? 'Tilføjer...' : 'Adding...'}
+              </>
+            ) : (
+              <>
+                <Plus size={18} />
+                {lang === 'da' ? 'Tilføj' : 'Add'}
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {/* Locations List */}
-      <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {locations.map((location, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-nexus-accent transition-colors group"
-              >
-                <span className="font-medium text-[#1D1D1F]">{location}</span>
-                <button
-                  onClick={() => handleDelete(location)}
-                  className="p-2 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                >
-                  <Trash2 size={16} className="text-red-500" />
-                </button>
+      {isLoading ? (
+        <div className="bg-white rounded-3xl border border-gray-100 p-6">
+          <LoadingSkeleton variant="card" count={6} />
+        </div>
+      ) : error ? (
+        <ErrorState title="Failed to load locations" message={error} onRetry={fetchLocations} />
+      ) : (
+        <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
+          <div className="p-6">
+            {locations.length === 0 ? (
+              <EmptyState
+                icon={MapPin}
+                title={lang === 'da' ? 'Ingen lokationer' : 'No locations'}
+                description={lang === 'da' ? 'Tilføj din første lokation for at komme i gang.' : 'Add your first location to get started.'}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {locations.map((location) => (
+                  <div
+                    key={location.id}
+                    className="p-4 border border-gray-200 rounded-xl hover:border-nexus-accent transition-colors group"
+                  >
+                    {editingId === location.id ? (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          defaultValue={location.name}
+                          onBlur={(e) => {
+                            if (e.target.value !== location.name) {
+                              handleUpdate(location.id, e.target.value);
+                            } else {
+                              setEditingId(null);
+                            }
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                          autoFocus
+                        />
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-[#1D1D1F]">{location.name}</span>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => setEditingId(location.id)}
+                            className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Edit2 size={16} className="text-blue-500" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(location.id)}
+                            className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={16} className="text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-8 flex items-center justify-end gap-4">
         <button
@@ -92,24 +235,18 @@ const LocationsManagement: React.FC<LocationsManagementProps> = ({ lang, onBack 
         >
           {lang === 'da' ? 'Tilbage' : 'Back'}
         </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-6 py-2 bg-[#1D1D1F] text-white rounded-xl font-medium hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="animate-spin" size={18} />
-              {lang === 'da' ? 'Gemmer...' : 'Saving...'}
-            </>
-          ) : (
-            <>
-              <Save size={18} />
-              {lang === 'da' ? 'Gem Ændringer' : 'Save Changes'}
-            </>
-          )}
-        </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => !isSaving && setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        isLoading={isSaving}
+        isDestructive={confirmDialog.isDestructive}
+        lang={lang}
+      />
     </div>
   );
 };
