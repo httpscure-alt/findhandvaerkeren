@@ -235,7 +235,7 @@ const App: React.FC = () => {
             <Route path="/dashboard/testimonials" element={<TestimonialsManagement testimonials={getCurrentCompany()?.testimonials || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
             <Route path="/dashboard/billing" element={<SubscriptionBillingPage company={getCurrentCompany()!} lang={lang} onBack={() => navigate('/dashboard')} onNavigate={() => { }} />} />
             <Route path="/dashboard/verification" element={<div className="max-w-5xl mx-auto px-4 py-10"><VerificationSection company={getCurrentCompany()!} lang={lang} onUpdate={() => navigate('/dashboard')} /></div>} />
-            <Route path="/dashboard/growth" element={(userRole === 'PARTNER' || userRole === 'ADMIN') ? <GrowthDashboard company={getCurrentCompany()!} lang={lang} /> : <Navigate to="/auth" />} />
+            <Route path="/dashboard/growth" element={(userRole === 'PARTNER' || userRole === 'ADMIN') ? <GrowthDashboard company={getCurrentCompany() || companies[0] || {} as any} lang={lang} /> : <Navigate to="/auth" />} />
             <Route path="/dashboard/onboarding" element={<PartnerOnboardingWizard lang={lang} currentStep={1} onNavigate={() => { }} onComplete={() => navigate('/dashboard')} />} />
 
             <Route path="/billing/success" element={<BillingSuccessPage lang={lang} onContinue={() => navigate('/dashboard')} />} />
