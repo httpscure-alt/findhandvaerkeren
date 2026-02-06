@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
 import { Language, ViewState } from '../types';
 import { translations } from '../translations';
 import { api } from '../services/api';
@@ -35,6 +35,20 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
   });
 
   const t = translations[lang];
+
+  React.useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const status = await api.getOnboardingStatus();
+        if (status.onboardingCompleted) {
+          onComplete();
+        }
+      } catch (err) {
+        console.error('Failed to check onboarding status:', err);
+      }
+    };
+    checkOnboarding();
+  }, []);
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -155,10 +169,11 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">{lang === 'da' ? 'Hjemmeside' : 'Website'}</label>
                   <input
-                    type="url"
+                    type="text"
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
+                    placeholder="eksempel.dk"
                   />
                 </div>
               </div>
@@ -287,23 +302,60 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
           {/* STEP 5: Pricing */}
           {currentStep === 5 && (
             <div className="space-y-6">
-              <h3 className="text-xl font-bold text-[#1D1D1F] text-center mb-8">{lang === 'da' ? 'Vælg den rette plan for dig' : 'Select the right plan for you'}</h3>
-              <Pricing
-                lang={lang}
-                isEmbedded={true}
-                onSelectPlan={() => { }}
-              />
+              {localStorage.getItem('selectedGrowthServices') ? (
+                <div className="bg-indigo-50 border border-indigo-100 p-8 rounded-3xl text-center mb-8 animate-in fade-in zoom-in-95 duration-500">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600 shadow-sm border border-indigo-100">
+                    <TrendingUp size={32} />
+                  </div>
+                  <h3 className="text-xl font-bold text-indigo-900 mb-2">
+                    {lang === 'da' ? 'Klar til vækst?' : 'Ready for growth?'}
+                  </h3>
+                  <p className="text-indigo-700/80 text-sm mb-6 max-w-sm mx-auto italic font-medium">
+                    {lang === 'da'
+                      ? 'Da du har valgt vores væksttjenester (SEO & Ads), kan du springe platform-abonnementet over for nu og gå direkte til opsætningen.'
+                      : 'Since you selected our growth services (SEO & Ads), you can skip the platform subscription for now and go straight to setup.'}
+                  </p>
+                  <button
+                    onClick={handleSubmit}
+                    className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-extrabold text-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98] mx-auto"
+                  >
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : (lang === 'da' ? 'Gå direkte til Vækst Center' : 'Go directly to Growth Hub')}
+                    {!isLoading && <ArrowRight size={24} />}
+                  </button>
+                  <div className="mt-8 border-t border-indigo-100 pt-8">
+                    <p className="text-xs text-indigo-900/50 font-bold uppercase tracking-widest mb-4">
+                      {lang === 'da' ? 'Eller vælg en platform-plan' : 'Or select a platform plan'}
+                    </p>
+                    <Pricing
+                      lang={lang}
+                      isEmbedded={true}
+                      onSelectPlan={() => { }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-xl font-bold text-[#1D1D1F] text-center mb-8">{lang === 'da' ? 'Vælg den rette plan for dig' : 'Select the right plan for you'}</h3>
+                  <Pricing
+                    lang={lang}
+                    isEmbedded={true}
+                    onSelectPlan={() => { }}
+                  />
+                </>
+              )}
               <div className="pt-8 flex justify-between">
                 <button onClick={handleBack} className="px-8 py-4 text-[#86868B] font-bold hover:text-[#1D1D1F] transition-all flex items-center gap-2">
                   <ArrowLeft size={20} /> {lang === 'da' ? 'Tilbage' : 'Back'}
                 </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  className="px-10 py-4 bg-[#1D1D1F] text-white rounded-2xl font-extrabold text-lg flex items-center gap-2 hover:bg-black transition-all shadow-xl active:scale-[0.98]"
-                >
-                  {isLoading ? <Loader2 className="animate-spin" size={24} /> : (lang === 'da' ? 'Færdiggør profil' : 'Finish profile')}
-                </button>
+                {!localStorage.getItem('selectedGrowthServices') && (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="px-10 py-4 bg-[#1D1D1F] text-white rounded-2xl font-extrabold text-lg flex items-center gap-2 hover:bg-black transition-all shadow-xl active:scale-[0.98]"
+                  >
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : (lang === 'da' ? 'Færdiggør profil' : 'Finish profile')}
+                  </button>
+                )}
               </div>
             </div>
           )}

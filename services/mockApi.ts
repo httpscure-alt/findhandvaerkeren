@@ -13,6 +13,8 @@ class MockStorage {
   public jobRequests: any[] = [];
   public leadMatches: any[] = [];
   public quotes: any[] = [];
+  public growthRequests: any[] = [];
+  public performanceMetrics: Map<string, any> = new Map();
   public categories: any[] = CATEGORIES.filter(c => c !== 'All').map((name, idx) => ({
     id: `cat-${idx}`,
     name,
@@ -256,6 +258,55 @@ class MockStorage {
           description: this.getPortfolioDescription(company.category, idx),
         }));
       }
+    });
+
+    // === DUMMY GROWTH REQUESTS ===
+    this.growthRequests = [
+      {
+        id: 'gr-1',
+        companyId: 'demo-partner-1',
+        services: ['seo'],
+        status: 'PENDING',
+        details: {
+          website: 'democraftsmen.dk',
+          objectives: 'Increase local visibility for "Tømrer København"',
+        },
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'gr-2',
+        companyId: '1',
+        services: ['seo', 'ads'],
+        status: 'COMPLETED',
+        details: {
+          website: 'nexus-solutions.dk',
+          objectives: 'Enterprise lead generation',
+          budget: '5000',
+        },
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      }
+    ];
+
+    // === DUMMY PERFORMANCE METRICS ===
+    this.performanceMetrics.set('demo-partner-1', {
+      impressions: 12400,
+      clicks: 842,
+      conversions: 24,
+      trend: [40, 60, 45, 70, 85, 65, 90, 100, 80, 95],
+      logs: [
+        { id: '1', date: new Date().toISOString(), title: 'Keyword Optimization', description: 'Optimized main landing pages for "Tømrer Odense".', type: 'seo' },
+        { id: '2', date: new Date().toISOString(), title: 'Link Building', description: 'Acquired 3 high-quality local backlinks.', type: 'seo' }
+      ],
+      updatedAt: new Date().toISOString(),
+    });
+
+    this.performanceMetrics.set('1', {
+      impressions: 45200,
+      clicks: 3120,
+      conversions: 156,
+      trend: [30, 40, 60, 55, 80, 90, 85, 95, 100, 110],
+      logs: [],
+      updatedAt: new Date().toISOString(),
     });
   }
 
@@ -1602,6 +1653,78 @@ class MockApiService {
     match.status = 'quoted';
 
     return { message: 'Quote submitted successfully', quote };
+  }
+
+  // Growth Center
+  async submitGrowthRequest(data: { services: string[]; details: any }) {
+    await delay(800);
+    const userId = getCurrentUserId();
+    if (!userId) throw new Error('Not authenticated');
+
+    const request = {
+      id: `gr-${Date.now()}`,
+      companyId: data.details?.companyId || userId,
+      services: data.services,
+      details: data.details,
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+    };
+
+    mockStorage.growthRequests.push(request);
+
+    // If successful, clear the pending services from localStorage
+    localStorage.removeItem('selectedGrowthServices');
+
+    return { success: true, request };
+  }
+
+  async getGrowthRequests() {
+    await delay(500);
+    const requests = mockStorage.growthRequests.map(req => ({
+      ...req,
+      company: mockStorage.getCompanies().find(c => c.id === req.companyId),
+    }));
+    return { requests };
+  }
+
+  async updateGrowthRequestStatus(id: string, status: string) {
+    await delay(300);
+    const request = mockStorage.growthRequests.find(r => r.id === id);
+    if (request) {
+      request.status = status;
+    }
+    return { success: true };
+  }
+
+  async getPerformanceMetrics(companyId: string) {
+    await delay(300);
+    return { metrics: mockStorage.performanceMetrics.get(companyId) || null };
+  }
+
+  async updatePerformanceMetrics(companyId: string, metrics: any) {
+    await delay(500);
+    const current = mockStorage.performanceMetrics.get(companyId) || {};
+    mockStorage.performanceMetrics.set(companyId, {
+      ...current,
+      ...metrics,
+      updatedAt: new Date().toISOString(),
+    });
+    return { success: true };
+  }
+
+  async addOptimizationLog(companyId: string, log: { title: string; description: string; type: string }) {
+    await delay(500);
+    const data = mockStorage.performanceMetrics.get(companyId) || { impressions: 0, clicks: 0, conversions: 0, trend: [], logs: [] };
+    if (!data.logs) data.logs = [];
+
+    data.logs.unshift({
+      id: `log-${Date.now()}`,
+      date: new Date().toISOString(),
+      ...log
+    });
+
+    mockStorage.performanceMetrics.set(companyId, data);
+    return { success: true };
   }
 }
 

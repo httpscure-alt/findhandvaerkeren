@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Language } from '../../../types';
 import { translations } from '../../../translations';
 import { Mail, Phone, MapPin, Send, Loader2, Paperclip, X } from 'lucide-react';
@@ -11,11 +12,16 @@ interface ContactPageProps {
 
 const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
   const t = translations[lang].contact;
+  const [searchParams] = useSearchParams();
+  const initialSubject = searchParams.get('subject') === 'audit'
+    ? (lang === 'da' ? 'Jeg ønsker en SEO & Ads audit' : 'I want an SEO & Ads audit')
+    : '';
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    subject: '',
+    subject: initialSubject,
     message: '',
     files: [] as string[]
   });

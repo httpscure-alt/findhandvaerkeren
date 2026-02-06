@@ -66,6 +66,9 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
               <span onClick={() => navigate('/pricing')} className={navLinkClass('/pricing')}>
                 {t.pricing}
               </span>
+              <span onClick={() => navigate('/for-businesses')} className={navLinkClass('/for-businesses')}>
+                {t.forBusinesses}
+              </span>
             </div>
 
             {/* Desktop Actions */}
@@ -110,17 +113,6 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
                 </div>
               )}
 
-              {/* List Business CTA */}
-              {!isLoggedIn && (
-                <button
-                  onClick={() => {
-                    navigate('/signup?role=PARTNER');
-                  }}
-                  className="bg-[#1D1D1F] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-black hover:-translate-y-0.5 hover:shadow-lg transition-all active:scale-[0.98] shadow-sm"
-                >
-                  {t.listBusiness}
-                </button>
-              )}
             </div>
 
             {/* Mobile Actions */}

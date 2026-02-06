@@ -12,6 +12,7 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
   const t = translations[lang];
   const { setLang } = useMarketplace();
   const navigate = useNavigate();
+  const isDa = lang === 'da';
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -53,11 +54,27 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
           </div>
 
           <div className="md:col-span-2 md:col-start-7">
-            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'Platform' : 'Platform'}</h3>
+            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'For Forbrugere' : 'For Consumers'}</h3>
             <ul className="space-y-4">
               <li>
                 <button onClick={() => handleNavigate('/browse')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
                   {t.nav.findPros}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavigate('/get-offers')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
+                  {lang === 'da' ? 'Få 3 tilbud' : 'Get 3 quotes'}
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-2">
+            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'For Virksomheder' : 'For Businesses'}</h3>
+            <ul className="space-y-4">
+              <li>
+                <button onClick={() => handleNavigate('/signup?role=PARTNER')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
+                  {isDa ? 'Bliv verificeret' : 'Get verified'}
                 </button>
               </li>
               <li>
@@ -66,8 +83,8 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavigate('/signup?role=PARTNER')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.nav.listBusiness}
+                <button onClick={() => handleNavigate('/for-businesses')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
+                  {isDa ? 'SEO & Ads' : 'SEO & Ads'}
                 </button>
               </li>
             </ul>

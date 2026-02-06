@@ -5,6 +5,7 @@ export const translations = {
       home: "Hjem",
       findPros: "Find håndværkere",
       pricing: "Priser",
+      forBusinesses: "For virksomheder",
       listBusiness: "Opret din virksomhed",
       login: "Log ind",
       dashboard: "Mit Dashboard",
@@ -108,6 +109,42 @@ export const translations = {
       privacy: "Privatliv",
       rights: "Alle rettigheder forbeholdes."
     },
+    contact: {
+      title: "Kontakt os",
+      subtitle: "Vi sidder klar til at hjælpe dig med dine spørgsmål.",
+      email: "E-mail",
+      phone: "Telefon",
+      address: "Adresse",
+      nameLabel: "Navn",
+      emailLabel: "E-mail",
+      phoneLabel: "Telefonnummer",
+      subjectLabel: "Emne",
+      messageLabel: "Besked",
+      fileLabel: "Vedhæft filer",
+      fileHelp: "Du kan vedhæfte billeder eller dokumenter (maks. 5MB)",
+      sendButton: "Send besked",
+      sendingButton: "Sender...",
+      successTitle: "Besked sendt!",
+      successMessage: "Vi har modtaget din besked og vender tilbage hurtigst muligt.",
+      error: "Der skete en fejl. Prøv venligst igen senere."
+    },
+    businessTeaser: {
+      title: "Vi hjælper fagfolk med at vokse",
+      cards: [
+        {
+          title: "Bliv verificeret",
+          description: "Opbyg tillid med et verificeret emblem på din profil."
+        },
+        {
+          title: "Få flere opgaver",
+          description: "Prioriteret placering i søgeresultaterne når kunder søger."
+        },
+        {
+          title: "Øg din synlighed",
+          description: "Professionel SEO og Google Ads til din virksomhed."
+        }
+      ]
+    },
     admin: {
       dashboard: "Admin Dashboard",
       totalCompanies: "Antal virksomheder",
@@ -191,6 +228,7 @@ export const translations = {
       home: "Home",
       findPros: "Find professionals",
       pricing: "Pricing",
+      forBusinesses: "For Businesses",
       listBusiness: "List Your Business",
       login: "Log in",
       dashboard: "My Dashboard",
@@ -293,6 +331,42 @@ export const translations = {
       terms: "Terms",
       privacy: "Privacy",
       rights: "All rights reserved."
+    },
+    contact: {
+      title: "Contact Us",
+      subtitle: "We're here to help you with any questions you may have.",
+      email: "Email",
+      phone: "Phone",
+      address: "Address",
+      nameLabel: "Name",
+      emailLabel: "Email",
+      phoneLabel: "Phone Number",
+      subjectLabel: "Subject",
+      messageLabel: "Message",
+      fileLabel: "Attach files",
+      fileHelp: "You can attach images or documents (max 5MB)",
+      sendButton: "Send Message",
+      sendingButton: "Sending...",
+      successTitle: "Message Sent!",
+      successMessage: "We've received your message and will get back to you as soon as possible.",
+      error: "Something went wrong. Please try again later."
+    },
+    businessTeaser: {
+      title: "Helping professionals grow",
+      cards: [
+        {
+          title: "Get verified",
+          description: "Build trust with a verification badge on your profile."
+        },
+        {
+          title: "Get more jobs",
+          description: "Priority placement in search results when customers search."
+        },
+        {
+          title: "Grow visibility",
+          description: "Professional SEO and Google Ads for your business."
+        }
+      ]
     },
     admin: {
       dashboard: "Admin Dashboard",

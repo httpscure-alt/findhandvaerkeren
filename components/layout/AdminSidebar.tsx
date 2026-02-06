@@ -19,7 +19,8 @@ import {
   FileCheck,
   Database,
   Activity,
-  FileText
+  FileText,
+  Zap
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -71,6 +72,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ lang, onLogout }) => {
       path: '/admin/inquiries',
       icon: MessageSquare,
       label: lang === 'da' ? 'Forespørgsler' : 'Inquiries'
+    },
+    {
+      path: '/admin/growth',
+      icon: Zap,
+      label: lang === 'da' ? 'Vækst Center' : 'Growth Hub'
     },
     {
       path: '/admin/analytics',
@@ -136,8 +142,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ lang, onLogout }) => {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                  ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
-                  : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
+                ? 'bg-nexus-bg text-[#1D1D1F] font-medium'
+                : 'text-nexus-subtext hover:bg-gray-50 hover:text-[#1D1D1F]'
                 }`}
             >
               <Icon size={20} />

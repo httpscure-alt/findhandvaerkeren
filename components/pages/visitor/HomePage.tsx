@@ -200,6 +200,36 @@ const HomePage: React.FC<HomePageProps> = ({ onCompanyClick }) => {
                 </div>
             </section>
 
+            {/* NEW SECTION – BUSINESS GROWTH TEASER */}
+            <section className="py-12 bg-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="bg-gray-50 rounded-[2.5rem] p-8 md:p-12 border border-gray-100">
+                        <div className="text-center mb-10">
+                            <h2 className="text-2xl md:text-3xl font-bold text-[#1D1D1F]">
+                                {t.businessTeaser.title}
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {t.businessTeaser.cards.map((card: any, i: number) => (
+                                <div
+                                    key={i}
+                                    onClick={() => navigate('/for-businesses')}
+                                    className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                                >
+                                    <h3 className="font-bold text-[#1D1D1F] mb-2 flex items-center justify-between">
+                                        {card.title}
+                                        <ChevronRight size={16} className="text-[#86868B] group-hover:translate-x-1 transition-transform" />
+                                    </h3>
+                                    <p className="text-sm text-[#86868B] leading-relaxed">
+                                        {card.description}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* 3.5 HOW IT WORKS */}
             <section className="py-24 bg-[#FBFBFD] border-y border-gray-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

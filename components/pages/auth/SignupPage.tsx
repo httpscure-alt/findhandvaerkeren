@@ -3,7 +3,7 @@ import { Mail, Lock, User, ArrowRight, Loader2, X } from 'lucide-react';
 import { Language } from '../../../types';
 import { translations } from '../../../translations';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SelectedPlan } from '../../../types';
 
 interface SignupPageProps {
@@ -15,6 +15,7 @@ interface SignupPageProps {
 
 const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSuccess, onBack }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const roleParam = searchParams.get('role') as 'CONSUMER' | 'PARTNER' | null;
 
@@ -23,10 +24,25 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
   const [userRole, setUserRole] = useState<'CONSUMER' | 'PARTNER'>(roleParam || initialRole || savedRole || 'CONSUMER');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { register } = useAuth();
+  const { register, isAuthenticated, user } = useAuth();
   const t = (translations[lang] as any).auth;
 
   useEffect(() => {
+    // If already authenticated as a partner, redirect to dashboard/growth
+    if (isAuthenticated && user?.role === 'PARTNER') {
+      const services = searchParams.get('services');
+      if (services) {
+        localStorage.setItem('selectedGrowthServices', services);
+      }
+      navigate('/dashboard/growth');
+      return;
+    }
+
+    const services = searchParams.get('services');
+    if (services) {
+      localStorage.setItem('selectedGrowthServices', services);
+    }
+
     if (roleParam) {
       setUserRole(roleParam);
     } else if (initialRole) {
@@ -34,11 +50,11 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
     } else {
       const savedPlan = localStorage.getItem('selectedPlan');
       const savedRole = localStorage.getItem('signupRole');
-      if (savedPlan || savedRole === 'PARTNER') {
+      if (savedPlan || savedRole === 'PARTNER' || services) {
         setUserRole('PARTNER');
       }
     }
-  }, [initialRole, roleParam]);
+  }, [initialRole, roleParam, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

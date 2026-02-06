@@ -11,7 +11,8 @@ import {
   Image as ImageIcon,
   FileText,
   Settings,
-  Loader2
+  Loader2,
+  ArrowRight
 } from 'lucide-react';
 
 interface BusinessDashboardProps {
@@ -80,6 +81,34 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
             : 'Manage your business profile and view your performance'}
         </p>
       </div>
+
+      {/* Growth Services Notice */}
+      {localStorage.getItem('selectedGrowthServices') && (
+        <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <BarChart3 size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-blue-900">
+                {lang === 'da' ? 'Du har valgt væksttjenester' : 'You have selected growth services'}
+              </h3>
+              <p className="text-sm text-blue-700/80">
+                {lang === 'da'
+                  ? 'Vi har registreret dit valg af SEO & Ads. Gør opsætningen færdig i Vækst Centeret.'
+                  : 'We have recorded your choice of SEO & Ads. Complete the setup in the Growth Hub.'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onViewGrowth}
+            className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+          >
+            {lang === 'da' ? 'Gå til Vækst Center' : 'Go to Growth Hub'}
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -198,8 +227,8 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                     <p className="text-sm text-nexus-subtext">{inquiry.consumer?.email}</p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${inquiry.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                      inquiry.status === 'RESPONDED' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
+                    inquiry.status === 'RESPONDED' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-700'
                     }`}>
                     {inquiry.status}
                   </span>

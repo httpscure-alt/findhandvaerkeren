@@ -1645,6 +1645,89 @@ class ApiService {
       throw error;
     }
   }
+
+  // Growth Center
+  async submitGrowthRequest(data: { services: string[]; details: any }) {
+    try {
+      return await this.request<{ success: boolean; request: any }>('/growth/requests', {
+        method: 'POST',
+        body: data,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.submitGrowthRequest(data);
+      }
+      throw error;
+    }
+  }
+
+  async getGrowthRequests() {
+    try {
+      return await this.request<{ requests: any[] }>('/growth/requests', {
+        method: 'GET',
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.getGrowthRequests();
+      }
+      throw error;
+    }
+  }
+
+  async updateGrowthRequestStatus(id: string, status: string) {
+    try {
+      return await this.request<{ success: boolean }>(`/growth/requests/${id}/status`, {
+        method: 'PATCH',
+        body: { status },
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.updateGrowthRequestStatus(id, status);
+      }
+      throw error;
+    }
+  }
+
+  async getPerformanceMetrics(companyId: string) {
+    try {
+      return await this.request<{ metrics: any }>(`/companies/${companyId}/performance`, {
+        method: 'GET',
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.getPerformanceMetrics(companyId);
+      }
+      throw error;
+    }
+  }
+
+  async updatePerformanceMetrics(companyId: string, metrics: any) {
+    try {
+      return await this.request<{ success: boolean }>(`/companies/${companyId}/performance`, {
+        method: 'PUT',
+        body: metrics,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.updatePerformanceMetrics(companyId, metrics);
+      }
+      throw error;
+    }
+  }
+
+  async addOptimizationLog(companyId: string, log: { title: string; description: string; type: 'seo' | 'ads' }) {
+    try {
+      return await this.request<{ success: boolean }>(`/companies/${companyId}/optimization-logs`, {
+        method: 'POST',
+        body: log,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.addOptimizationLog(companyId, log);
+      }
+      throw error;
+    }
+  }
 }
 
 export const api = new ApiService();

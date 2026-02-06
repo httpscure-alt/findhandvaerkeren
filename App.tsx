@@ -31,6 +31,7 @@ import ContactPage from './components/pages/visitor/ContactPage';
 import BlogPage from './components/pages/visitor/BlogPage';
 import PrivacyPolicyPage from './components/pages/visitor/PrivacyPolicyPage';
 import TermsOfServicePage from './components/pages/visitor/TermsOfServicePage';
+import ForBusinessesPage from './components/pages/visitor/ForBusinessesPage';
 import CookieConsent from './components/common/CookieConsent';
 
 // Consumer Pages
@@ -57,6 +58,7 @@ import PartnersManagement from './components/pages/admin/PartnersManagement';
 import CategoriesManagement from './components/pages/admin/CategoriesManagement';
 import LocationsManagement from './components/pages/admin/LocationsManagement';
 import SubscriptionsManagement from './components/pages/admin/SubscriptionsManagement';
+import AdminGrowthHub from './components/pages/admin/AdminGrowthHub';
 import InquiriesManagement from './components/pages/admin/InquiriesManagement';
 import AnalyticsPage from './components/pages/admin/AnalyticsPage';
 import PlatformSettings from './components/pages/admin/PlatformSettings';
@@ -90,9 +92,15 @@ const App: React.FC = () => {
   const isLoggedIn = isAuthenticated;
 
   const getCurrentCompany = (): Company | null => {
-    if ((user?.role === 'PARTNER' || user?.role === 'ADMIN') && user?.ownedCompany) return user.ownedCompany as Company;
-    if ((user?.role === 'PARTNER' || user?.role === 'ADMIN') && (user as any).company) return (user as any).company as Company;
-    return null;
+    if (!user || (user.role !== 'PARTNER' && user.role !== 'ADMIN')) return null;
+
+    // 1. Try pre-populated company from user context
+    if (user.ownedCompany) return user.ownedCompany as Company;
+    if ((user as any).company) return (user as any).company as Company;
+
+    // 2. Fallback: Search in companies list using user ID
+    // In mock mode, the company ID typically matches the partner user ID
+    return companies.find(c => c.id === user.id) || null;
   };
 
   const handleCompanyClick = (company: Company) => {
@@ -147,6 +155,7 @@ const App: React.FC = () => {
             <Route path="/categories" element={<CategoriesPage lang={lang} onCategorySelect={(cat) => { setFilters({ ...filters, category: cat }); navigate('/browse'); }} />} />
             <Route path="/pricing" element={<Pricing lang={lang} user={user} onSelectPlan={() => navigate('/signup-select')} />} />
             <Route path="/auth" element={<AuthPage lang={lang} initialMode="login" onSuccess={() => navigate('/')} />} />
+            <Route path="/for-businesses" element={<ForBusinessesPage lang={lang} />} />
             <Route path="/signup" element={
               <SignupPage
                 lang={lang}
@@ -202,11 +211,12 @@ const App: React.FC = () => {
             {/* Admin Routes */}
             <Route path="/admin" element={userRole === 'ADMIN' ? <SuperAdminDashboard lang={lang} onNavigate={(path) => {
               if (path === 'GROWTH_HUB') {
-                navigate('/dashboard/growth');
+                navigate('/admin/growth');
               } else {
                 navigate(`/admin/${path.toLowerCase().replace('admin_', '').replace('_', '-')}`);
               }
             }} /> : <Navigate to="/auth" />} />
+            <Route path="/admin/growth" element={userRole === 'ADMIN' ? <AdminGrowthHub lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
             <Route path="/admin/companies" element={userRole === 'ADMIN' ? <CompaniesManagement lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
             <Route path="/admin/consumers" element={userRole === 'ADMIN' ? <ConsumersManagement lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
             <Route path="/admin/partners" element={userRole === 'ADMIN' ? <PartnersManagement lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
@@ -236,7 +246,13 @@ const App: React.FC = () => {
             <Route path="/dashboard/billing" element={<SubscriptionBillingPage company={getCurrentCompany()!} lang={lang} onBack={() => navigate('/dashboard')} onNavigate={() => { }} />} />
             <Route path="/dashboard/verification" element={<div className="max-w-5xl mx-auto px-4 py-10"><VerificationSection company={getCurrentCompany()!} lang={lang} onUpdate={() => navigate('/dashboard')} /></div>} />
             <Route path="/dashboard/growth" element={(userRole === 'PARTNER' || userRole === 'ADMIN') ? <GrowthDashboard company={getCurrentCompany() || companies[0] || {} as any} lang={lang} /> : <Navigate to="/auth" />} />
-            <Route path="/dashboard/onboarding" element={<PartnerOnboardingWizard lang={lang} currentStep={1} onNavigate={() => { }} onComplete={() => navigate('/dashboard')} />} />
+            <Route path="/dashboard/onboarding" element={<PartnerOnboardingWizard lang={lang} currentStep={1} onNavigate={() => { }} onComplete={() => {
+              if (localStorage.getItem('selectedGrowthServices')) {
+                navigate('/dashboard/growth');
+              } else {
+                navigate('/dashboard');
+              }
+            }} />} />
 
             <Route path="/billing/success" element={<BillingSuccessPage lang={lang} onContinue={() => navigate('/dashboard')} />} />
             <Route path="/billing/cancel" element={<BillingCancelPage lang={lang} onBack={() => navigate('/')} onRetry={() => navigate('/pricing')} />} />
