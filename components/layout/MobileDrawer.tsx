@@ -90,6 +90,12 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
             >
               {t.pricing}
             </button>
+            <button
+              onClick={() => handleNavigate('/for-businesses')}
+              className={`text-lg font-bold text-left ${location.pathname === '/for-businesses' ? 'text-[#1D1D1F]' : 'text-[#86868B]'}`}
+            >
+              {t.forBusinesses}
+            </button>
           </div>
 
           <div className="border-t border-gray-100 pt-6 space-y-4">
