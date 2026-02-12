@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ArrowRight, CreditCard, Loader2 } from 'lucide-react';
 import { Language, SelectedPlan } from '../types';
 import { translations } from '../translations';
-import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES, formatPrice } from '../constants/pricing';
+import { PARTNER_PLAN_PRICING, getPartnerPlanFeatures, formatPrice } from '../constants/pricing';
 import { api } from '../services/api';
 
 interface PlanReviewProps {
@@ -27,10 +27,10 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
         // Ensure monthlyPrice is set correctly (fix if 0 or missing)
         const validPlan = {
           ...plan,
-          monthlyPrice: (plan.monthlyPrice && plan.monthlyPrice > 0) 
-            ? plan.monthlyPrice 
-            : PARTNER_PLAN_PRICING.MONTHLY,
-          billingPeriod: plan.billingPeriod || 'monthly',
+          monthlyPrice: (plan.monthlyPrice && plan.monthlyPrice > 0)
+            ? plan.monthlyPrice
+            : PARTNER_PLAN_PRICING.BASIC_MONTHLY,
+          billingPeriod: (plan.billingPeriod || 'monthly') as 'monthly' | 'annual',
         };
         setSelectedPlan(validPlan);
         setPricingMode(validPlan.billingPeriod || 'monthly');
@@ -41,7 +41,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
         const defaultPlan = {
           id: 'partner',
           name: 'Partner Plan',
-          monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+          monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
           billingPeriod: 'monthly',
         };
         setSelectedPlan(defaultPlan);
@@ -53,7 +53,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
       const defaultPlan = {
         id: 'partner',
         name: 'Partner Plan',
-        monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+        monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
         billingPeriod: 'monthly',
       };
       setSelectedPlan(defaultPlan);
@@ -64,10 +64,10 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
 
   // Use centralized pricing format function
   const getPriceInfo = () => {
-    // Always use PARTNER_PLAN_PRICING.MONTHLY if monthlyPrice is missing, 0, or invalid
-    const monthlyPrice = (selectedPlan?.monthlyPrice && selectedPlan.monthlyPrice > 0) 
-      ? selectedPlan.monthlyPrice 
-      : PARTNER_PLAN_PRICING.MONTHLY;
+    // Always use PARTNER_PLAN_PRICING.BASIC_MONTHLY if monthlyPrice is missing, 0, or invalid
+    const monthlyPrice = (selectedPlan?.monthlyPrice && selectedPlan.monthlyPrice > 0)
+      ? selectedPlan.monthlyPrice
+      : PARTNER_PLAN_PRICING.BASIC_MONTHLY;
     return formatPrice(monthlyPrice, pricingMode, lang);
   };
 
@@ -75,12 +75,13 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
   const validPlan = selectedPlan || {
     id: 'partner',
     name: 'Partner Plan',
-    monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+    monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
     billingPeriod: pricingMode,
   };
 
   const priceInfo = getPriceInfo();
-  const features = PARTNER_PLAN_FEATURES.PRO;
+  const planFeatures = getPartnerPlanFeatures(lang);
+  const features = planFeatures.BASIC; // Using BASIC plan features
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,10 +92,10 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
     try {
       // Get billing cycle from current pricing mode
       const billingCycle = pricingMode;
-      
+
       // Call Stripe checkout API
       const { url } = await api.createCheckoutSession(billingCycle);
-      
+
       if (url) {
         // ONLY redirect if it's a Stripe checkout URL
         if (url.startsWith('https://checkout.stripe.com') || url.includes('stripe.com')) {
@@ -103,13 +104,13 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
           window.location.href = url;
           return;
         }
-        
+
         // If we get a mock URL or local URL, that's an error - backend should return Stripe URL
         if (url.startsWith('/billing/success') || url.startsWith('/billing/coming-soon')) {
           console.error('❌ Got mock/local URL instead of Stripe URL:', url);
           throw new Error('Backend returned a local URL instead of Stripe checkout URL. Please check Stripe configuration.');
         }
-        
+
         // If it's not a Stripe URL, that's unexpected - show error
         console.error('❌ Unexpected URL format:', url);
         throw new Error(`Invalid checkout URL format: ${url}. Expected Stripe checkout URL.`);
@@ -120,10 +121,10 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
       console.error('Checkout error:', err);
       // Show more helpful error messages
       let errorMessage = 'Failed to create checkout session. Please try again.';
-      
+
       if (err.message) {
         if (err.message.includes('Stripe') || err.message.includes('stripe')) {
-          errorMessage = lang === 'da' 
+          errorMessage = lang === 'da'
             ? 'Stripe er ikke konfigureret korrekt. Kontakt support for hjælp.'
             : 'Stripe is not configured correctly. Please contact support for assistance.';
         } else if (err.message.includes('Authentication') || err.message.includes('token')) {
@@ -138,7 +139,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
           errorMessage = err.message;
         }
       }
-      
+
       setError(errorMessage);
       setIsProcessing(false);
     }
@@ -156,7 +157,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             {lang === 'da' ? 'Gennemgå din plan' : 'Review Your Plan'}
           </h1>
           <p className="text-gray-500">
-            {lang === 'da' 
+            {lang === 'da'
               ? 'Gennemgå din valgte plan og fortsæt til betaling'
               : 'Review your selected plan and continue to payment'}
           </p>
@@ -164,10 +165,9 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
 
         {/* Pricing Toggle */}
         <div className="flex items-center justify-center gap-4 mb-8 pb-8 border-b border-gray-200">
-          <span 
-            className={`text-sm font-medium transition-colors duration-200 ${
-              pricingMode === 'monthly' ? 'text-[#1D1D1F]' : 'text-[#86868B]'
-            }`}
+          <span
+            className={`text-sm font-medium transition-colors duration-200 ${pricingMode === 'monthly' ? 'text-[#1D1D1F]' : 'text-[#86868B]'
+              }`}
           >
             {lang === 'da' ? 'Månedligt' : 'Monthly'}
           </span>
@@ -175,29 +175,26 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             onClick={() => {
               const newMode = pricingMode === 'monthly' ? 'annual' : 'monthly';
               setPricingMode(newMode);
-              const updatedPlan = { 
-                ...validPlan, 
-                monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
-                billingPeriod: newMode 
+              const updatedPlan = {
+                ...validPlan,
+                monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
+                billingPeriod: newMode
               };
               setSelectedPlan(updatedPlan);
               localStorage.setItem('selectedPlan', JSON.stringify(updatedPlan));
             }}
-            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-nexus-accent focus:ring-offset-2 ${
-              pricingMode === 'annual' ? 'bg-[#1D1D1F]' : 'bg-gray-300'
-            }`}
+            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-nexus-accent focus:ring-offset-2 ${pricingMode === 'annual' ? 'bg-[#1D1D1F]' : 'bg-gray-300'
+              }`}
             aria-label={lang === 'da' ? 'Skift prisperiode' : 'Toggle pricing period'}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
-                pricingMode === 'annual' ? 'translate-x-8' : 'translate-x-1'
-              }`}
+              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${pricingMode === 'annual' ? 'translate-x-8' : 'translate-x-1'
+                }`}
             />
           </button>
-          <span 
-            className={`text-sm font-medium transition-colors duration-200 ${
-              pricingMode === 'annual' ? 'text-[#1D1D1F]' : 'text-[#86868B]'
-            }`}
+          <span
+            className={`text-sm font-medium transition-colors duration-200 ${pricingMode === 'annual' ? 'text-[#1D1D1F]' : 'text-[#86868B]'
+              }`}
           >
             {lang === 'da' ? 'Årligt (Spar 20%)' : 'Annual (Save 20%)'}
           </span>
@@ -282,7 +279,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
 
         {/* Security Note */}
         <p className="text-xs text-center text-gray-400 mt-6">
-          {lang === 'da' 
+          {lang === 'da'
             ? 'Sikker betaling via Stripe. Betalingsoplysninger behandles sikkert.'
             : 'Secure payment via Stripe. Payment information is processed securely.'}
         </p>

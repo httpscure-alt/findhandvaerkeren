@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, CheckCircle, ArrowRight } from 'lucide-react';
 import { Language } from '../../../types';
 import { translations } from '../../../translations';
-import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES } from '../../../constants/pricing';
+import { PARTNER_PLAN_PRICING, getPartnerPlanFeatures } from '../../../constants/pricing';
 
 interface UpgradePlanModalProps {
   isOpen: boolean;
@@ -19,20 +19,22 @@ const UpgradePlanModal: React.FC<UpgradePlanModalProps> = ({ isOpen, onClose, la
 
   if (!isOpen) return null;
 
+  const planFeatures = getPartnerPlanFeatures(lang);
+
   const plans = [
     {
       id: 'Basic',
       name: 'Basic Plan',
       monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
       description: t.tiers.pro.desc,
-      features: PARTNER_PLAN_FEATURES.BASIC,
+      features: planFeatures.BASIC,
     },
     {
       id: 'Gold',
       name: 'Gold Plan',
       monthlyPrice: PARTNER_PLAN_PRICING.GOLD_MONTHLY,
       description: t.tiers.gold?.desc || 'Maksimal synlighed og Guld-highlight',
-      features: PARTNER_PLAN_FEATURES.GOLD,
+      features: planFeatures.GOLD,
     },
   ];
 
