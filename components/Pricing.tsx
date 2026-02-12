@@ -185,11 +185,11 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
               {[
                 { name: lang === 'da' ? 'Offentlig Profil' : 'Public Profile', basic: true, gold: true },
                 { name: lang === 'da' ? 'Modtag Leads' : 'Receive Leads', basic: true, gold: true },
-                { name: lang === 'da' ? 'Antal Billeder' : 'Portfolio Images', basic: '5', gold: 'Ubegrænset' },
+                { name: lang === 'da' ? 'Antal Billeder' : 'Portfolio Images', basic: '5', gold: lang === 'da' ? 'Ubegrænset' : 'Unlimited' },
                 { name: lang === 'da' ? 'Verificeret Badge' : 'Verified Badge', basic: false, gold: true },
                 { name: lang === 'da' ? 'Fremhævet i søgninger' : 'Featured in Search', basic: false, gold: true },
                 { name: lang === 'da' ? 'SEO Analyse' : 'SEO Analysis', basic: false, gold: true },
-                { name: lang === 'da' ? 'Support' : 'Support', basic: 'Email', gold: 'Email + Tel' },
+                { name: lang === 'da' ? 'Support' : 'Support', basic: 'Email', gold: lang === 'da' ? 'Email + Tel' : 'Email + Phone' },
               ].map((row, i) => (
                 <div key={i} className="grid grid-cols-3 p-6 border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <div className="text-sm font-medium text-[#1D1D1F]">{row.name}</div>
