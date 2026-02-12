@@ -1,3 +1,5 @@
+import { translations } from '../translations';
+
 /**
  * Pricing Constants
  * 
@@ -17,8 +19,6 @@ export const PARTNER_PLAN_PRICING = {
  * Use translations.ts instead of hardcoded features
  */
 export const getPartnerPlanFeatures = (lang: 'en' | 'da') => {
-  // Import translations dynamically to avoid circular dependencies
-  const { translations } = require('../translations');
   return {
     BASIC: translations[lang].pricing.features.basic,
     GOLD: translations[lang].pricing.features.gold,
