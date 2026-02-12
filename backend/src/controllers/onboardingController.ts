@@ -38,6 +38,20 @@ export const saveBasicInfo = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
+    // Auto-create location if it doesn't exist
+    if (location) {
+      const slug = location.toLowerCase().trim().replace(/[\s\W-]+/g, '-');
+      // Use upsert to avoid race conditions or duplicates
+      await prisma.location.upsert({
+        where: { name: location },
+        update: {},
+        create: {
+          name: location,
+          slug: slug || 'location-' + Date.now(),
+        },
+      }).catch(err => console.warn('Failed to auto-create location:', err.message));
+    }
+
     res.json({ company, step: 1 });
   } catch (error) {
     throw new AppError('Failed to save basic info', 500);

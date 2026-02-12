@@ -18,6 +18,8 @@ import uploadRoutes from './routes/uploadRoutes';
 import gdprRoutes from './routes/gdprRoutes';
 import recentSearchRoutes from './routes/recentSearchRoutes';
 import jobRoutes from './routes/jobRoutes';
+import growthRoutes from './routes/growthRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import { apiLimiter, authLimiter } from './middleware/rateLimiter';
 import path from 'path';
@@ -156,7 +158,10 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/gdpr', gdprRoutes);
 app.use('/api/recent-searches', recentSearchRoutes);
+app.use('/api/recent-searches', recentSearchRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use('/api/growth', growthRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Sentry Error Handler (must be before custom error handler)
 if (process.env.SENTRY_DSN) {

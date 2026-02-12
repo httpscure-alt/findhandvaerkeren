@@ -6,6 +6,9 @@ import {
   updateCompany,
   deleteCompany,
   verifyCompany,
+  getPerformanceMetrics,
+  updatePerformanceMetrics,
+  addOptimizationLog,
 } from '../controllers/companyController';
 import {
   getCompanyServices,
@@ -36,6 +39,11 @@ router.post('/', authenticate, requireRole('PARTNER'), validate(companyValidatio
 router.put('/:id', authenticate, validate(companyValidation), updateCompany);
 router.delete('/:id', authenticate, deleteCompany);
 router.patch('/:id/verify', authenticate, requireRole('ADMIN'), verifyCompany);
+
+// Growth / Performance Metrics
+router.get('/:companyId/performance', authenticate, getPerformanceMetrics);
+router.put('/:companyId/performance', authenticate, requireRole('ADMIN'), updatePerformanceMetrics);
+router.post('/:companyId/optimization-logs', authenticate, requireRole('ADMIN'), addOptimizationLog);
 
 // Services routes
 router.get('/:companyId/services', getCompanyServices);

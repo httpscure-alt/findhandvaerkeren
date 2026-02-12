@@ -252,8 +252,8 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
             </h3>
             <p className="text-sm text-nexus-subtext">
               {lang === 'da'
-                ? `Nuværende plan: ${company?.pricingTier || 'Standard'}`
-                : `Current plan: ${company?.pricingTier || 'Standard'}`}
+                ? `Nuværende plan: ${company?.pricingTier || 'Basic'}`
+                : `Current plan: ${company?.pricingTier || 'Basic'}`}
             </p>
           </div>
           <button className="px-4 py-2 bg-[#1D1D1F] text-white rounded-xl text-sm font-medium hover:bg-black transition-all">

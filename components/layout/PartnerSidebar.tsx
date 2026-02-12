@@ -16,6 +16,8 @@ import {
   Sparkles,
   Globe
 } from 'lucide-react';
+import NotificationBadge from '../common/NotificationBadge';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface PartnerSidebarProps {
   lang: Language;
@@ -25,6 +27,7 @@ interface PartnerSidebarProps {
 const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ lang, onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
 
   const coreItems = [
     {
@@ -60,7 +63,8 @@ const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ lang, onLogout }) => {
     {
       path: '/dashboard/inquiries',
       icon: MessageSquare,
-      label: lang === 'da' ? 'Leads & Beskeder' : 'Leads & Messages'
+      label: lang === 'da' ? 'Leads & Beskeder' : 'Leads & Messages',
+      badge: unreadCount // Add notification badge
     }
   ];
 
@@ -109,7 +113,8 @@ const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ lang, onLogout }) => {
           }`}
       >
         <Icon size={18} />
-        <span className="text-sm">{item.label}</span>
+        <span className="text-sm flex-1 text-left">{item.label}</span>
+        {item.badge && item.badge > 0 && <NotificationBadge count={item.badge} />}
       </button>
     );
   };

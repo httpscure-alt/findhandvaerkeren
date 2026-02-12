@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { MarketplaceProvider } from './contexts/MarketplaceContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import TagManager from './components/analytics/TagManager';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -15,7 +16,7 @@ if (!rootElement) {
 import * as Sentry from "@sentry/react";
 
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN, // Should be added to .env
+  dsn: (import.meta as any).env?.VITE_SENTRY_DSN, // Should be added to .env
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
@@ -33,6 +34,7 @@ root.render(
         <AuthProvider>
           <ToastProvider>
             <MarketplaceProvider>
+              <TagManager />
               <App />
             </MarketplaceProvider>
           </ToastProvider>

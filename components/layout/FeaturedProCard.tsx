@@ -16,7 +16,7 @@ const FeaturedProCard: React.FC<FeaturedProCardProps> = ({ company, lang, onView
 
   // Determine tiers
   const isVerified = company.verificationStatus === 'verified' || company.isVerified;
-  const isGold = company.pricingTier === 'Elite' || (company as any).pricingTier === 'Gold';
+  const isGold = company.pricingTier === 'Gold';
 
   return (
     <div

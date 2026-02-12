@@ -3,13 +3,20 @@ export const translations = {
   da: {
     nav: {
       home: "Hjem",
-      findPros: "Find håndværkere",
+      findPros: "Gennemse",
       pricing: "Priser",
-      forBusinesses: "For virksomheder",
+      forBusinesses: "Markedsføring",
       listBusiness: "Opret din virksomhed",
       login: "Log ind",
       dashboard: "Mit Dashboard",
       logout: "Log ud"
+    },
+    pricing: {
+      title: "Priser",
+      tiers: {
+        pro: { desc: "Få grundlæggende synlighed og verificering." },
+        gold: { desc: "Maksimal synlighed og Guld-highlight på din profil." }
+      }
     },
     hero: {
       headline: "Find pålidelige håndværkere. Få 3 tilbud – gratis.",
@@ -82,7 +89,7 @@ export const translations = {
       allLocations: "Alle byer",
       categories: "Kategorier",
       trustLevel: "Tillidsniveau",
-      verifiedOnly: "Kun verificerede",
+      verifiedOnly: "Autoriseret Håndværker",
       verifiedPartner: "Verificeret partner",
       premiumSelection: "Premium udvalg",
       viewProfile: "Se profil",
@@ -226,13 +233,20 @@ export const translations = {
   en: {
     nav: {
       home: "Home",
-      findPros: "Find professionals",
+      findPros: "Browsing",
       pricing: "Pricing",
-      forBusinesses: "For Businesses",
+      forBusinesses: "Marketing",
       listBusiness: "List Your Business",
       login: "Log in",
       dashboard: "My Dashboard",
       logout: "Logout"
+    },
+    pricing: {
+      title: "Pricing",
+      tiers: {
+        pro: { desc: "Get basic visibility and verification." },
+        gold: { desc: "Maximum visibility and Gold-highlight on your profile." }
+      }
     },
     hero: {
       headline: "Find Trusted Craftsmen. Get 3 Quotes — Free.",
@@ -305,7 +319,7 @@ export const translations = {
       allLocations: "All locations",
       categories: "Categories",
       trustLevel: "Trust Level",
-      verifiedOnly: "Verified only",
+      verifiedOnly: "Authorized Craftsman",
       verifiedPartner: "Verified partner",
       premiumSelection: "Premium selection",
       viewProfile: "View Profile",

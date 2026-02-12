@@ -28,3 +28,4 @@ dist-ssr
 
 # Documentation
 docs/
+.archived_docs/

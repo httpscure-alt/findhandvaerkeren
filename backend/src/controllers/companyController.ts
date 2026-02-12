@@ -86,7 +86,7 @@ export const getCompanies = async (req: Request, res: Response): Promise<void> =
   } catch (error: any) {
     // Log the actual error for debugging
     console.error('Error fetching companies:', error);
-    
+
     // If it's a database connection error, return empty array instead of failing
     // This allows the app to work in mock mode
     if (error.code === 'P1001' || error.message?.includes('Can\'t reach database') || error.message?.includes('database')) {
@@ -102,7 +102,7 @@ export const getCompanies = async (req: Request, res: Response): Promise<void> =
       });
       return;
     }
-    
+
     throw new AppError(error.message || 'Failed to fetch companies', 500);
   }
 };
@@ -193,6 +193,20 @@ export const updateCompany = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // Auto-create location if updated
+    if (updateData.location) {
+      const locName = updateData.location;
+      const slug = locName.toLowerCase().trim().replace(/[\s\W-]+/g, '-');
+      await prisma.location.upsert({
+        where: { name: locName },
+        update: {},
+        create: {
+          name: locName,
+          slug: slug || 'location-' + Date.now(),
+        },
+      }).catch(err => console.warn('Failed to auto-create location:', err.message));
+    }
+
     const updated = await prisma.company.update({
       where: { id },
       data: updateData,
@@ -265,4 +279,27 @@ export const verifyCompany = async (req: AuthRequest, res: Response): Promise<vo
   } catch (error) {
     throw new AppError('Failed to verify company', 500);
   }
+};
+
+// Growth / Performance Metrics Stubs
+export const getPerformanceMetrics = async (req: Request, res: Response): Promise<void> => {
+  // Stub: Return mock metrics
+  res.json({
+    metrics: {
+      impressions: 1250,
+      clicks: 85,
+      conversions: 12,
+      trend: [10, 15, 12, 18, 20, 25, 22]
+    }
+  });
+};
+
+export const updatePerformanceMetrics = async (req: Request, res: Response): Promise<void> => {
+  // Stub: Return success
+  res.json({ success: true });
+};
+
+export const addOptimizationLog = async (req: Request, res: Response): Promise<void> => {
+  // Stub: Return success
+  res.json({ success: true });
 };

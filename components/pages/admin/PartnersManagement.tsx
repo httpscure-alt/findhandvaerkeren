@@ -61,7 +61,7 @@ const PartnersManagement: React.FC<PartnersManagementProps> = ({ lang, onBack })
         id: user.id,
         name: user.ownedCompany?.name || user.name || user.email,
         email: user.email,
-        plan: user.ownedCompany?.pricingTier || 'Standard',
+        plan: user.ownedCompany?.pricingTier || 'Basic',
         verified: user.ownedCompany?.isVerified || user.ownedCompany?.verificationStatus === 'verified',
         joinedDate: new Date(user.createdAt).toLocaleDateString(),
         company: user.ownedCompany,
@@ -238,8 +238,8 @@ const PartnersManagement: React.FC<PartnersManagementProps> = ({ lang, onBack })
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium ${partner.plan === 'Elite' ? 'bg-purple-50 text-purple-700' :
-                          partner.plan === 'Premium' ? 'bg-indigo-50 text-indigo-700' :
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium ${partner.plan === 'Gold' ? 'bg-purple-50 text-purple-700' :
+                          partner.plan === 'Basic' ? 'bg-indigo-50 text-indigo-700' :
                             'bg-gray-100 text-gray-600'
                           }`}>
                           {partner.plan}

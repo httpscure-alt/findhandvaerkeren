@@ -78,6 +78,7 @@ const App: React.FC = () => {
   const { user, logout, isAuthenticated, refreshUser, showAuthModal, setShowAuthModal } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const {
     lang, setLang,
@@ -153,7 +154,26 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage onCompanyClick={handleCompanyClick} />} />
             <Route path="/browse" element={<BrowsePage onCompanyClick={handleCompanyClick} />} />
             <Route path="/categories" element={<CategoriesPage lang={lang} onCategorySelect={(cat) => { setFilters({ ...filters, category: cat }); navigate('/browse'); }} />} />
-            <Route path="/pricing" element={<Pricing lang={lang} user={user} onSelectPlan={() => navigate('/signup-select')} />} />
+            <Route path="/pricing" element={
+              <Pricing
+                lang={lang}
+                user={user}
+                onSelectPlan={(plan) => {
+                  // If user is already logged in as PARTNER, go directly to billing
+                  if (user && userRole === 'PARTNER') {
+                    navigate(`/dashboard/billing?plan=${plan.id}&period=${plan.billingPeriod}`);
+                  } else if (user && userRole === 'CONSUMER') {
+                    // Consumer users should not access partner subscriptions
+                    toast.error(lang === 'da'
+                      ? 'Denne tjeneste er kun for erhvervskunder. Opret en partnerkonto for at fortsætte.'
+                      : 'This service is for business customers only. Create a partner account to continue.');
+                  } else {
+                    // Not logged in, go to signup flow
+                    navigate('/signup-select');
+                  }
+                }}
+              />
+            } />
             <Route path="/auth" element={<AuthPage lang={lang} initialMode="login" onSuccess={() => navigate('/')} />} />
             <Route path="/for-businesses" element={<ForBusinessesPage lang={lang} />} />
             <Route path="/signup" element={

@@ -1182,7 +1182,7 @@ class ApiService {
   }
 
   // Stripe Payment
-  async createCheckoutSession(billingCycle: 'monthly' | 'annual', tier?: 'Standard' | 'Premium' | 'Elite') {
+  async createCheckoutSession(billingCycle: 'monthly' | 'annual', tier?: 'Basic' | 'Gold') {
     console.log('🔵 Creating Stripe checkout session...', { billingCycle, tier, API_BASE_URL, USE_MOCK_API });
 
     // NEVER use mock API for Stripe checkout - user must go through real Stripe
@@ -1649,7 +1649,7 @@ class ApiService {
   // Growth Center
   async submitGrowthRequest(data: { services: string[]; details: any }) {
     try {
-      return await this.request<{ success: boolean; request: any }>('/growth/requests', {
+      return await this.request<{ success: boolean; requests: any[] }>('/growth/request', {
         method: 'POST',
         body: data,
       });
@@ -1724,6 +1724,44 @@ class ApiService {
     } catch (error: any) {
       if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
         return mockApi.addOptimizationLog(companyId, log);
+      }
+      throw error;
+    }
+  }
+
+  // Notifications
+  async getNotifications() {
+    try {
+      return await this.request<{ notifications: any[]; unreadCount: number }>('/notifications');
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { notifications: [], unreadCount: 0 }; // Mock fallback
+      }
+      throw error;
+    }
+  }
+
+  async markNotificationAsRead(id: string) {
+    try {
+      return await this.request<{ success: boolean }>(`/notifications/${id}/read`, {
+        method: 'PATCH',
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { success: true };
+      }
+      throw error;
+    }
+  }
+
+  async markAllNotificationsAsRead() {
+    try {
+      return await this.request<{ success: boolean }>('/notifications/mark-all-read', {
+        method: 'PATCH',
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { success: true };
       }
       throw error;
     }

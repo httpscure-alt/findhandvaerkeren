@@ -32,8 +32,8 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
             </div>
             <p className="max-w-sm text-[#86868B] font-medium leading-relaxed mb-8">
               {lang === 'da'
-                ? 'Danmarks førende platform for verificerede håndværkere. Vi gør det nemt at finde den rette fagmand til dit næste projekt.'
-                : 'Denmark\'s leading platform for verified craftsmen. We make it easy to find the right professional for your next project.'}
+                ? 'Danmarks førende platform for verificerede håndværkere. Vi gør det nemt at finde den rette fagmand til dit næste projekt, og hjælper håndværkere med at vokse gennem professionelle Google Ads og SEO tjenester.'
+                : 'Denmark\'s leading platform for verified craftsmen. We make it easy to find the right professional for your next project, and help craftsmen grow with professional Google Ads and SEO services.'}
             </p>
 
             {/* Language Selector */}
@@ -70,7 +70,7 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
           </div>
 
           <div className="md:col-span-2">
-            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'For Virksomheder' : 'For Businesses'}</h3>
+            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'Marketing' : 'Marketing'}</h3>
             <ul className="space-y-4">
               <li>
                 <button onClick={() => handleNavigate('/signup?role=PARTNER')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
@@ -84,7 +84,7 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
               </li>
               <li>
                 <button onClick={() => handleNavigate('/for-businesses')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {isDa ? 'SEO & Ads' : 'SEO & Ads'}
+                  {t.nav.forBusinesses}
                 </button>
               </li>
             </ul>

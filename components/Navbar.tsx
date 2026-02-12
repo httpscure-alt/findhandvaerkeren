@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, X, Search, User, Globe, ChevronDown, ShieldCheck, Briefcase, Shield } from 'lucide-react';
+import { Menu, X, Search, User, Globe, ChevronDown, ShieldCheck, Briefcase, Shield, Bell } from 'lucide-react';
+import { api } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Language } from '../types';
 import { translations } from '../translations';
@@ -25,6 +26,24 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
   const location = useLocation();
 
   const t = translations[lang].nav;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const fetchNotifications = async () => {
+        try {
+          const res = await api.getNotifications();
+          setUnreadCount(res.unreadCount);
+        } catch (error) {
+          console.error('Failed to fetch notifications', error);
+        }
+      };
+      fetchNotifications();
+      // Poll every minute
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -81,6 +100,21 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
                 <Globe size={14} />
                 <span>{lang}</span>
               </button>
+
+              {/* Notifications */}
+              {isLoggedIn && (
+                <button
+                  onClick={() => navigate('/dashboard/notifications')}
+                  className="relative text-[#86868B] hover:text-[#1D1D1F] transition-colors"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* Log In */}
               {!isLoggedIn ? (

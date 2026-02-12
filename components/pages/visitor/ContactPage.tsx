@@ -113,7 +113,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
               <Phone className="text-nexus-accent" size={24} />
             </div>
             <h3 className="font-bold text-[#1D1D1F] mb-2">{t.phone}</h3>
-            <p className="text-nexus-subtext">+45 12 34 56 78</p>
+            <p className="text-nexus-subtext">+45 51 97 77 06</p>
           </div>
 
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
@@ -121,7 +121,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
               <MapPin className="text-nexus-accent" size={24} />
             </div>
             <h3 className="font-bold text-[#1D1D1F] mb-2">{t.address}</h3>
-            <p className="text-nexus-subtext">København, Denmark</p>
+            <p className="text-nexus-subtext">Toftevej 1a, 4621 Gadstrup</p>
           </div>
         </div>
 

@@ -32,62 +32,74 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const initialTab = (queryParams.get('tab') as Tab) || 'overview';
+    const initialTier = queryParams.get('tier') || '';
 
     const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+    const [selectedTier, setSelectedTier] = useState(initialTier);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [metrics, setMetrics] = useState<any>(null);
     const [loadingMetrics, setLoadingMetrics] = useState(true);
     const toast = useToast();
 
-    // Fetch real metrics
-    React.useEffect(() => {
-        const fetchMetrics = async () => {
-            try {
-                const data = await api.getPerformanceMetrics(company.id);
-                if (data.metrics) {
-                    setMetrics(data.metrics);
-                }
-            } catch (error) {
-                console.error('Failed to fetch metrics:', error);
-            } finally {
-                setLoadingMetrics(false);
-            }
+    // Map tier ID to readable name/price
+    const getTierDetails = (tierId: string) => {
+        const mapping: any = {
+            'ads_basic': { name: 'Ads Basic', price: '1.000 DKK' },
+            'ads_standard': { name: 'Ads Standard', price: '2.000 DKK' },
+            'ads_pro': { name: 'Ads Pro', price: '5.000 DKK' },
+            'seo_basic': { name: 'SEO Basic', price: '1.500 DKK' },
+            'seo_standard': { name: 'SEO Standard', price: '3.000 DKK' },
+            'seo_pro': { name: 'SEO Pro', price: '5.000 DKK' },
         };
-        fetchMetrics();
-    }, [company.id]);
+        if (tierId.startsWith('ads_custom_')) return { name: 'Ads Custom', price: tierId.split('_')[2] + ' DKK' };
+        return mapping[tierId] || { name: 'Unknown Tier', price: '-' };
+    };
 
-    // Sync state with URL if it changes (sidebar clicks)
+    // ... fetch metrics ...
+
+    // Sync state with URL if it changes 
     React.useEffect(() => {
         const tab = queryParams.get('tab') as Tab;
         if (tab && tab !== activeTab) {
             setActiveTab(tab);
         }
+        const tier = queryParams.get('tier');
+        if (tier) setSelectedTier(tier);
     }, [location.search]);
 
-    // ... rest of state ...
+    // ... form states ...
     const [seoForm, setSeoForm] = useState({
         website: company.website || '',
         country: lang === 'da' ? 'Danmark' : 'Denmark',
-        objectives: '', // Keywords or Services
+        objectives: '',
         areas: company.location || '',
         competitors: '',
         pages: '',
-        companyId: company.id
+        companyId: company.id,
+        tier: initialTier // Include tier in form
     });
 
     const [adsForm, setAdsForm] = useState({
         website: company.website || '',
         goal: '',
         locations: company.location || '',
-        budget: '',
+        budget: '', // Will be overridden if custom tier
         hasAccount: 'no' as 'yes' | 'no',
         confirmAccess: false,
-        companyId: company.id
+        companyId: company.id,
+        tier: initialTier // Include tier in form
     });
 
     const handleSeoSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const tierToUse = selectedTier || seoForm.tier;
+        if (!tierToUse) {
+            toast.error(lang === 'da' ? 'Vælg venligst en pakke først' : 'Please select a package first');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // Simulate Stripe Checkout
@@ -96,7 +108,7 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
 
             await api.submitGrowthRequest({
                 services: ['seo'],
-                details: seoForm
+                details: { ...seoForm, tier: tierToUse }
             });
             setIsSuccess(true);
             toast.success(lang === 'da' ? 'Betaling gennemført & SEO aktiveret!' : 'Payment successful & SEO activated!');
@@ -110,15 +122,21 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
 
     const handleAdsSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const tierToUse = selectedTier || adsForm.tier;
+        if (!tierToUse) {
+            toast.error(lang === 'da' ? 'Vælg venligst en pakke først' : 'Please select a package first');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
-            // Simulate Stripe Checkout
             toast.info(lang === 'da' ? 'Sender dig til sikker betaling...' : 'Redirecting to secure payment...');
             await new Promise(resolve => setTimeout(resolve, 1500));
 
             await api.submitGrowthRequest({
                 services: ['ads'],
-                details: adsForm
+                details: { ...adsForm, tier: tierToUse }
             });
             setIsSuccess(true);
             toast.success(lang === 'da' ? 'Betaling gennemført & Ads aktiveret!' : 'Payment successful & Ads activated!');
@@ -370,10 +388,17 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
                                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                                         <Search size={24} />
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-[#1D1D1F]">
-                                            {lang === 'da' ? 'Aktiver SEO-styring' : 'Activate SEO Management'}
-                                        </h2>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-2xl font-bold text-[#1D1D1F]">
+                                                {lang === 'da' ? 'Aktiver SEO-styring' : 'Activate SEO Management'}
+                                            </h2>
+                                            {selectedTier && selectedTier.includes('seo') && (
+                                                <span className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl text-sm font-bold border border-indigo-200">
+                                                    {getTierDetails(selectedTier).name} • {getTierDetails(selectedTier).price}
+                                                </span>
+                                            )}
+                                        </div>
                                         <p className="text-nexus-subtext text-sm">
                                             {lang === 'da' ? 'Forbedr din organiske synlighed i Google.' : 'Improve your organic visibility in Google.'}
                                         </p>
@@ -474,7 +499,10 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
                                     </div>
                                     <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
                                         <div>
-                                            <p className="font-bold text-xl text-[#1D1D1F]">1.000 DKK <span className="text-sm font-medium text-nexus-subtext">/ md. ex. moms</span></p>
+                                            <p className="font-bold text-xl text-[#1D1D1F]">
+                                                {selectedTier ? getTierDetails(selectedTier).price : '1.000'}
+                                                <span className="text-sm font-medium text-nexus-subtext"> {lang === 'da' ? '' : ''}</span>
+                                            </p>
                                             <p className="text-[10px] text-nexus-subtext">{lang === 'da' ? 'Ingen binding, opsig når som helst' : 'No binding, cancel anytime'}</p>
                                         </div>
                                         <button
@@ -504,10 +532,17 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
                                     <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
                                         <TrendingUp size={24} />
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-[#1D1D1F]">
-                                            {lang === 'da' ? 'Aktiver Google Ads' : 'Activate Google Ads'}
-                                        </h2>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-2xl font-bold text-[#1D1D1F]">
+                                                {lang === 'da' ? 'Aktiver Google Ads' : 'Activate Google Ads'}
+                                            </h2>
+                                            {selectedTier && selectedTier.includes('ads') && (
+                                                <span className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-sm font-bold border border-amber-200">
+                                                    {getTierDetails(selectedTier).name} • {getTierDetails(selectedTier).price}
+                                                </span>
+                                            )}
+                                        </div>
                                         <p className="text-nexus-subtext text-sm">
                                             {lang === 'da' ? 'Skab trafik og leads med betalt annoncering.' : 'Drive traffic and leads with paid advertising.'}
                                         </p>
@@ -631,7 +666,10 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
 
                                     <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
                                         <div>
-                                            <p className="font-bold text-xl text-[#1D1D1F]">1.000 DKK <span className="text-sm font-medium text-nexus-subtext">/ md. ex. moms</span></p>
+                                            <p className="font-bold text-xl text-[#1D1D1F]">
+                                                {selectedTier ? getTierDetails(selectedTier).price : '1.000'}
+                                                <span className="text-sm font-medium text-nexus-subtext"> {lang === 'da' ? '' : ''}</span>
+                                            </p>
                                             <p className="text-[10px] text-nexus-subtext">{lang === 'da' ? '* Ekskl. forbrug til Google' : '* Excl. spend to Google'}</p>
                                         </div>
                                         <button

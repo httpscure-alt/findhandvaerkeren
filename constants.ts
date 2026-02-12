@@ -133,7 +133,7 @@ export const MOCK_COMPANIES: Company[] = [
     location: 'Odense',
     postalCode: '5000',
     tags: ['VVS', 'Varme', 'Afløb'],
-    pricingTier: 'Standard',
+    pricingTier: 'Basic',
     contactEmail: 'vvs@hansen-service.dk',
     website: 'hansenvvs.dk',
     services: [
@@ -162,7 +162,7 @@ export const MOCK_COMPANIES: Company[] = [
     location: 'Aalborg',
     postalCode: '9000',
     tags: ['Maling', 'Tapet', 'Finish'],
-    pricingTier: 'Standard',
+    pricingTier: 'Basic',
     contactEmail: 'aalborg@maler.dk',
     website: 'aalborgmaler.dk',
     services: [

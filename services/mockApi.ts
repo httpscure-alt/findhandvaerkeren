@@ -637,7 +637,7 @@ class MockApiService {
       category: data.category,
       location: data.location,
       tags: data.tags || [],
-      pricingTier: data.pricingTier || 'Standard',
+      pricingTier: data.pricingTier || 'Basic',
       contactEmail: data.contactEmail,
       website: data.website || '',
       services: [],
@@ -965,7 +965,7 @@ class MockApiService {
       category: data.category,
       location: data.location,
       tags: [],
-      pricingTier: 'Standard',
+      pricingTier: 'Basic',
       contactEmail: contactEmail,
       website: data.website || '',
       phone: data.phone || '',
@@ -1406,7 +1406,7 @@ class MockApiService {
   }
 
   // Stripe Payment - Mock Checkout Session
-  async createCheckoutSession(billingCycle: 'monthly' | 'annual', tier?: 'Standard' | 'Premium' | 'Elite') {
+  async createCheckoutSession(billingCycle: 'monthly' | 'annual', tier?: 'Basic' | 'Gold') {
     await delay(500);
     const userId = getCurrentUserId();
     if (!userId) {

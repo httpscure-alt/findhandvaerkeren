@@ -53,15 +53,15 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     logger.info('✅ Stripe is configured');
 
     const userId = req.userId;
-    const { billingCycle, tier } = req.body; // 'monthly' or 'annual', tier: 'Standard' | 'Premium' | 'Elite'
+    const { billingCycle, tier } = req.body; // 'monthly' or 'annual', tier: 'Basic' | 'Gold'
 
     if (!billingCycle || (billingCycle !== 'monthly' && billingCycle !== 'annual')) {
       res.status(400).json({ error: 'Invalid billingCycle. Must be "monthly" or "annual"' });
       return;
     }
 
-    // Default to Premium if tier not provided (for backward compatibility)
-    const planTier = tier || 'Premium';
+    // Default to Basic if tier not provided (for backward compatibility)
+    const planTier = tier || 'Basic';
 
     // In development mode, allow test checkout without company
     const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
@@ -76,6 +76,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
         // Try to get user's company
         company = await prisma.company.findUnique({
           where: { ownerId: userId },
+          include: { owner: true }
         });
 
         if (company) {
@@ -276,7 +277,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Determine billing cycle and tier from price ID (fallback to metadata)
   const billingCycle = planDetails.billingCycle || metadata.billingCycle || 'monthly';
-  const tier = planDetails.tier || (metadata.planTier || metadata.tier || 'Premium') as 'Standard' | 'Premium' | 'Elite';
+  const tier = planDetails.tier || (metadata.planTier || metadata.tier || 'Basic') as 'Basic' | 'Gold';
 
   // Get existing subscription to track changes
   const existingSubscription = await prisma.subscription.findUnique({
@@ -537,7 +538,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     where: { id: dbSubscription.id },
     data: {
       status: newStatus,
-      tier: newTier as 'Standard' | 'Premium' | 'Elite',
+      tier: newTier as 'Basic' | 'Gold',
       stripePriceId: priceId,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
@@ -552,7 +553,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
         subscriptionId: dbSubscription.id,
         action: previousTier !== newTier ? 'tier_changed' : 'updated',
         previousTier: previousTier !== newTier ? previousTier : undefined,
-        newTier: previousTier !== newTier ? (newTier as 'Standard' | 'Premium' | 'Elite') : undefined,
+        newTier: previousTier !== newTier ? (newTier as 'Basic' | 'Gold') : undefined,
         previousStatus: previousStatus !== newStatus ? previousStatus : undefined,
         newStatus: previousStatus !== newStatus ? newStatus : undefined,
         previousBillingCycle: previousBillingCycle !== newBillingCycle ? previousBillingCycle : undefined,

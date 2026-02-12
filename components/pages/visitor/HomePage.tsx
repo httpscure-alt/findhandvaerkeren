@@ -155,6 +155,46 @@ const HomePage: React.FC<HomePageProps> = ({ onCompanyClick }) => {
                 </div>
             </section>
 
+            {/* 4. FEATURED PROFESSIONALS (Moved Up) */}
+            <section className="py-24 bg-gray-50/50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                        <div className="text-left max-w-2xl">
+                            <h2 className="text-3xl md:text-4xl font-bold text-[#1D1D1F] mb-4">
+                                {t.pros.featuredTitle}
+                            </h2>
+                            <p className="text-sm text-[#86868B] font-medium leading-relaxed">
+                                {t.pros.verifiedDisclaimer}
+                            </p>
+                        </div>
+                        <button onClick={() => navigate('/browse')} className="hidden md:flex items-center gap-1 text-[#1D1D1F] font-bold hover:opacity-70 transition-all">
+                            {t.hero.secondaryCTA} <ChevronRight size={18} />
+                        </button>
+                    </div>
+
+                    {isLoadingCompanies ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <LoadingSkeleton key={i} variant="card" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {featuredPros.map(company => (
+                                <ListingCard
+                                    key={company.id}
+                                    company={company}
+                                    onViewProfile={onCompanyClick}
+                                    lang={lang}
+                                    isFavorite={savedCompanyIds.includes(company.id)}
+                                    onToggleFavorite={toggleFavorite}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
             {/* 3. POPULAR CATEGORIES */}
             <section className="py-24 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -253,45 +293,7 @@ const HomePage: React.FC<HomePageProps> = ({ onCompanyClick }) => {
                 </div>
             </section>
 
-            {/* 4. FEATURED PROFESSIONALS */}
-            <section className="py-24 bg-gray-50/50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-                        <div className="text-left max-w-2xl">
-                            <h2 className="text-3xl md:text-4xl font-bold text-[#1D1D1F] mb-4">
-                                {t.pros.featuredTitle}
-                            </h2>
-                            <p className="text-sm text-[#86868B] font-medium leading-relaxed">
-                                {t.pros.verifiedDisclaimer}
-                            </p>
-                        </div>
-                        <button onClick={() => navigate('/browse')} className="hidden md:flex items-center gap-1 text-[#1D1D1F] font-bold hover:opacity-70 transition-all">
-                            {t.hero.secondaryCTA} <ChevronRight size={18} />
-                        </button>
-                    </div>
 
-                    {isLoadingCompanies ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {Array.from({ length: 3 }).map((_, i) => (
-                                <LoadingSkeleton key={i} variant="card" />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {featuredPros.map(company => (
-                                <ListingCard
-                                    key={company.id}
-                                    company={company}
-                                    onViewProfile={onCompanyClick}
-                                    lang={lang}
-                                    isFavorite={savedCompanyIds.includes(company.id)}
-                                    onToggleFavorite={toggleFavorite}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </section>
 
             {/* 5. SUPPLY-SIDE CTA */}
             <section className="py-24 bg-white relative">

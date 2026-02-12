@@ -6,14 +6,14 @@
  */
 
 export const PARTNER_PLAN_PRICING = {
-  MONTHLY: 500, // 500 kr
-  GOLD_MONTHLY: 1500, // 1500 kr
+  BASIC_MONTHLY: 500, // 500 kr
+  GOLD_MONTHLY: 1000, // 1000 kr
   ANNUAL_DISCOUNT_PERCENTAGE: 20,
   TRIAL_DAYS: 90, // 3 months
 } as const;
 
 export const PARTNER_PLAN_FEATURES = {
-  PRO: [
+  BASIC: [
     'Prioriteret søgeresultat',
     'Verificeret badge',
     'Søgbar i 3 kategorier',
@@ -25,7 +25,7 @@ export const PARTNER_PLAN_FEATURES = {
     'Guld profil highlight',
     'Ubegrænsede kategorier',
     'Større synlighed på forsiden',
-    'Alt fra Partner Plan + mere',
+    'Alt fra Basic Plan + mere',
   ],
 } as const;
 

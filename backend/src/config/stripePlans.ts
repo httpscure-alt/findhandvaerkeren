@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'Standard' | 'Premium' | 'Elite';
+export type SubscriptionTier = 'Basic' | 'Gold';
 export type BillingCycle = 'monthly' | 'annual';
 
 interface PlanDetails {
@@ -11,15 +11,13 @@ interface PlanDetails {
  * These should match the values in your .env file.
  */
 const PRICE_MAP: Record<string, PlanDetails> = {
-    [process.env.STRIPE_PRICE_STANDARD_MONTHLY || '']: { tier: 'Standard', billingCycle: 'monthly' },
-    [process.env.STRIPE_PRICE_STANDARD_ANNUAL || '']: { tier: 'Standard', billingCycle: 'annual' },
-    [process.env.STRIPE_PRICE_PREMIUM_MONTHLY || '']: { tier: 'Premium', billingCycle: 'monthly' },
-    [process.env.STRIPE_PRICE_PREMIUM_ANNUAL || '']: { tier: 'Premium', billingCycle: 'annual' },
-    [process.env.STRIPE_PRICE_ELITE_MONTHLY || '']: { tier: 'Elite', billingCycle: 'monthly' },
-    [process.env.STRIPE_PRICE_ELITE_ANNUAL || '']: { tier: 'Elite', billingCycle: 'annual' },
+    [process.env.STRIPE_PRICE_BASIC_MONTHLY || '']: { tier: 'Basic', billingCycle: 'monthly' },
+    [process.env.STRIPE_PRICE_BASIC_ANNUAL || '']: { tier: 'Basic', billingCycle: 'annual' },
+    [process.env.STRIPE_PRICE_GOLD_MONTHLY || '']: { tier: 'Gold', billingCycle: 'monthly' },
+    [process.env.STRIPE_PRICE_GOLD_ANNUAL || '']: { tier: 'Gold', billingCycle: 'annual' },
     // Generic fallbacks for older configurations
-    [process.env.STRIPE_PRICE_MONTHLY || '']: { tier: 'Premium', billingCycle: 'monthly' },
-    [process.env.STRIPE_PRICE_ANNUAL || '']: { tier: 'Premium', billingCycle: 'annual' },
+    [process.env.STRIPE_PRICE_MONTHLY || '']: { tier: 'Basic', billingCycle: 'monthly' },
+    [process.env.STRIPE_PRICE_ANNUAL || '']: { tier: 'Basic', billingCycle: 'annual' },
 };
 
 /**
@@ -40,7 +38,7 @@ export function getPlanDetails(priceId: string): PlanDetails {
     }
 
     // Default fallback
-    return { tier: 'Premium', billingCycle: 'monthly' };
+    return { tier: 'Basic', billingCycle: 'monthly' };
 }
 
 /**

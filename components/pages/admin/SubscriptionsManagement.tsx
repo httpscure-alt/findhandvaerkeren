@@ -84,7 +84,7 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({ lang,
   };
 
   const getAmount = (tier: string, billingCycle?: string) => {
-    const monthlyAmount = tier === 'Elite' ? 149 : tier === 'Premium' ? 99 : 49;
+    const monthlyAmount = tier === 'Gold' ? 149 : 49;
     return billingCycle === 'annual' ? monthlyAmount * 12 * 0.8 : monthlyAmount;
   };
 
@@ -185,11 +185,10 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({ lang,
                     <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-[#1D1D1F]">{sub.company?.name || '-'}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium ${
-                          sub.tier === 'Elite' ? 'bg-purple-50 text-purple-700' :
-                          sub.tier === 'Premium' ? 'bg-indigo-50 text-indigo-700' :
-                          'bg-gray-100 text-gray-600'
-                        }`}>
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium ${sub.tier === 'Gold' ? 'bg-purple-50 text-purple-700' :
+                          sub.tier === 'Basic' ? 'bg-indigo-50 text-indigo-700' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
                           {sub.tier}
                         </span>
                       </td>
@@ -197,11 +196,10 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({ lang,
                         {formatCurrency(getAmount(sub.tier, sub.billingCycle))}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          sub.status === 'active' ? 'bg-green-50 text-green-700' :
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sub.status === 'active' ? 'bg-green-50 text-green-700' :
                           sub.status === 'canceled' ? 'bg-red-50 text-red-700' :
-                          'bg-amber-50 text-amber-700'
-                        }`}>
+                            'bg-amber-50 text-amber-700'
+                          }`}>
                           <CheckCircle size={12} />
                           {sub.status}
                         </span>

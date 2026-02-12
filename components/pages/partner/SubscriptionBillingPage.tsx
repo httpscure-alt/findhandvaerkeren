@@ -99,16 +99,16 @@ const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ compa
   };
 
   const getNextPaymentAmount = () => {
-    if (!subscription) return `$${PARTNER_PLAN_PRICING.MONTHLY}`;
+    if (!subscription) return `$${PARTNER_PLAN_PRICING.BASIC_MONTHLY}`;
     const billingCycle = subscription.billingCycle || 'monthly';
-    const priceInfo = formatPrice(PARTNER_PLAN_PRICING.MONTHLY, billingCycle, lang);
+    const priceInfo = formatPrice(PARTNER_PLAN_PRICING.BASIC_MONTHLY, billingCycle, lang);
     return priceInfo.price;
   };
 
   const billingHistory = [
-    { id: '1', date: '2024-01-15', amount: getNextPaymentAmount(), plan: 'Partner Plan', status: 'Paid' },
-    { id: '2', date: '2023-12-15', amount: getNextPaymentAmount(), plan: 'Partner Plan', status: 'Paid' },
-    { id: '3', date: '2023-11-15', amount: getNextPaymentAmount(), plan: 'Partner Plan', status: 'Paid' }
+    { id: '1', date: '2024-01-15', amount: getNextPaymentAmount(), plan: 'Basic Plan', status: 'Paid' },
+    { id: '2', date: '2023-12-15', amount: getNextPaymentAmount(), plan: 'Basic Plan', status: 'Paid' },
+    { id: '3', date: '2023-11-15', amount: getNextPaymentAmount(), plan: 'Basic Plan', status: 'Paid' }
   ];
 
   if (loading) {
@@ -138,8 +138,8 @@ const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ compa
               {lang === 'da' ? 'Nuværende Plan' : 'Current Plan'}
             </h2>
             <div className="flex items-center gap-3">
-              <span className={`px-4 py-2 rounded-xl text-sm font-medium ${company.pricingTier === 'Elite' ? 'bg-purple-50 text-purple-700' :
-                company.pricingTier === 'Premium' ? 'bg-indigo-50 text-indigo-700' :
+              <span className={`px-4 py-2 rounded-xl text-sm font-medium ${company.pricingTier === 'Gold' ? 'bg-purple-50 text-purple-700' :
+                company.pricingTier === 'Basic' ? 'bg-indigo-50 text-indigo-700' :
                   'bg-gray-100 text-gray-600'
                 }`}>
                 {company.pricingTier}

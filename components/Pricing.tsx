@@ -35,11 +35,11 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
 
   const tiers = [
     {
-      id: 'Standard',
+      id: 'Basic',
       name: lang === 'da' ? 'Partner Basis' : 'Partner Basic',
-      monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+      monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
       description: lang === 'da' ? 'Ideelt for selvstændige håndværkere der ønsker flere opgaver.' : 'Perfect for independent craftsmen looking for more jobs.',
-      features: PARTNER_PLAN_FEATURES.PRO,
+      features: PARTNER_PLAN_FEATURES.BASIC,
       cta: lang === 'da' ? 'Vælg Basis' : 'Choose Basic',
       highlight: false,
       icon: ShieldCheck
@@ -161,6 +161,127 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
         </div>
       </section>
 
+      {/* Comparison Table */}
+      {!isEmbedded && (
+        <section className="py-24 bg-gray-50 border-y border-gray-100">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-extrabold text-[#1D1D1F] mb-4">
+                {lang === 'da' ? 'Sammenlign Planer' : 'Compare Plans'}
+              </h2>
+              <p className="text-[#86868B]">
+                {lang === 'da' ? 'Se detaljerne og find den rette løsning for dig.' : 'View details and find the right solution for you.'}
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="grid grid-cols-3 bg-[#FBFBFD] border-b border-gray-100 p-6">
+                <div className="font-bold text-[#86868B]">{lang === 'da' ? 'Feature' : 'Feature'}</div>
+                <div className="font-bold text-[#1D1D1F] text-center">{lang === 'da' ? 'Basis' : 'Basic'}</div>
+                <div className="font-bold text-[#1D1D1F] text-center">{lang === 'da' ? 'Guld' : 'Gold'}</div>
+              </div>
+
+              {[
+                { name: lang === 'da' ? 'Offentlig Profil' : 'Public Profile', basic: true, gold: true },
+                { name: lang === 'da' ? 'Modtag Leads' : 'Receive Leads', basic: true, gold: true },
+                { name: lang === 'da' ? 'Antal Billeder' : 'Portfolio Images', basic: '5', gold: 'Ubegrænset' },
+                { name: lang === 'da' ? 'Verificeret Badge' : 'Verified Badge', basic: false, gold: true },
+                { name: lang === 'da' ? 'Fremhævet i søgninger' : 'Featured in Search', basic: false, gold: true },
+                { name: lang === 'da' ? 'SEO Analyse' : 'SEO Analysis', basic: false, gold: true },
+                { name: lang === 'da' ? 'Support' : 'Support', basic: 'Email', gold: 'Email + Tel' },
+              ].map((row, i) => (
+                <div key={i} className="grid grid-cols-3 p-6 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <div className="text-sm font-medium text-[#1D1D1F]">{row.name}</div>
+                  <div className="flex justify-center">
+                    {typeof row.basic === 'boolean' ? (
+                      row.basic ? <Check className="text-green-500" size={20} /> : <div className="w-5 h-1 bg-gray-200 rounded-full" />
+                    ) : (
+                      <span className="text-sm font-bold text-[#1D1D1F]">{row.basic}</span>
+                    )}
+                  </div>
+                  <div className="flex justify-center">
+                    {typeof row.gold === 'boolean' ? (
+                      row.gold ? <Check className="text-green-500" size={20} /> : <div className="w-5 h-1 bg-gray-200 rounded-full" />
+                    ) : (
+                      <span className="text-sm font-bold text-[#1D1D1F]">{row.gold}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Platform Preview (Simulation) */}
+      {!isEmbedded && (
+        <section className="py-24 bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-extrabold text-[#1D1D1F] mb-4">
+                {lang === 'da' ? 'Professionelt Dashboard' : 'Professional Dashboard'}
+              </h2>
+              <p className="text-[#86868B] max-w-2xl mx-auto">
+                {lang === 'da'
+                  ? 'Få fuldt overblik over dine leads, profilvisninger og kunderelationer et sted.'
+                  : 'Get a full overview of your leads, profile views, and customer relationships in one place.'}
+              </p>
+            </div>
+
+            <div className="relative mx-auto max-w-5xl rounded-[2rem] border-[8px] border-[#1D1D1F] bg-[#F5F5F7] shadow-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9]">
+              {/* Fake UI Structure */}
+              <div className="flex h-full">
+                {/* Sidebar */}
+                <div className="w-16 md:w-64 bg-[#1D1D1F] flex flex-col p-4 gap-4 hidden md:flex">
+                  <div className="h-8 w-8 bg-white/20 rounded-lg mb-8"></div>
+                  <div className="h-4 w-3/4 bg-white/10 rounded"></div>
+                  <div className="h-4 w-1/2 bg-white/10 rounded"></div>
+                  <div className="h-4 w-full bg-white/20 rounded mt-4"></div>
+                  <div className="h-4 w-5/6 bg-white/10 rounded"></div>
+                </div>
+
+                {/* Main Content */}
+                <div className="flex-1 p-8 overflow-hidden bg-gray-50">
+                  <div className="flex justify-between items-center mb-8">
+                    <div className="h-8 w-48 bg-gray-200 rounded-lg"></div>
+                    <div className="flex gap-4">
+                      <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+                      <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                      <div className="h-4 w-24 bg-gray-100 rounded mb-4"></div>
+                      <div className="h-8 w-16 bg-blue-500 rounded-lg opacity-20"></div>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                      <div className="h-4 w-24 bg-gray-100 rounded mb-4"></div>
+                      <div className="h-8 w-16 bg-green-500 rounded-lg opacity-20"></div>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                      <div className="h-4 w-24 bg-gray-100 rounded mb-4"></div>
+                      <div className="h-8 w-16 bg-purple-500 rounded-lg opacity-20"></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-64">
+                    <div className="h-4 w-32 bg-gray-100 rounded mb-6"></div>
+                    <div className="flex items-end gap-2 h-40">
+                      <div className="w-full bg-blue-50 rounded-t h-[60%]"></div>
+                      <div className="w-full bg-blue-100 rounded-t h-[80%]"></div>
+                      <div className="w-full bg-blue-500 rounded-t h-[40%]"></div>
+                      <div className="w-full bg-blue-200 rounded-t h-[70%]"></div>
+                      <div className="w-full bg-blue-100 rounded-t h-[50%]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Value Props Section */}
       {!isEmbedded && (
         <section className="py-24 bg-[#FBFBFD]">
@@ -179,7 +300,7 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
                     <prop.icon size={28} />
                   </div>
                   <h3 className="text-xl font-bold text-[#1D1D1F]">{prop.title}</h3>
-                  <p className="text-[#86868B] font-medium leading-relaxed">{prop.desc}</p>
+                  <p className="text--[#86868B] font-medium leading-relaxed">{prop.desc}</p>
                 </div>
               ))}
             </div>

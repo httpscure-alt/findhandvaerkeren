@@ -27,6 +27,7 @@ model User {
   jobRequests    JobRequest[]
   recentSearches RecentSearch[]
   savedListings  SavedListing[]
+  notifications  Notification[]
 
   @@index([email])
   @@index([role])
@@ -45,7 +46,7 @@ model Company {
   category              String
   location              String
   tags                  String[]           @default([])
-  pricingTier           PricingTier        @default(Standard)
+  pricingTier           PricingTier        @default(Basic)
   contactEmail          String
   website               String?
   ownerId               String             @unique
@@ -75,6 +76,7 @@ model Company {
   services              Service[]
   subscriptions         Subscription[]
   testimonials          Testimonial[]
+  growthRequests        GrowthRequest[]
 
   @@index([category])
   @@index([location])
@@ -401,9 +403,8 @@ enum UserRole {
 }
 
 enum PricingTier {
-  Standard
-  Premium
-  Elite
+  Basic
+  Gold
 }
 
 enum InquiryStatus {
@@ -416,4 +417,39 @@ enum VerificationStatus {
   unverified
   pending
   verified
+}
+
+enum GrowthRequestType {
+  SEO
+  ADS
+  OTHER
+}
+
+enum GrowthRequestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+model GrowthRequest {
+  id        String              @id @default(uuid())
+  companyId String
+  company   Company             @relation(fields: [companyId], references: [id])
+  type      GrowthRequestType
+  status    GrowthRequestStatus @default(PENDING)
+  details   Json
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  type      String   @default("info")
+  createdAt DateTime @default(now())
 }

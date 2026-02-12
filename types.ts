@@ -55,7 +55,7 @@ export interface Company {
   location: string;
   postalCode?: string;
   tags: string[];
-  pricingTier: 'Standard' | 'Gold';
+  pricingTier: 'Basic' | 'Gold';
   contactEmail: string;
   website: string;
   phone?: string;

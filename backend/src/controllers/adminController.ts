@@ -40,7 +40,7 @@ export const getFinanceMetrics = async (req: AuthRequest, res: Response): Promis
     const monthlyRecurringRevenue = activeSubscriptions.reduce((sum, sub) => {
       // Get the last successful transaction for this subscription to get the real amount
       // In a real MRR calculation, we'd normalize annual to monthly
-      const monthlyAmount = sub.tier === 'Elite' ? 149 : sub.tier === 'Premium' ? 99 : 49;
+      const monthlyAmount = (sub.tier as string) === 'Gold' ? 149 : 49;
       return sum + (sub.billingCycle === 'annual' ? monthlyAmount : monthlyAmount);
     }, 0);
 
@@ -290,7 +290,7 @@ export const getAdminStats = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     const monthlyRevenue = subscriptions.reduce((sum, sub) => {
-      const monthlyAmount = sub.tier === 'Elite' ? 149 : sub.tier === 'Premium' ? 99 : 49;
+      const monthlyAmount = (sub.tier as string) === 'Gold' ? 149 : 49;
       return sum + monthlyAmount;
     }, 0);
 

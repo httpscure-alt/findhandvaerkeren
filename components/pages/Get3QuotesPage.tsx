@@ -204,15 +204,15 @@ export default function Get3QuotesPage({ lang }: Get3QuotesPageProps) {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {CORE_CATEGORIES.map((category) => {
-                                        const isSelected = formData.category === category;
-                                        const displayName = categoryNames[category];
-                                        if (!displayName) return null;
+                                    {categories.map((cat) => {
+                                        const categoryValue = cat.slug || cat.name;
+                                        const isSelected = formData.category === categoryValue;
+                                        const displayName = categoryNames[cat.name] || cat.name;
 
                                         return (
                                             <button
-                                                key={category}
-                                                onClick={() => setFormData({ ...formData, category: category })}
+                                                key={cat.id || categoryValue}
+                                                onClick={() => setFormData({ ...formData, category: categoryValue })}
                                                 className={`p-6 border-2 rounded-2xl text-left transition-all duration-300 transform ${isSelected
                                                     ? 'border-[#1D1D1F] bg-[#1D1D1F]/5 shadow-md -translate-y-1'
                                                     : 'border-gray-100 hover:border-gray-200 bg-white hover:shadow-lg'

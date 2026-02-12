@@ -21,11 +21,18 @@ const UpgradePlanModal: React.FC<UpgradePlanModalProps> = ({ isOpen, onClose, la
 
   const plans = [
     {
-      id: 'Partner',
-      name: 'Partner Plan',
-      monthlyPrice: PARTNER_PLAN_PRICING.MONTHLY,
+      id: 'Basic',
+      name: 'Basic Plan',
+      monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
       description: t.tiers.pro.desc,
-      features: PARTNER_PLAN_FEATURES.PRO,
+      features: PARTNER_PLAN_FEATURES.BASIC,
+    },
+    {
+      id: 'Gold',
+      name: 'Gold Plan',
+      monthlyPrice: PARTNER_PLAN_PRICING.GOLD_MONTHLY,
+      description: t.tiers.gold?.desc || 'Maksimal synlighed og Guld-highlight',
+      features: PARTNER_PLAN_FEATURES.GOLD,
     },
   ];
 
@@ -102,10 +109,10 @@ const UpgradePlanModal: React.FC<UpgradePlanModalProps> = ({ isOpen, onClose, la
                 key={plan.id}
                 onClick={() => !isCurrent && setSelectedPlan(plan.id)}
                 className={`relative rounded-2xl p-6 border-2 transition-all cursor-pointer ${isSelected
-                    ? 'border-nexus-accent bg-nexus-accent/5'
-                    : isCurrent
-                      ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                      : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-nexus-accent bg-nexus-accent/5'
+                  : isCurrent
+                    ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                    : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
                 {isCurrent && (
@@ -139,8 +146,8 @@ const UpgradePlanModal: React.FC<UpgradePlanModalProps> = ({ isOpen, onClose, la
                       setSelectedPlan(plan.id);
                     }}
                     className={`w-full py-2.5 rounded-xl font-medium transition-all ${isSelected
-                        ? 'bg-[#1D1D1F] text-white hover:bg-black'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-[#1D1D1F] text-white hover:bg-black'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
                     {isSelected
