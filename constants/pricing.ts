@@ -12,22 +12,18 @@ export const PARTNER_PLAN_PRICING = {
   TRIAL_DAYS: 90, // 3 months
 } as const;
 
-export const PARTNER_PLAN_FEATURES = {
-  BASIC: [
-    'Prioriteret søgeresultat',
-    'Verificeret badge',
-    'Søgbar i 3 kategorier',
-    '3 måneder gratis trial',
-    'Profil med galleri',
-  ],
-  GOLD: [
-    'Øverst i søgeresultater',
-    'Guld profil highlight',
-    'Ubegrænsede kategorier',
-    'Større synlighed på forsiden',
-    'Alt fra Basic Plan + mere',
-  ],
-} as const;
+/**
+ * Get translated features for partner plans
+ * Use translations.ts instead of hardcoded features
+ */
+export const getPartnerPlanFeatures = (lang: 'en' | 'da') => {
+  // Import translations dynamically to avoid circular dependencies
+  const { translations } = require('../translations');
+  return {
+    BASIC: translations[lang].pricing.features.basic,
+    GOLD: translations[lang].pricing.features.gold,
+  };
+};
 
 export const BILLING_CYCLES = {
   MONTHLY: 'monthly',

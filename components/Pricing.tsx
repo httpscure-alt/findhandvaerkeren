@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, Star, Zap, ShieldCheck, TrendingUp, Users } from 'lucide-react';
 import { Language, SelectedPlan } from '../types';
 import { translations } from '../translations';
-import { PARTNER_PLAN_PRICING, PARTNER_PLAN_FEATURES, formatPrice } from '../constants/pricing';
+import { PARTNER_PLAN_PRICING, getPartnerPlanFeatures, formatPrice } from '../constants/pricing';
 
 interface PricingProps {
   lang: Language;
@@ -14,19 +14,20 @@ interface PricingProps {
 type PricingMode = 'monthly' | 'annual';
 
 const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = false }) => {
-  const [pricingMode] = useState<PricingMode>('monthly');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const t = translations[lang];
+  const planFeatures = getPartnerPlanFeatures(lang);
 
   const getPriceInfo = (monthlyPrice: number) => {
-    return formatPrice(monthlyPrice, pricingMode, lang);
+    return formatPrice(monthlyPrice, billingCycle, lang);
   };
 
   const handlePlanSelect = (tierName: string, monthlyPrice: number) => {
     const selectedPlan: SelectedPlan = {
-      id: tierName.toLowerCase(),
+      id: tierName,
       name: tierName,
       monthlyPrice,
-      billingPeriod: pricingMode,
+      billingPeriod: billingCycle,
     };
     localStorage.setItem('selectedPlan', JSON.stringify(selectedPlan));
     localStorage.setItem('signupRole', 'PARTNER');
@@ -39,7 +40,7 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
       name: lang === 'da' ? 'Partner Basis' : 'Partner Basic',
       monthlyPrice: PARTNER_PLAN_PRICING.BASIC_MONTHLY,
       description: lang === 'da' ? 'Ideelt for selvstændige håndværkere der ønsker flere opgaver.' : 'Perfect for independent craftsmen looking for more jobs.',
-      features: PARTNER_PLAN_FEATURES.BASIC,
+      features: planFeatures.BASIC,
       cta: lang === 'da' ? 'Vælg Basis' : 'Choose Basic',
       highlight: false,
       icon: ShieldCheck
@@ -49,7 +50,7 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
       name: lang === 'da' ? 'Partner Guld' : 'Partner Gold',
       monthlyPrice: PARTNER_PLAN_PRICING.GOLD_MONTHLY,
       description: lang === 'da' ? 'Maksimal synlighed og flest henvendelser. Bliv "Featured professional".' : 'Maximum visibility and most inquiries. Become a "Featured professional".',
-      features: PARTNER_PLAN_FEATURES.GOLD,
+      features: planFeatures.GOLD,
       cta: lang === 'da' ? 'Vælg Guld' : 'Choose Gold',
       highlight: true,
       icon: Star

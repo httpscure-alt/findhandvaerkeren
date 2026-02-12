@@ -16,6 +16,22 @@ export const translations = {
       tiers: {
         pro: { desc: "Få grundlæggende synlighed og verificering." },
         gold: { desc: "Maksimal synlighed og Guld-highlight på din profil." }
+      },
+      features: {
+        basic: [
+          'Prioriteret søgeresultat',
+          'Verificeret badge',
+          'Søgbar i 3 kategorier',
+          '3 måneder gratis trial',
+          'Profil med galleri',
+        ],
+        gold: [
+          'Øverst i søgeresultater',
+          'Guld profil highlight',
+          'Ubegrænsede kategorier',
+          'Større synlighed på forsiden',
+          'Alt fra Basic Plan + mere',
+        ]
       }
     },
     hero: {
@@ -246,6 +262,22 @@ export const translations = {
       tiers: {
         pro: { desc: "Get basic visibility and verification." },
         gold: { desc: "Maximum visibility and Gold-highlight on your profile." }
+      },
+      features: {
+        basic: [
+          'Priority search result',
+          'Verified badge',
+          'Searchable in 3 categories',
+          '3 months free trial',
+          'Profile with gallery',
+        ],
+        gold: [
+          'Top of search results',
+          'Gold profile highlight',
+          'Unlimited categories',
+          'Greater visibility on homepage',
+          'Everything from Basic Plan + more',
+        ]
       }
     },
     hero: {
