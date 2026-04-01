@@ -1,13 +1,14 @@
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
+import { AuthRequest } from '../middleware/auth';
+import { logger } from '../config/logger';
 
-const prisma = new PrismaClient();
 
 // Get notifications for the authenticated user
 export const getNotifications = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.userId;
+        const userId = (req as AuthRequest).userId;
 
         if (!userId) {
             res.status(401).json({ error: 'Unauthorized' });
@@ -26,7 +27,7 @@ export const getNotifications = async (req: Request, res: Response): Promise<voi
 
         res.json({ notifications, unreadCount });
     } catch (error) {
-        console.error('Error fetching notifications:', error);
+        logger.error('Error fetching notifications:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -35,7 +36,7 @@ export const getNotifications = async (req: Request, res: Response): Promise<voi
 export const markAsRead = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const userId = req.user?.userId;
+        const userId = (req as AuthRequest).userId;
 
         const notification = await prisma.notification.findFirst({
             where: { id, userId }
@@ -53,7 +54,7 @@ export const markAsRead = async (req: Request, res: Response): Promise<void> => 
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Error marking notification as read:', error);
+        logger.error('Error marking notification as read:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -61,7 +62,7 @@ export const markAsRead = async (req: Request, res: Response): Promise<void> => 
 // Mark all as read
 export const markAllAsRead = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.userId;
+        const userId = (req as AuthRequest).userId;
 
         if (!userId) {
             res.status(401).json({ error: 'Unauthorized' });
@@ -75,7 +76,7 @@ export const markAllAsRead = async (req: Request, res: Response): Promise<void> 
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Error marking all notifications as read:', error);
+        logger.error('Error marking all notifications as read:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
-import { getPlanDetails } from '../config/stripePlans';
+import { getPlanDetails, getMarketingPlanDetails, isMarketingPriceId } from '../config/stripePlans';
 import { logger } from '../config/logger';
-
-const prisma = new PrismaClient();
+import { emailService } from '../services/emailService';
 
 // Get Stripe secret key from environment
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -32,6 +31,166 @@ function isStripeConfigured(): boolean {
 }
 
 /**
+ * Partner listing subscription created when a company only subscribes to Ads/SEO (no separate Stripe partner plan).
+ * Identified by this billingCycle so we can revoke it when marketing ends.
+ */
+const MARKETING_LISTING_BUNDLE_BILLING_CYCLE = 'marketing_included';
+
+/**
+ * Ensure Basic business listing + PARTNER access when someone subscribes to marketing only.
+ * Skips if the company already has a Stripe-backed partner (listing) subscription.
+ */
+async function ensureCompanyListingFromMarketing(
+  companyId: string,
+  stripeSubscription: Stripe.Subscription,
+  customerId: string
+): Promise<void> {
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    include: { owner: true },
+  });
+
+  if (!company) {
+    logger.warn(`ensureCompanyListingFromMarketing: company ${companyId} not found`);
+    return;
+  }
+
+  if (company.owner.role === 'CONSUMER') {
+    await prisma.user.update({
+      where: { id: company.ownerId },
+      data: { role: 'PARTNER' },
+    });
+  }
+
+  const paidPartnerListing = await prisma.subscription.findFirst({
+    where: {
+      companyId,
+      stripeSubscriptionId: { not: null },
+      status: { in: ['active', 'past_due'] },
+    },
+  });
+
+  if (paidPartnerListing) {
+    logger.info(
+      `Company ${companyId} already has a Stripe partner listing; skipping marketing bundle`
+    );
+    return;
+  }
+
+  const periodStart = new Date(stripeSubscription.current_period_start * 1000);
+  const periodEnd = new Date(stripeSubscription.current_period_end * 1000);
+  const priceId = stripeSubscription.items.data[0]?.price?.id ?? null;
+  const isActive = stripeSubscription.status === 'active';
+
+  const bundled = await prisma.subscription.findFirst({
+    where: {
+      companyId,
+      billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (bundled) {
+    await prisma.subscription.update({
+      where: { id: bundled.id },
+      data: {
+        status: isActive ? 'active' : 'inactive',
+        tier: 'Basic',
+        stripeCustomerId: customerId,
+        stripePriceId: priceId,
+        currentPeriodStart: periodStart,
+        currentPeriodEnd: periodEnd,
+        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+      },
+    });
+  } else {
+    await prisma.subscription.create({
+      data: {
+        companyId,
+        tier: 'Basic',
+        status: isActive ? 'active' : 'inactive',
+        billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
+        startDate: periodStart,
+        currentPeriodStart: periodStart,
+        currentPeriodEnd: periodEnd,
+        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+        stripeCustomerId: customerId,
+        stripePriceId: priceId,
+      },
+    });
+  }
+
+  if (company.pricingTier !== 'Gold') {
+    await prisma.company.update({
+      where: { id: companyId },
+      data: { pricingTier: 'Basic' },
+    });
+  }
+
+  logger.info(`Marketing bundle: ensured Basic listing subscription for company ${companyId}`);
+}
+
+async function syncBundledListingSubscriptionPeriod(
+  companyId: string,
+  stripeSubscription: Stripe.Subscription
+): Promise<void> {
+  const bundled = await prisma.subscription.findFirst({
+    where: {
+      companyId,
+      billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!bundled) {
+    return;
+  }
+
+  const isActive = stripeSubscription.status === 'active';
+
+  await prisma.subscription.update({
+    where: { id: bundled.id },
+    data: {
+      status: isActive ? 'active' : 'inactive',
+      currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+      cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+    },
+  });
+}
+
+async function revokeMarketingBundledListing(companyId: string): Promise<void> {
+  const rows = await prisma.subscription.findMany({
+    where: {
+      companyId,
+      billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
+      status: { in: ['active', 'past_due'] },
+    },
+  });
+
+  for (const row of rows) {
+    await prisma.subscription.update({
+      where: { id: row.id },
+      data: {
+        status: 'canceled',
+        endDate: new Date(),
+        cancelAtPeriodEnd: false,
+      },
+    });
+
+    await prisma.subscriptionHistory.create({
+      data: {
+        subscriptionId: row.id,
+        action: 'canceled',
+        previousStatus: row.status,
+        newStatus: 'canceled',
+        reason: 'Marketing subscription ended',
+      },
+    });
+  }
+}
+
+/**
  * Create Stripe Checkout Session
  * POST /api/stripe/create-checkout-session
  */
@@ -39,8 +198,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
   try {
     logger.info('🔵 Creating Stripe checkout session...', {
       userId: req.userId,
-      billingCycle: req.body.billingCycle,
-      tier: req.body.tier
+      body: req.body
     });
 
     // Check if Stripe is configured
@@ -53,15 +211,29 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     logger.info('✅ Stripe is configured');
 
     const userId = req.userId;
-    const { billingCycle, tier } = req.body; // 'monthly' or 'annual', tier: 'Basic' | 'Gold'
+    const { billingCycle, tier, serviceType } = req.body;
 
-    if (!billingCycle || (billingCycle !== 'monthly' && billingCycle !== 'annual')) {
-      res.status(400).json({ error: 'Invalid billingCycle. Must be "monthly" or "annual"' });
-      return;
+    // Determine if this is a marketing service or partner plan
+    const isMarketingService = serviceType === 'ads' || serviceType === 'seo';
+
+    // Validate based on service type
+    if (isMarketingService) {
+      // Marketing services are monthly only
+      if (!tier || !serviceType) {
+        res.status(400).json({ error: 'Missing required fields: tier and serviceType' });
+        return;
+      }
+    } else {
+      // Partner plans require billing cycle
+      if (!billingCycle || (billingCycle !== 'monthly' && billingCycle !== 'annual')) {
+        res.status(400).json({ error: 'Invalid billingCycle. Must be "monthly" or "annual"' });
+        return;
+      }
     }
 
     // Default to Basic if tier not provided (for backward compatibility)
     const planTier = tier || 'Basic';
+
 
     // In development mode, allow test checkout without company
     const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
@@ -104,35 +276,53 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       return;
     }
 
-    // Get price ID from environment based on tier and billing cycle
-    // Support multiple tiers: Standard, Premium, Elite
-    const tierKey = planTier.toUpperCase();
-    const cycleKey = billingCycle.toUpperCase();
+    // Get price ID from environment based on service type
+    let priceId: string | undefined;
 
-    // Try tier-specific price IDs first (e.g., STRIPE_PRICE_STANDARD_MONTHLY)
-    let priceId = process.env[`STRIPE_PRICE_${tierKey}_${cycleKey}`];
+    if (isMarketingService) {
+      // Marketing services: ads_basic, ads_standard, seo_pro, etc.
+      const [service, tierLevel] = tier.split('_'); // e.g., 'ads_basic' -> ['ads', 'basic']
+      const envKey = `STRIPE_PRICE_${service.toUpperCase()}_${tierLevel.toUpperCase()}`;
+      priceId = process.env[envKey];
 
-    // Fallback to generic price IDs if tier-specific not found
-    if (!priceId) {
-      priceId = billingCycle === 'monthly'
-        ? process.env.STRIPE_PRICE_MONTHLY
-        : process.env.STRIPE_PRICE_ANNUAL;
-    }
+      logger.info(`🔍 Looking for marketing price ID: ${envKey} = ${priceId}`);
 
-    // Ensure price ID has correct format (add "price_" prefix if missing)
-    if (priceId && !priceId.startsWith('price_')) {
-      priceId = `price_${priceId}`;
-    }
+      if (!priceId) {
+        res.status(500).json({
+          error: `Stripe price configuration missing for ${service} ${tierLevel}. Please set ${envKey} in environment variables.`
+        });
+        return;
+      }
+    } else {
+      // Partner plans: Basic/Gold with monthly/annual billing
+      const tierKey = planTier.toUpperCase();
+      const cycleKey = billingCycle?.toUpperCase() || 'MONTHLY';
 
-    if (!priceId) {
-      res.status(500).json({
-        error: `Stripe price configuration missing for ${planTier} ${billingCycle}. Please set STRIPE_PRICE_${tierKey}_${cycleKey} or STRIPE_PRICE_${cycleKey} in environment variables.`
-      });
-      return;
+      // Try tier-specific price IDs first (e.g., STRIPE_PRICE_BASIC_MONTHLY)
+      priceId = process.env[`STRIPE_PRICE_${tierKey}_${cycleKey}`];
+
+      // Fallback to generic price IDs if tier-specific not found
+      if (!priceId) {
+        priceId = billingCycle === 'monthly'
+          ? process.env.STRIPE_PRICE_MONTHLY
+          : process.env.STRIPE_PRICE_ANNUAL;
+      }
+
+      // Ensure price ID has correct format (add "price_" prefix if missing)
+      if (priceId && !priceId.startsWith('price_')) {
+        priceId = `price_${priceId}`;
+      }
+
+      if (!priceId) {
+        res.status(500).json({
+          error: `Stripe price configuration missing for ${planTier} ${billingCycle}. Please set STRIPE_PRICE_${tierKey}_${cycleKey} or STRIPE_PRICE_${cycleKey} in environment variables.`
+        });
+        return;
+      }
     }
 
     // Get client URL from environment
-    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const clientUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://findhandvaerkeren.dk');
 
     // Create checkout session
     logger.info('🔵 Creating Stripe session with price:', priceId);
@@ -149,22 +339,24 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       metadata: {
         userId: userId || 'test-user',
         companyId: company?.id || 'test-company',
-        planType: 'Partner Plan',
+        planType: isMarketingService ? 'Marketing Service' : 'Partner Plan',
+        serviceType: serviceType || 'partner',
         planTier: planTier,
-        billingCycle: billingCycle,
+        billingCycle: billingCycle || 'monthly',
         testMode: (!company).toString(),
       },
       success_url: `${clientUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/billing/cancel`,
       subscription_data: {
-        trial_period_days: 90, // 3 months free trial
+        trial_period_days: isMarketingService ? 0 : 90, // No trial for marketing services
         default_tax_rates: process.env.STRIPE_TAX_RATE_ID ? [process.env.STRIPE_TAX_RATE_ID] : [],
         metadata: {
           userId: userId || 'test-user',
           companyId: company?.id || 'test-company',
-          planType: 'Partner Plan',
+          planType: isMarketingService ? 'Marketing Service' : 'Partner Plan',
+          serviceType: serviceType || 'partner',
           planTier: planTier,
-          billingCycle: billingCycle,
+          billingCycle: billingCycle || 'monthly',
         },
       },
     });
@@ -201,7 +393,8 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
     // Verify webhook signature
     event = stripe.webhooks.constructEvent(req.body, sig as string, webhookSecret);
   } catch (err: any) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    logger.error('Webhook signature verification failed:', err.message);
+    res.status(400).json({ error: 'Webhook signature verification failed' });
     return;
   }
 
@@ -273,6 +466,54 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Get price ID from subscription
   const priceId = subscription.items.data[0]?.price?.id || '';
+
+  // Check if this is a marketing service
+  const isMarketingService = metadata.serviceType === 'ads' || metadata.serviceType === 'seo';
+
+  if (isMarketingService) {
+    // Handle marketing subscription
+    const [service, tierLevel] = (metadata.planTier || '').split('_');
+
+    logger.info(`📊 Creating marketing subscription: ${service} ${tierLevel}`);
+
+    const marketingSubscription = await prisma.marketingSubscription.create({
+      data: {
+        companyId: metadata.companyId,
+        serviceType: service || metadata.serviceType, // 'ads' or 'seo'
+        tier: tierLevel || metadata.planTier, // 'basic', 'standard', 'pro'
+        status: subscription.status === 'active' ? 'active' : 'inactive',
+        stripeSubscriptionId: subscriptionId,
+        stripeCustomerId: customerId,
+        stripePriceId: priceId,
+        startDate: new Date(subscription.current_period_start * 1000),
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      },
+    });
+
+    // Create transaction record
+    await prisma.marketingTransaction.create({
+      data: {
+        marketingSubscriptionId: marketingSubscription.id,
+        companyId: metadata.companyId,
+        stripePaymentIntentId: session.payment_intent as string || null,
+        amount: session.amount_total ? session.amount_total / 100 : 0,
+        currency: session.currency || 'dkk',
+        status: 'succeeded',
+        serviceType: service || metadata.serviceType,
+        tier: tierLevel || metadata.planTier,
+        description: `Initial ${service?.toUpperCase() || ''} ${tierLevel || ''} subscription payment`,
+      },
+    });
+
+    logger.info(`✅ Marketing subscription created: ${marketingSubscription.id}`);
+
+    await ensureCompanyListingFromMarketing(metadata.companyId, subscription, customerId);
+
+    return; // Exit early for marketing services
+  }
+
   const planDetails = getPlanDetails(priceId);
 
   // Determine billing cycle and tier from price ID (fallback to metadata)
@@ -342,7 +583,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           stripePaymentIntentId: session.payment_intent as string || null,
           stripeInvoiceId: null, // Checkout doesn't have invoice yet
           amount: session.amount_total ? session.amount_total / 100 : 0,
-          currency: session.currency || 'usd',
+          currency: session.currency || 'dkk',
           status: 'succeeded',
           paymentMethod: 'card',
           billingCycle: billingCycle,
@@ -357,7 +598,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           await sendPaymentSuccessEmail(company.owner.email, {
             companyName: company.name,
             amount: session.amount_total ? session.amount_total / 100 : 0,
-            currency: session.currency || 'usd',
+            currency: session.currency || 'dkk',
             billingCycle: billingCycle,
             tier: tier,
           });
@@ -406,7 +647,7 @@ export const getSessionDetails = async (req: Request, res: Response): Promise<vo
     const billingCycle = session.metadata?.billingCycle || 'monthly';
     const planType = session.metadata?.planType || 'Partner Plan';
     const amountTotal = session.amount_total ? session.amount_total / 100 : 0; // Convert from cents
-    const currency = session.currency?.toUpperCase() || 'USD';
+    const currency = session.currency?.toUpperCase() || 'DKK';
     const customerEmail = session.customer_email || session.customer_details?.email || '';
 
     // Get subscription details if available
@@ -459,6 +700,57 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   // Get subscription details from Stripe to get price ID
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const priceId = subscription.items.data[0]?.price?.id || '';
+
+  // Check if this is a marketing subscription
+  const marketingDetails = getMarketingPlanDetails(priceId);
+
+  if (marketingDetails) {
+    // Handle marketing subscription payment
+    logger.info(`📊 Processing marketing invoice payment: ${invoice.id}`);
+
+    const dbSubscription = await prisma.marketingSubscription.findUnique({
+      where: { stripeSubscriptionId: subscriptionId },
+    });
+
+    if (!dbSubscription) {
+      logger.warn(`⚠️ Marketing subscription not found: ${subscriptionId}`);
+      return;
+    }
+
+    // Update subscription status
+    await prisma.marketingSubscription.update({
+      where: { id: dbSubscription.id },
+      data: {
+        status: 'active',
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
+    });
+
+    // Create payment transaction record
+    await prisma.marketingTransaction.create({
+      data: {
+        marketingSubscriptionId: dbSubscription.id,
+        companyId: dbSubscription.companyId,
+        stripePaymentIntentId: invoice.payment_intent as string || null,
+        stripeInvoiceId: invoice.id,
+        amount: invoice.amount_paid / 100,
+        currency: invoice.currency || 'dkk',
+        status: 'succeeded',
+        serviceType: marketingDetails.serviceType,
+        tier: marketingDetails.tier,
+        description: invoice.description || `${marketingDetails.serviceType.toUpperCase()} ${marketingDetails.tier} renewal`,
+      },
+    });
+
+    logger.info(`✅ Marketing payment recorded: ${invoice.id}`);
+
+    const customerId = subscription.customer as string;
+    await ensureCompanyListingFromMarketing(dbSubscription.companyId, subscription, customerId);
+
+    return; // Exit early for marketing services
+  }
+
   const planDetails = getPlanDetails(priceId);
 
   // Get subscription from database
@@ -486,7 +778,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       stripePaymentIntentId: invoice.payment_intent as string || null,
       stripeInvoiceId: invoice.id,
       amount: invoice.amount_paid / 100, // Convert from cents
-      currency: invoice.currency || 'usd',
+      currency: invoice.currency || 'dkk',
       status: 'succeeded',
       paymentMethod: (invoice as any).payment_settings?.payment_method_types?.[0] || null,
       billingCycle: planDetails.billingCycle || dbSubscription.billingCycle,
@@ -517,6 +809,21 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   });
 
   if (!dbSubscription) {
+    const marketingSub = await prisma.marketingSubscription.findUnique({
+      where: { stripeSubscriptionId: subscriptionId },
+    });
+    if (marketingSub) {
+      await prisma.marketingSubscription.update({
+        where: { id: marketingSub.id },
+        data: {
+          status: subscription.status === 'active' ? 'active' : 'inactive',
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        },
+      });
+      await syncBundledListingSubscriptionPeriod(marketingSub.companyId, subscription);
+    }
     return;
   }
 
@@ -573,28 +880,45 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     where: { stripeSubscriptionId: subscriptionId },
   });
 
-  if (!dbSubscription) {
+  if (dbSubscription) {
+    await prisma.subscription.update({
+      where: { id: dbSubscription.id },
+      data: {
+        status: 'canceled',
+        endDate: new Date(),
+      },
+    });
+
+    await prisma.subscriptionHistory.create({
+      data: {
+        subscriptionId: dbSubscription.id,
+        action: 'canceled',
+        previousStatus: dbSubscription.status,
+        newStatus: 'canceled',
+        reason: 'Subscription canceled via Stripe',
+      },
+    });
     return;
   }
 
-  await prisma.subscription.update({
-    where: { id: dbSubscription.id },
-    data: {
-      status: 'canceled',
-      endDate: new Date(),
-    },
+  const marketingSub = await prisma.marketingSubscription.findUnique({
+    where: { stripeSubscriptionId: subscriptionId },
   });
 
-  // Create subscription history
-  await prisma.subscriptionHistory.create({
-    data: {
-      subscriptionId: dbSubscription.id,
-      action: 'canceled',
-      previousStatus: dbSubscription.status,
-      newStatus: 'canceled',
-      reason: 'Subscription canceled via Stripe',
-    },
-  });
+  if (marketingSub) {
+    await prisma.marketingSubscription.update({
+      where: { id: marketingSub.id },
+      data: {
+        status: 'canceled',
+        endDate: new Date(),
+        cancelAtPeriodEnd: false,
+      },
+    });
+    await revokeMarketingBundledListing(marketingSub.companyId);
+    logger.info(
+      `Marketing subscription ${subscriptionId} canceled; bundled listing revoked for company ${marketingSub.companyId}`
+    );
+  }
 }
 
 /**
@@ -632,7 +956,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       stripePaymentIntentId: invoice.payment_intent as string || null,
       stripeInvoiceId: invoice.id,
       amount: invoice.amount_due / 100, // Convert from cents
-      currency: invoice.currency || 'usd',
+      currency: invoice.currency || 'dkk',
       status: 'failed',
       paymentMethod: (invoice as any).payment_settings?.payment_method_types?.[0] || null,
       billingCycle: dbSubscription.billingCycle,
@@ -664,7 +988,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
         {
           companyName: dbSubscription.company.name,
           amount: invoice.amount_due / 100,
-          currency: invoice.currency || 'usd',
+          currency: invoice.currency || 'dkk',
           failureReason: (invoice as any).last_payment_error?.message || 'Unknown error',
           invoiceUrl: invoice.hosted_invoice_url || undefined,
         }
@@ -717,7 +1041,7 @@ export const createPortalSession = async (req: AuthRequest, res: Response): Prom
     }
 
     // Get client URL from environment
-    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const clientUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://findhandvaerkeren.dk');
 
     // Create billing portal session
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -744,22 +1068,16 @@ async function sendPaymentSuccessEmail(
     tier: string;
   }
 ): Promise<void> {
-  // TODO: Implement email service integration
-  // For now, log the email that would be sent
-  logger.info('Payment Success Email:', {
-    to: email,
-    subject: 'Payment Successful - Subscription Activated',
-    data,
-  });
+  await emailService.sendPaymentSuccessEmail(email, data);
 
-  // Create email log entry
   await prisma.emailLog.create({
     data: {
       to: email,
       from: process.env.FROM_EMAIL || 'noreply@findhandvaerkeren.dk',
-      subject: 'Payment Successful - Subscription Activated',
+      subject: 'Betaling gennemført - Abonnement aktiveret',
       template: 'payment_success',
       status: 'sent',
+      sentAt: new Date(),
       metadata: data,
     },
   });
@@ -778,22 +1096,16 @@ async function sendPaymentFailedEmail(
     invoiceUrl?: string;
   }
 ): Promise<void> {
-  // TODO: Implement email service integration
-  // For now, log the email that would be sent
-  logger.info('Payment Failed Email:', {
-    to: email,
-    subject: 'Payment Failed - Action Required',
-    data,
-  });
+  await emailService.sendPaymentFailedEmail(email, data);
 
-  // Create email log entry
   await prisma.emailLog.create({
     data: {
       to: email,
       from: process.env.FROM_EMAIL || 'noreply@findhandvaerkeren.dk',
-      subject: 'Payment Failed - Action Required',
+      subject: 'Betaling mislykkedes - Handling påkrævet',
       template: 'payment_failed',
       status: 'sent',
+      sentAt: new Date(),
       metadata: data,
     },
   });
@@ -810,21 +1122,16 @@ async function sendSubscriptionActivatedEmail(
     billingCycle: string;
   }
 ): Promise<void> {
-  // TODO: Implement email service integration
-  logger.info('Subscription Activated Email:', {
-    to: email,
-    subject: 'Subscription Activated',
-    data,
-  });
+  await emailService.sendSubscriptionActivatedEmail(email, data);
 
-  // Create email log entry
   await prisma.emailLog.create({
     data: {
       to: email,
       from: process.env.FROM_EMAIL || 'noreply@findhandvaerkeren.dk',
-      subject: 'Subscription Activated',
+      subject: 'Abonnement aktiveret',
       template: 'subscription_activated',
       status: 'sent',
+      sentAt: new Date(),
       metadata: data,
     },
   });

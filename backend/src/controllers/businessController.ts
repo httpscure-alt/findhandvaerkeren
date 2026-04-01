@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 
-const prisma = new PrismaClient();
 
 // Get business dashboard data
 export const getBusinessDashboard = async (req: AuthRequest, res: Response): Promise<void> => {

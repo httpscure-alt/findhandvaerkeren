@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../../services/api';
 import {
     Sparkles,
     Search,
@@ -44,11 +45,38 @@ const ForBusinessesPage: React.FC<ForBusinessesPageProps> = ({ lang }) => {
         element?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleSelectTier = (tierId: string) => {
+    const [isProcessing, setIsProcessing] = useState<string | null>(null);
+
+    const handleSelectTier = async (tierId: string) => {
         if (isAuthenticated) {
             // Only PARTNER users can access growth services
             if (user?.role === 'PARTNER') {
-                navigate(`/dashboard/growth?tab=${activeTab}&tier=${tierId}`);
+                try {
+                    setIsProcessing(tierId);
+
+                    // Parse tierId (e.g., 'ads_basic' -> ['ads', 'basic'])
+                    const [serviceType] = tierId.split('_');
+
+                    const data = await api.createCheckoutSession({
+                        serviceType,
+                        tier: tierId,
+                        billingCycle: 'monthly'
+                    });
+
+                    if (data.url) {
+                        // Redirect to Stripe checkout
+                        window.location.href = data.url;
+                    } else {
+                        toast.error(lang === 'da' ? 'Kunne ikke oprette betalingssession' : 'Could not create payment session');
+                    }
+                } catch (error: any) {
+                    if ((import.meta as any).env.DEV) console.error('Checkout error:', error);
+                    toast.error(lang === 'da'
+                        ? (error.message || 'Der opstod en fejl ved oprettelse af betaling')
+                        : (error.message || 'An error occurred while creating payment'));
+                } finally {
+                    setIsProcessing(null);
+                }
             } else {
                 // Consumer users should not access partner services
                 toast.error(lang === 'da'

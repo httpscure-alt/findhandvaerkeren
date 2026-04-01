@@ -77,7 +77,10 @@ model Company {
   subscriptions         Subscription[]
   testimonials          Testimonial[]
   growthRequests        GrowthRequest[]
+  marketingSubscriptions MarketingSubscription[]
+  marketingTransactions  MarketingTransaction[]
 
+  @@index([ownerId])
   @@index([category])
   @@index([location])
   @@index([isVerified])
@@ -433,7 +436,7 @@ enum GrowthRequestStatus {
 }
 
 model GrowthRequest {
-  id        String              @id @default(uuid())
+  id        String              @id @default(cuid())
   companyId String
   company   Company             @relation(fields: [companyId], references: [id])
   type      GrowthRequestType
@@ -441,10 +444,14 @@ model GrowthRequest {
   details   Json
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model Notification {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   title     String
@@ -452,4 +459,66 @@ model Notification {
   read      Boolean  @default(false)
   type      String   @default("info")
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model MarketingSubscription {
+  id                    String                 @id @default(cuid())
+  companyId             String
+  company               Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  serviceType           String                 // 'ads' or 'seo'
+  tier                  String                 // 'basic', 'standard', 'pro'
+  status                String                 @default("active") // 'active', 'canceled', 'past_due'
+  
+  stripeSubscriptionId  String                 @unique
+  stripeCustomerId      String
+  stripePriceId         String
+  
+  startDate             DateTime
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean                @default(false)
+  endDate               DateTime?
+  
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  
+  transactions          MarketingTransaction[]
+  
+  @@index([companyId])
+  @@index([serviceType])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+}
+
+model MarketingTransaction {
+  id                      String                @id @default(cuid())
+  marketingSubscriptionId String
+  marketingSubscription   MarketingSubscription @relation(fields: [marketingSubscriptionId], references: [id], onDelete: Cascade)
+  
+  companyId               String
+  company                 Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  stripeInvoiceId         String?
+  stripePaymentIntentId   String?
+  
+  amount                  Float
+  currency                String                @default("dkk")
+  status                  String                // 'succeeded', 'failed', 'pending'
+  
+  serviceType             String
+  tier                    String
+  description             String?
+  metadata                Json?
+  
+  createdAt               DateTime              @default(now())
+  
+  @@index([marketingSubscriptionId])
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
 }

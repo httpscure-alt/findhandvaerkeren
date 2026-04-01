@@ -1,9 +1,8 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-const prisma = new PrismaClient();
 
 export const getSavedListings = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
 import { AppError } from '../middleware/errorHandler';
 import { emailService } from '../services/emailService';
 
-const prisma = new PrismaClient();
 
 // Helper to generate 6-digit OTP
 const generateOTP = () => {

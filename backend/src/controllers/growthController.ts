@@ -1,14 +1,14 @@
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
+import { AuthRequest } from '../middleware/auth';
 
-const prisma = new PrismaClient();
 
 // Submit a new growth request
 export const submitGrowthRequest = async (req: Request, res: Response): Promise<void> => {
     try {
         const { services, details } = req.body;
-        const userId = req.user?.userId;
+        const userId = (req as AuthRequest).userId;
 
         if (!userId) {
             res.status(401).json({ error: 'Unauthorized' });

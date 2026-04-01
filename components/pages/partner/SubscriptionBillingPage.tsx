@@ -56,11 +56,11 @@ const SubscriptionBillingPage: React.FC<SubscriptionBillingPageProps> = ({ compa
         const data = await api.getSubscription();
         setSubscription(data.subscription);
       } catch (error) {
-        console.error('Failed to fetch subscription:', error);
+        if ((import.meta as any).env.DEV) console.error('Failed to fetch subscription:', error);
         // Fallback to mock data if API fails
         setSubscription({
           id: 'sub_1',
-          tier: company.pricingTier,
+          tier: company?.pricingTier || 'Basic',
           status: 'active',
           billingCycle: 'monthly',
           currentPeriodStart: new Date().toISOString(),

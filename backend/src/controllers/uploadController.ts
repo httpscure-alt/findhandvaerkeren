@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import multer from 'multer';
@@ -8,7 +8,6 @@ import fs from 'fs';
 
 import { logoStorage, bannerStorage, documentStorage } from '../utils/cloudinary';
 
-const prisma = new PrismaClient();
 
 // Create multer instances for different types
 export const logoUpload = multer({

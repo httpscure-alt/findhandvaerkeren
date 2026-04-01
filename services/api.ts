@@ -2,26 +2,7 @@
 const API_BASE_URL = (import.meta as any).env.VITE_API_URL || '';
 // Enable mock API if explicitly set OR if no API URL is provided
 const USE_MOCK_API = (import.meta as any).env.VITE_USE_MOCK_API === 'true' || !API_BASE_URL;
-
-// Debug logging
-if (typeof window !== 'undefined') {
-  console.log('🔧 API Configuration:', {
-    API_BASE_URL: API_BASE_URL || '(Not Set)',
-    USE_MOCK_API,
-    MODE: (import.meta as any).env.MODE
-  });
-}
-
-// Warn if USE_MOCK_API is true but we have an API URL
-if (USE_MOCK_API && API_BASE_URL) {
-  console.warn('⚠️ WARNING: USE_MOCK_API is true but API_BASE_URL is set! This should not happen.');
-  console.warn('⚠️ Check if VITE_USE_MOCK_API is set to "true" in .env.local');
-}
-
-// Warn if API_BASE_URL is empty
-if (!API_BASE_URL) {
-  console.error('❌ API_BASE_URL is empty! Check your .env.local file for VITE_API_URL');
-}
+const IS_DEV = (import.meta as any).env.DEV;
 
 
 import { mockApi } from './mockApi';
@@ -58,7 +39,7 @@ class ApiService {
       if (USE_MOCK_API) {
         throw new Error('USE_MOCK_API');
       }
-      console.error('❌ API_BASE_URL is not set. Check your .env.local file for VITE_API_URL');
+      if (IS_DEV) console.error('API_BASE_URL is not set. Check your .env.local file for VITE_API_URL');
       throw new Error('API_NOT_AVAILABLE');
     }
 
@@ -75,7 +56,7 @@ class ApiService {
     if (API_BASE_URL.includes('localhost') && !endpoint.includes('/stripe/')) {
       const isAvailable = await this.checkApiAvailability();
       if (!isAvailable) {
-        console.warn('⚠️ Health check failed, but continuing for Stripe endpoint');
+        if (IS_DEV) console.warn('Health check failed, but continuing for Stripe endpoint');
         // Don't throw for Stripe - let it try and show real error
       }
     }
@@ -173,7 +154,7 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      if (IS_DEV) console.error('API request failed:', error);
       throw error;
     }
   }
@@ -199,10 +180,10 @@ class ApiService {
 
         clearTimeout(timeoutId);
         const isOk = response.ok;
-        if (!isOk) console.warn('❌ Backend health check failed');
+        if (IS_DEV && !isOk) console.warn('Backend health check failed');
         return isOk;
       } catch (error: any) {
-        console.warn('⚠️ Health check error:', error.message);
+        if (IS_DEV) console.warn('Health check error:', error.message);
         // Don't fail completely - backend might be starting up
         // Return true to allow the request to try anyway
         return true;
@@ -1182,44 +1163,29 @@ class ApiService {
   }
 
   // Stripe Payment
-  async createCheckoutSession(billingCycle: 'monthly' | 'annual', tier?: 'Basic' | 'Gold') {
-    console.log('🔵 Creating Stripe checkout session...', { billingCycle, tier, API_BASE_URL, USE_MOCK_API });
-
-    // NEVER use mock API for Stripe checkout - user must go through real Stripe
-    // ALLOW Stripe checkout even in mock mode (Hybrid Mode)
-    // if (USE_MOCK_API) {
-    //   throw new Error('Backend is not available. Please ensure the backend is running on http://localhost:4000. Start it with: cd backend && npm run dev');
-    // }
+  async createCheckoutSession(data: { billingCycle?: 'monthly' | 'annual'; tier?: string; serviceType?: string }) {
+    const { billingCycle = 'monthly', tier, serviceType } = data;
+    if (IS_DEV) console.log('Creating Stripe checkout session...', data);
 
     if (!API_BASE_URL) {
-      throw new Error('API URL is not configured. Please set VITE_API_URL=http://localhost:4000/api in your .env.local file.');
+      throw new Error('API URL is not configured. Please check your environment settings.');
     }
 
     try {
       const result = await this.request<{ url: string }>('/stripe/create-checkout-session', {
         method: 'POST',
-        body: { billingCycle, tier: tier || 'Premium' },
+        body: { billingCycle, tier: tier || (serviceType ? undefined : 'Premium'), serviceType },
       });
 
 
-      // Log for debugging
-      console.log('✅ Stripe checkout session created:', result.url);
-
       // Validate that we got a Stripe URL
       if (!result.url || (!result.url.startsWith('https://checkout.stripe.com') && !result.url.includes('stripe.com'))) {
-        console.error('❌ Backend returned invalid URL:', result.url);
-        throw new Error(`Backend returned invalid checkout URL: ${result.url}. Expected Stripe checkout URL.`);
+        throw new Error('Invalid checkout URL received from server.');
       }
 
       return result;
     } catch (error: any) {
-      console.error('❌ Stripe checkout error:', error.message, error);
-      console.error('Error details:', {
-        message: error.message,
-        API_BASE_URL,
-        USE_MOCK_API,
-        errorType: error.constructor.name
-      });
+      if (IS_DEV) console.error('Stripe checkout error:', error.message);
 
       // NEVER fall back to mock for Stripe checkout - user needs real Stripe payment
       // Always throw the error so user sees what's wrong
@@ -1543,7 +1509,6 @@ class ApiService {
 
   async getStripeSessionDetails(sessionId: string) {
     try {
-      console.log('🔵 API: Fetching Stripe session details for:', sessionId);
       const result = await this.request<{
         session: {
           id: string;
@@ -1565,13 +1530,9 @@ class ApiService {
       }>(`/stripe/session-details?session_id=${sessionId}`, {
         requiresAuth: false,
       });
-      console.log('✅ API: Session details received:', result);
       return result;
     } catch (error: any) {
-      console.error('❌ API: Error fetching session details:', error);
       if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
-        // Return mock data for offline mode
-        console.log('⚠️ API: Using mock data for session details');
         return {
           session: {
             id: sessionId,
@@ -1587,8 +1548,7 @@ class ApiService {
           subscription: null,
         };
       }
-      // For other errors (404, 500, etc.), also return mock data so user sees success page
-      console.warn('⚠️ API: Backend error, using fallback mock data');
+      // For other errors (404, 500, etc.), return fallback data so user sees success page
       return {
         session: {
           id: sessionId,

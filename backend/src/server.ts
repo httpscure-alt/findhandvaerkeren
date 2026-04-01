@@ -22,6 +22,7 @@ import growthRoutes from './routes/growthRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import { apiLimiter, authLimiter } from './middleware/rateLimiter';
+import { prisma } from './prisma/client';
 import path from 'path';
 import morgan from 'morgan';
 import { logger } from './config/logger';
@@ -45,13 +46,13 @@ const REQUIRED_ENV_VARS = [
 const missingEnvVars = REQUIRED_ENV_VARS.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
-  console.error(`❌ Critical Error: Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  logger.error(`Critical Error: Missing required environment variables: ${missingEnvVars.join(', ')}`);
   process.exit(1);
 }
 
 // JWT Secret strength validation
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32 && process.env.NODE_ENV === 'production') {
-  console.error('❌ Critical Error: JWT_SECRET must be at least 32 characters long in production.');
+  logger.error('Critical Error: JWT_SECRET must be at least 32 characters long in production.');
   process.exit(1);
 }
 
@@ -135,9 +136,15 @@ app.use(express.urlencoded({ extended: true }));
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 app.use('/uploads', express.static(path.join(process.cwd(), uploadDir)));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check with database verification
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Health check failed: database unreachable');
+    res.status(503).json({ status: 'degraded', database: 'disconnected', timestamp: new Date().toISOString() });
+  }
 });
 
 // Routes
@@ -158,7 +165,6 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/gdpr', gdprRoutes);
 app.use('/api/recent-searches', recentSearchRoutes);
-app.use('/api/recent-searches', recentSearchRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/growth', growthRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -177,7 +183,34 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+// Process-level error handlers
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error('Unhandled Rejection:', reason);
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(reason);
+  }
+});
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error('Uncaught Exception:', error);
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(error);
+  }
+  // Give time for logging/Sentry to flush, then exit
+  setTimeout(() => process.exit(1), 1000);
+});
+
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+  logger.info(`${signal} received. Starting graceful shutdown...`);
+  await prisma.$disconnect();
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 app.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT}`);
-  logger.info(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`Server running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

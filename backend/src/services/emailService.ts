@@ -2,28 +2,59 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { Resend } from 'resend';
+import { logger } from '../config/logger';
 
 interface EmailProvider {
     sendOtp(to: string, code: string): Promise<void>;
     sendInquiryNotification(to: string, companyName: string, message: string): Promise<void>;
+    sendPaymentSuccess(to: string, data: PaymentSuccessData): Promise<void>;
+    sendPaymentFailed(to: string, data: PaymentFailedData): Promise<void>;
+    sendSubscriptionActivated(to: string, data: SubscriptionActivatedData): Promise<void>;
 }
+
+export interface PaymentSuccessData {
+    companyName: string;
+    amount: number;
+    currency: string;
+    billingCycle: string;
+    tier: string;
+}
+
+export interface PaymentFailedData {
+    companyName: string;
+    amount: number;
+    currency: string;
+    failureReason: string;
+    invoiceUrl?: string;
+}
+
+export interface SubscriptionActivatedData {
+    companyName: string;
+    tier: string;
+    billingCycle: string;
+}
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://findhandvaerkeren.dk';
 
 class ConsoleEmailProvider implements EmailProvider {
     async sendOtp(to: string, code: string): Promise<void> {
-        console.log('---------------------------------------------------');
-        console.log(`[EMAIL SERVICE] Sending OTP to: ${to}`);
-        console.log(`[EMAIL SERVICE] Code: ${code}`);
-        console.log('---------------------------------------------------');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        logger.info(`[EMAIL] OTP sent to: ${to}, code: ${code}`);
     }
 
     async sendInquiryNotification(to: string, companyName: string, message: string): Promise<void> {
-        console.log('---------------------------------------------------');
-        console.log(`[EMAIL SERVICE] New Inquiry for: ${companyName}`);
-        console.log(`[EMAIL SERVICE] Sent to owner: ${to}`);
-        console.log(`[EMAIL SERVICE] Message: ${message}`);
-        console.log('---------------------------------------------------');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        logger.info(`[EMAIL] Inquiry notification for ${companyName} sent to: ${to}`);
+    }
+
+    async sendPaymentSuccess(to: string, data: PaymentSuccessData): Promise<void> {
+        logger.info(`[EMAIL] Payment success email sent to: ${to}`, data);
+    }
+
+    async sendPaymentFailed(to: string, data: PaymentFailedData): Promise<void> {
+        logger.info(`[EMAIL] Payment failed email sent to: ${to}`, data);
+    }
+
+    async sendSubscriptionActivated(to: string, data: SubscriptionActivatedData): Promise<void> {
+        logger.info(`[EMAIL] Subscription activated email sent to: ${to}`, data);
     }
 }
 
@@ -40,8 +71,17 @@ class ResendEmailProvider implements EmailProvider {
         await this.resend.emails.send({
             from: this.fromEmail,
             to,
-            subject: 'Your Verification Code - Findhåndværkeren',
-            html: `<p>Your verification code is: <strong>${code}</strong></p><p>This code will expire in 10 minutes.</p>`,
+            subject: 'Din bekræftelseskode - Findhåndværkeren',
+            html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1D1D1F;">Bekræftelseskode</h2>
+                    <p>Din bekræftelseskode er:</p>
+                    <div style="background-color: #f5f5f7; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1D1D1F;">${code}</span>
+                    </div>
+                    <p style="color: #86868B;">Denne kode udløber om 10 minutter.</p>
+                </div>
+            `,
         });
     }
 
@@ -49,16 +89,96 @@ class ResendEmailProvider implements EmailProvider {
         await this.resend.emails.send({
             from: this.fromEmail,
             to,
-            subject: `New Inquiry for ${companyName}`,
+            subject: `Ny forespørgsel til ${companyName}`,
             html: `
-                <h3>New Inquiry Received</h3>
-                <p>You have received a new inquiry for <strong>${companyName}</strong>.</p>
-                <div style="padding: 15px; background-color: #f9f9f9; border-radius: 5px; margin-top: 10px;">
-                    <p style="margin: 0;">${message}</p>
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1D1D1F;">Ny forespørgsel modtaget</h2>
+                    <p>Du har modtaget en ny forespørgsel til <strong>${companyName}</strong>.</p>
+                    <div style="padding: 15px; background-color: #f5f5f7; border-radius: 12px; margin-top: 10px;">
+                        <p style="margin: 0;">${message}</p>
+                    </div>
+                    <p style="margin-top: 20px;">
+                        <a href="${FRONTEND_URL}/dashboard" style="background-color: #1D1D1F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Se i Dashboard</a>
+                    </p>
                 </div>
-                <p style="margin-top: 20px;">
-                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard" style="background-color: #1D1D1F; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View in Dashboard</a>
-                </p>
+            `,
+        });
+    }
+
+    async sendPaymentSuccess(to: string, data: PaymentSuccessData): Promise<void> {
+        const formattedAmount = new Intl.NumberFormat('da-DK', {
+            style: 'currency',
+            currency: data.currency.toUpperCase(),
+        }).format(data.amount);
+
+        await this.resend.emails.send({
+            from: this.fromEmail,
+            to,
+            subject: 'Betaling gennemført - Findhåndværkeren',
+            html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1D1D1F;">Betaling gennemført!</h2>
+                    <p>Tak for din betaling til <strong>${data.companyName}</strong>.</p>
+                    <div style="background-color: #f5f5f7; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr><td style="padding: 8px 0; color: #86868B;">Plan</td><td style="padding: 8px 0; text-align: right; font-weight: 600;">${data.tier}</td></tr>
+                            <tr><td style="padding: 8px 0; color: #86868B;">Beløb</td><td style="padding: 8px 0; text-align: right; font-weight: 600;">${formattedAmount}</td></tr>
+                            <tr><td style="padding: 8px 0; color: #86868B;">Fakturering</td><td style="padding: 8px 0; text-align: right; font-weight: 600;">${data.billingCycle === 'monthly' ? 'Månedlig' : 'Årlig'}</td></tr>
+                        </table>
+                    </div>
+                    <p style="margin-top: 20px;">
+                        <a href="${FRONTEND_URL}/dashboard/billing" style="background-color: #1D1D1F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Se fakturering</a>
+                    </p>
+                </div>
+            `,
+        });
+    }
+
+    async sendPaymentFailed(to: string, data: PaymentFailedData): Promise<void> {
+        const formattedAmount = new Intl.NumberFormat('da-DK', {
+            style: 'currency',
+            currency: data.currency.toUpperCase(),
+        }).format(data.amount);
+
+        await this.resend.emails.send({
+            from: this.fromEmail,
+            to,
+            subject: 'Betaling mislykkedes - Handling påkrævet',
+            html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1D1D1F;">Betaling mislykkedes</h2>
+                    <p>Vi kunne ikke gennemføre din betaling på <strong>${formattedAmount}</strong> for <strong>${data.companyName}</strong>.</p>
+                    <div style="background-color: #FEF2F2; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #EF4444;">
+                        <p style="margin: 0; color: #991B1B;">${data.failureReason}</p>
+                    </div>
+                    <p>Opdater venligst din betalingsmetode for at undgå afbrydelse af din tjeneste.</p>
+                    ${data.invoiceUrl ? `<p style="margin-top: 20px;"><a href="${data.invoiceUrl}" style="background-color: #1D1D1F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Betal faktura</a></p>` : `<p style="margin-top: 20px;"><a href="${FRONTEND_URL}/dashboard/billing" style="background-color: #1D1D1F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Opdater betalingsmetode</a></p>`}
+                </div>
+            `,
+        });
+    }
+
+    async sendSubscriptionActivated(to: string, data: SubscriptionActivatedData): Promise<void> {
+        await this.resend.emails.send({
+            from: this.fromEmail,
+            to,
+            subject: 'Abonnement aktiveret - Findhåndværkeren',
+            html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1D1D1F;">Velkommen til Findhåndværkeren!</h2>
+                    <p>Dit <strong>${data.tier}</strong> abonnement for <strong>${data.companyName}</strong> er nu aktivt.</p>
+                    <div style="background-color: #f5f5f7; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                        <h3 style="margin-top: 0;">Næste trin:</h3>
+                        <ul style="padding-left: 20px;">
+                            <li style="margin-bottom: 8px;">Fuldfør din virksomhedsprofil</li>
+                            <li style="margin-bottom: 8px;">Upload verifikationsdokumenter</li>
+                            <li style="margin-bottom: 8px;">Tilføj dine ydelser og portfolio</li>
+                        </ul>
+                    </div>
+                    <p style="margin-top: 20px;">
+                        <a href="${FRONTEND_URL}/dashboard" style="background-color: #1D1D1F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Gå til Dashboard</a>
+                    </p>
+                </div>
             `,
         });
     }
@@ -71,17 +191,19 @@ class EmailService {
         const apiKey = process.env.RESEND_API_KEY;
         if (apiKey && process.env.NODE_ENV === 'production') {
             this.provider = new ResendEmailProvider(apiKey);
+            logger.info('Email service initialized with Resend provider');
         } else {
             this.provider = new ConsoleEmailProvider();
+            logger.info('Email service initialized with console provider (development mode)');
         }
     }
 
     async sendOtpEmail(to: string, code: string): Promise<void> {
         try {
             await this.provider.sendOtp(to, code);
-            console.log(`OTP email sent successfully to ${to}`);
+            logger.info(`OTP email sent to ${to}`);
         } catch (error) {
-            console.error('Failed to send OTP email:', error);
+            logger.error('Failed to send OTP email:', error);
             throw new Error('Failed to send verification email');
         }
     }
@@ -89,10 +211,36 @@ class EmailService {
     async sendInquiryEmail(to: string, companyName: string, message: string): Promise<void> {
         try {
             await this.provider.sendInquiryNotification(to, companyName, message);
-            console.log(`Inquiry email sent successfully to ${to}`);
+            logger.info(`Inquiry email sent to ${to}`);
         } catch (error) {
-            console.error('Failed to send inquiry email:', error);
-            // Don't throw here to avoid blocking inquiry creation if email fails
+            logger.error('Failed to send inquiry email:', error);
+        }
+    }
+
+    async sendPaymentSuccessEmail(to: string, data: PaymentSuccessData): Promise<void> {
+        try {
+            await this.provider.sendPaymentSuccess(to, data);
+            logger.info(`Payment success email sent to ${to}`);
+        } catch (error) {
+            logger.error('Failed to send payment success email:', error);
+        }
+    }
+
+    async sendPaymentFailedEmail(to: string, data: PaymentFailedData): Promise<void> {
+        try {
+            await this.provider.sendPaymentFailed(to, data);
+            logger.info(`Payment failed email sent to ${to}`);
+        } catch (error) {
+            logger.error('Failed to send payment failed email:', error);
+        }
+    }
+
+    async sendSubscriptionActivatedEmail(to: string, data: SubscriptionActivatedData): Promise<void> {
+        try {
+            await this.provider.sendSubscriptionActivated(to, data);
+            logger.info(`Subscription activated email sent to ${to}`);
+        } catch (error) {
+            logger.error('Failed to send subscription activated email:', error);
         }
     }
 }

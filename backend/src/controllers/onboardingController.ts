@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 
-const prisma = new PrismaClient();
 
 // Step 1: Basic Info
 export const saveBasicInfo = async (req: AuthRequest, res: Response): Promise<void> => {

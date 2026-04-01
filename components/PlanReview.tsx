@@ -133,8 +133,8 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
             : 'You must be logged in to continue. Please log in again.';
         } else if (err.message.includes('API_NOT_AVAILABLE') || err.message.includes('USE_MOCK_API') || err.message.includes('backend is not available') || err.message.includes('API URL is not configured')) {
           errorMessage = lang === 'da'
-            ? 'Backend er ikke tilgængelig. Sørg for at backend kører på http://localhost:4000 og at VITE_API_URL er sat i .env.local filen.'
-            : 'Backend is not available. Please ensure the backend is running on http://localhost:4000 and that VITE_API_URL is set in your .env.local file.';
+            ? 'Serveren er ikke tilgængelig i øjeblikket. Prøv venligst igen senere, eller kontakt support.'
+            : 'The server is currently unavailable. Please try again later or contact support.';
         } else {
           errorMessage = err.message;
         }

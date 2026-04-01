@@ -1,9 +1,8 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-const prisma = new PrismaClient();
 
 // Get user's recent searches
 export const getRecentSearches = async (req: AuthRequest, res: Response): Promise<void> => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckCircle, Loader2, ArrowRight, CreditCard, FileText, Shield, LayoutDashboard } from 'lucide-react';
+import { CheckCircle, Loader2, ArrowRight, CreditCard, FileText, Shield, LayoutDashboard, Sparkles } from 'lucide-react';
 import { Language } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
 import { api } from '../../../services/api';
@@ -44,9 +44,7 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
     const sessionId = urlParams.get('session_id');
 
     if (!sessionId) {
-      // No session_id in URL - payment was successful but we can't load details
-      // Show success page anyway with basic info
-      console.warn('⚠️ No session_id in URL, showing success page with basic info');
+      // No session_id in URL - show success page with basic info
       setSessionDetails({
         session: {
           id: 'unknown',
@@ -69,20 +67,12 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
     // Fetch session details from backend
     const fetchSessionDetails = async () => {
       try {
-        console.log('🔵 Fetching Stripe session details for:', sessionId);
         const details = await api.getStripeSessionDetails(sessionId);
-        console.log('✅ Session details received:', details);
         setSessionDetails(details);
         setError(null);
       } catch (err: any) {
-        console.error('❌ Failed to fetch session details:', err);
-        console.error('Error message:', err.message);
-        console.error('Error stack:', err.stack);
-        
         // If it's a mock API fallback, that's okay - show success anyway
         if (err.message === 'USE_MOCK_API' || err.message === 'API_NOT_AVAILABLE') {
-          console.log('⚠️ Using mock data for session details');
-          // The API service should have returned mock data, but if it didn't, create it
           setSessionDetails({
             session: {
               id: sessionId,
@@ -99,10 +89,8 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
           });
           setError(null);
         } else {
-          // Real error - but API service should have returned mock data as fallback
-          // If we get here, something unexpected happened - still show success
-          console.warn('⚠️ Unexpected error, but payment was successful');
-          setError(null); // Don't show error - payment was successful
+          // Payment was successful even if session details failed to load
+          setError(null);
           // Set basic session details so success page shows
           setSessionDetails({
             session: {
@@ -222,7 +210,7 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
 
         {/* Confirmation Message */}
         <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto text-center">
-          {isDa 
+          {isDa
             ? 'Tak for dit køb! Dit abonnement er nu aktivt, og du kan begynde at bruge alle funktioner.'
             : 'Thank you for your purchase! Your subscription is now active, and you can start using all features.'}
         </p>
@@ -239,7 +227,7 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
                   {sessionDetails.session.planType}
                 </p>
                 <p className="text-gray-600">
-                  {billingCycle === 'monthly' 
+                  {billingCycle === 'monthly'
                     ? (isDa ? 'Månedligt abonnement' : 'Monthly subscription')
                     : (isDa ? 'Årligt abonnement' : 'Annual subscription')}
                 </p>
@@ -261,30 +249,44 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {/* Go to Dashboard */}
           <Link
-            to="/dashboard"
+            to={sessionDetails?.session.planType === 'Marketing Service' ? "/dashboard/growth" : "/dashboard"}
             className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium bg-[#1D1D1F] text-white hover:bg-black transition-all"
           >
-            <LayoutDashboard size={20} />
-            <span>{isDa ? 'Gå til Dashboard' : 'Go to Dashboard'}</span>
+            {sessionDetails?.session.planType === 'Marketing Service' ? <Sparkles size={20} /> : <LayoutDashboard size={20} />}
+            <span>{sessionDetails?.session.planType === 'Marketing Service'
+              ? (isDa ? 'Gå til Vækst Dashboard' : 'Go to Growth Dashboard')
+              : (isDa ? 'Gå til Dashboard' : 'Go to Dashboard')}</span>
           </Link>
 
-          {/* Complete Business Profile */}
-          <Link
-            to="/dashboard/profile"
-            className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
-          >
-            <FileText size={20} />
-            <span>{isDa ? 'Fuldfør Virksomhedsprofil' : 'Complete Business Profile'}</span>
-          </Link>
+          {/* Conditional Second Button */}
+          {sessionDetails?.session.planType !== 'Marketing Service' ? (
+            <Link
+              to="/dashboard/profile"
+              className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
+            >
+              <FileText size={20} />
+              <span>{isDa ? 'Fuldfør Virksomhedsprofil' : 'Complete Business Profile'}</span>
+            </Link>
+          ) : (
+            <Link
+              to="/dashboard"
+              className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
+            >
+              <LayoutDashboard size={20} />
+              <span>{isDa ? 'Gå til Hovedmenu' : 'Go to Main Dashboard'}</span>
+            </Link>
+          )}
 
-          {/* Upload Verification Documents */}
-          <Link
-            to="/dashboard/verification"
-            className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
-          >
-            <Shield size={20} />
-            <span>{isDa ? 'Upload Verifikationsdokumenter' : 'Upload Verification Documents'}</span>
-          </Link>
+          {/* Upload Verification Documents (Only for Partner Plans) */}
+          {sessionDetails?.session.planType !== 'Marketing Service' && (
+            <Link
+              to="/dashboard/verification"
+              className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium border border-gray-200 text-[#1D1D1F] hover:bg-gray-50 transition-all"
+            >
+              <Shield size={20} />
+              <span>{isDa ? 'Upload Verifikationsdokumenter' : 'Upload Verification Documents'}</span>
+            </Link>
+          )}
 
           {/* View Subscription & Billing */}
           <Link
@@ -299,7 +301,7 @@ const BillingSuccessPage: React.FC<BillingSuccessPageProps> = ({ lang, onContinu
         {/* Additional Info */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
-            {isDa 
+            {isDa
               ? 'Du modtager en bekræftelsesemail fra Stripe med alle detaljer.'
               : 'You will receive a confirmation email from Stripe with all details.'}
           </p>

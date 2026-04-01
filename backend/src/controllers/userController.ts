@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { hashPassword } from '../utils/password';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-const prisma = new PrismaClient();
 
 // Get consumer profile
 export const getConsumerProfile = async (req: AuthRequest, res: Response): Promise<void> => {

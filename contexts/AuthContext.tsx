@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(freshUser);
       localStorage.setItem('user', JSON.stringify(freshUser));
     } catch (error) {
-      console.error('Failed to refresh user data:', error);
+      if ((import.meta as any).env.DEV) console.error('Failed to refresh user data:', error);
     }
   };
 

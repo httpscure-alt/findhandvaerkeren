@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/errorHandler';
 
-const prisma = new PrismaClient();
 
 // Consumer: Create a new Job Request
 export const createJobRequest = async (req: Request, res: Response) => {

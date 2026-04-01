@@ -1,9 +1,8 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { emailService } from '../services/emailService';
 
-const prisma = new PrismaClient();
 
 export const getInquiries = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

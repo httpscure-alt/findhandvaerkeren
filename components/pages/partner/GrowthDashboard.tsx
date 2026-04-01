@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { api } from '../../../services/api';
 import {
     Globe,
     Target,
@@ -18,7 +19,6 @@ import {
     ShieldCheck
 } from 'lucide-react';
 import { Company, Language } from '../../../types';
-import { api } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 
 interface GrowthDashboardProps {
@@ -102,19 +102,29 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
 
         setIsSubmitting(true);
         try {
-            // Simulate Stripe Checkout
             toast.info(lang === 'da' ? 'Sender dig til sikker betaling...' : 'Redirecting to secure payment...');
-            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            await api.submitGrowthRequest({
-                services: ['seo'],
-                details: { ...seoForm, tier: tierToUse }
+            // Call Stripe checkout for SEO
+            const data = await api.createCheckoutSession({
+                serviceType: 'seo',
+                tier: tierToUse,
+                billingCycle: 'monthly'
             });
-            setIsSuccess(true);
-            toast.success(lang === 'da' ? 'Betaling gennemført & SEO aktiveret!' : 'Payment successful & SEO activated!');
-        } catch (error) {
-            console.error('Failed to submit SEO request:', error);
-            toast.error(lang === 'da' ? 'Betaling mislykkedes' : 'Payment failed');
+
+            if (data.url) {
+                // Save form data to local storage or session if needed before redirect
+                // (Optional: You could also save the growth request as "pending" first)
+
+                // Redirect to Stripe checkout
+                window.location.href = data.url;
+            } else {
+                toast.error(lang === 'da' ? 'Kunne ikke oprette betalingssession' : 'Could not create payment session');
+            }
+        } catch (error: any) {
+            if ((import.meta as any).env.DEV) console.error('Failed to submit SEO request:', error);
+            toast.error(lang === 'da'
+                ? (error.message || 'Betaling mislykkedes')
+                : (error.message || 'Payment failed'));
         } finally {
             setIsSubmitting(false);
         }
@@ -132,17 +142,25 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
         setIsSubmitting(true);
         try {
             toast.info(lang === 'da' ? 'Sender dig til sikker betaling...' : 'Redirecting to secure payment...');
-            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            await api.submitGrowthRequest({
-                services: ['ads'],
-                details: { ...adsForm, tier: tierToUse }
+            // Call Stripe checkout for Ads
+            const data = await api.createCheckoutSession({
+                serviceType: 'ads',
+                tier: tierToUse,
+                billingCycle: 'monthly'
             });
-            setIsSuccess(true);
-            toast.success(lang === 'da' ? 'Betaling gennemført & Ads aktiveret!' : 'Payment successful & Ads activated!');
-        } catch (error) {
-            console.error('Failed to submit Ads request:', error);
-            toast.error(lang === 'da' ? 'Betaling mislykkedes' : 'Payment failed');
+
+            if (data.url) {
+                // Redirect to Stripe checkout
+                window.location.href = data.url;
+            } else {
+                toast.error(lang === 'da' ? 'Kunne ikke oprette betalingssession' : 'Could not create payment session');
+            }
+        } catch (error: any) {
+            if ((import.meta as any).env.DEV) console.error('Failed to submit Ads request:', error);
+            toast.error(lang === 'da'
+                ? (error.message || 'Betaling mislykkedes')
+                : (error.message || 'Payment failed'));
         } finally {
             setIsSubmitting(false);
         }

@@ -1,3 +1,4 @@
+import { prisma } from '../prisma/client';
 import { Request, Response, NextFunction } from 'express';
 
 /**
@@ -50,15 +51,10 @@ export const requireOwnership = (resourceType: 'company' | 'inquiry') => {
 
         try {
             if (resourceType === 'company') {
-                const { PrismaClient } = await import('@prisma/client');
-                const prisma = new PrismaClient();
-
                 const company = await prisma.company.findUnique({
                     where: { id: resourceId },
                     select: { ownerId: true }
                 });
-
-                await prisma.$disconnect();
 
                 if (!company) {
                     return res.status(404).json({ error: 'Company not found' });

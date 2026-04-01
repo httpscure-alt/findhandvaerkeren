@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma/client';
 
 import { logger } from '../config/logger';
 
-const prisma = new PrismaClient();
 
 /**
  * Handle contact form submission

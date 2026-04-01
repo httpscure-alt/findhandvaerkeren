@@ -35,7 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
           const res = await api.getNotifications();
           setUnreadCount(res.unreadCount);
         } catch (error) {
-          console.error('Failed to fetch notifications', error);
+          if ((import.meta as any).env.DEV) console.error('Failed to fetch notifications', error);
         }
       };
       fetchNotifications();
