@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { ArrowLeft, ArrowRight, CheckCircle, MapPin, Tag, FileText, Camera, X, User, Mail, Phone, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, MapPin, Camera, X, ShieldCheck, Search } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
 import { Language } from '../../types';
-import { CORE_CATEGORIES } from '../../constants';
 import { translations } from '../../translations';
 
 interface Get3QuotesPageProps {
@@ -24,6 +23,8 @@ export default function Get3QuotesPage({ lang }: Get3QuotesPageProps) {
     const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [categories, setCategories] = useState<any[]>([]);
     const [submitted, setSubmitted] = useState(false);
+    const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+    const [categoryQuery, setCategoryQuery] = useState('');
 
     const [formData, setFormData] = useState({
         category: '',
@@ -56,6 +57,54 @@ export default function Get3QuotesPage({ lang }: Get3QuotesPageProps) {
             setCategoriesLoading(false);
         }
     };
+
+    const categoryRows = useMemo(
+        () =>
+            categories.map((cat) => {
+                const categoryValue = cat.slug || cat.name;
+                const displayName = categoryNames[cat.name] || cat.name;
+                return {
+                    key: cat.id || categoryValue,
+                    categoryValue,
+                    displayName,
+                };
+            }),
+        [categories, categoryNames]
+    );
+
+    const filteredCategories = useMemo(() => {
+        const q = categoryQuery.trim().toLowerCase();
+        if (!q) return categoryRows;
+        return categoryRows.filter(
+            (row) =>
+                row.categoryValue.toLowerCase().includes(q) ||
+                row.displayName.toLowerCase().includes(q)
+        );
+    }, [categoryRows, categoryQuery]);
+
+    const closeCategoryModal = useCallback(() => {
+        setCategoryModalOpen(false);
+        setCategoryQuery('');
+    }, []);
+
+    useEffect(() => {
+        if (!categoryModalOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') closeCategoryModal();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [categoryModalOpen, closeCategoryModal]);
+
+    const selectedCategoryLabel = formData.category
+        ? (() => {
+              const cat = categories.find(
+                  (c) => (c.slug || c.name) === formData.category
+              );
+              if (!cat) return formData.category;
+              return categoryNames[cat.name] || cat.name;
+          })()
+        : null;
 
     const handleNext = () => {
         if (step === 1 && !formData.category) return;
@@ -194,36 +243,39 @@ export default function Get3QuotesPage({ lang }: Get3QuotesPageProps) {
                     {/* Step 1: Category */}
                     {step === 1 && (
                         <div className="animate-fadeIn">
-                            <h2 className="text-2xl font-bold text-[#1D1D1F] mb-8">
+                            <h2 className="text-2xl font-bold text-[#1D1D1F] mb-2">
                                 {lang === 'da' ? 'Hvilken type opgave drejer det sig om?' : 'What kind of job is it?'}
                             </h2>
+                            <p className="text-sm text-[#86868B] mb-8">
+                                {lang === 'da'
+                                    ? 'Vælg kategori i vinduet nedenfor — du kan søge i listen.'
+                                    : 'Pick a category in the panel below — you can search the list.'}
+                            </p>
 
                             {categoriesLoading ? (
-                                <div className="grid grid-cols-2 gap-4">
-                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />)}
-                                </div>
+                                <div className="h-16 rounded-2xl bg-gray-50 animate-pulse" />
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {categories.map((cat) => {
-                                        const categoryValue = cat.slug || cat.name;
-                                        const isSelected = formData.category === categoryValue;
-                                        const displayName = categoryNames[cat.name] || cat.name;
-
-                                        return (
-                                            <button
-                                                key={cat.id || categoryValue}
-                                                onClick={() => setFormData({ ...formData, category: categoryValue })}
-                                                className={`p-6 border-2 rounded-2xl text-left transition-all duration-300 transform ${isSelected
-                                                    ? 'border-[#1D1D1F] bg-[#1D1D1F]/5 shadow-md -translate-y-1'
-                                                    : 'border-gray-100 hover:border-gray-200 bg-white hover:shadow-lg'
-                                                    }`}
-                                            >
-                                                <div className={`font-bold text-lg ${isSelected ? 'text-[#1D1D1F]' : 'text-[#86868B]'}`}>
-                                                    {displayName}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
+                                <div className="space-y-3">
+                                    <label className="block text-xs font-bold uppercase tracking-tight text-[#86868B]">
+                                        {lang === 'da' ? 'Kategori' : 'Category'}
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCategoryModalOpen(true)}
+                                        className="flex w-full items-center justify-between rounded-2xl border-2 border-gray-100 bg-gray-50/80 px-6 py-5 text-left transition hover:border-gray-200 hover:bg-white"
+                                    >
+                                        <span
+                                            className={
+                                                selectedCategoryLabel
+                                                    ? 'font-bold text-lg text-[#1D1D1F]'
+                                                    : 'text-[#86868B] font-medium'
+                                            }
+                                        >
+                                            {selectedCategoryLabel ||
+                                                (lang === 'da' ? 'Vælg kategori…' : 'Choose category…')}
+                                        </span>
+                                        <ArrowRight className="h-5 w-5 shrink-0 text-[#86868B]" />
+                                    </button>
                                 </div>
                             )}
                             <div className="mt-12 flex justify-end">
@@ -235,6 +287,114 @@ export default function Get3QuotesPage({ lang }: Get3QuotesPageProps) {
                                     {lang === 'da' ? 'Næste' : 'Next'} <ArrowRight size={20} />
                                 </button>
                             </div>
+
+                            {categoryModalOpen && !categoriesLoading && (
+                                <div
+                                    className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-4 sm:p-6"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby="get-quotes-category-modal-title"
+                                >
+                                    <button
+                                        type="button"
+                                        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+                                        onClick={closeCategoryModal}
+                                        aria-label="Close"
+                                    />
+                                    <div className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-2xl sm:rounded-[1.75rem] ring-1 ring-black/5">
+                                        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                                            <h3
+                                                id="get-quotes-category-modal-title"
+                                                className="text-lg font-bold text-[#1D1D1F]"
+                                            >
+                                                {lang === 'da' ? 'Vælg kategori' : 'Choose category'}
+                                            </h3>
+                                            <button
+                                                type="button"
+                                                onClick={closeCategoryModal}
+                                                className="rounded-full p-2 text-[#86868B] hover:bg-gray-100 hover:text-[#1D1D1F]"
+                                                aria-label="Close"
+                                            >
+                                                <X size={22} />
+                                            </button>
+                                        </div>
+
+                                        <div className="relative border-b border-gray-50 px-4 py-3">
+                                            <Search className="pointer-events-none absolute left-8 top-1/2 h-5 w-5 -translate-y-1/2 text-[#86868B]" />
+                                            <input
+                                                type="search"
+                                                value={categoryQuery}
+                                                onChange={(e) => setCategoryQuery(e.target.value)}
+                                                placeholder={
+                                                    lang === 'da' ? 'Søg kategori…' : 'Search categories…'
+                                                }
+                                                className="w-full rounded-xl border border-gray-100 bg-gray-50 py-3 pl-12 pr-4 text-[#1D1D1F] placeholder:text-[#86868B] focus:border-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#1D1D1F]/20"
+                                                autoFocus
+                                            />
+                                        </div>
+
+                                        <div className="min-h-[200px] flex-1 overflow-y-auto px-4 py-4">
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {filteredCategories.map((row) => {
+                                                    const isSelected = formData.category === row.categoryValue;
+                                                    return (
+                                                        <button
+                                                            key={row.key}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    category: row.categoryValue,
+                                                                })
+                                                            }
+                                                            className={`rounded-2xl border-2 p-4 text-left text-sm font-bold transition ${
+                                                                isSelected
+                                                                    ? 'border-[#1D1D1F] bg-[#1D1D1F]/5 shadow-md'
+                                                                    : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                                                            }`}
+                                                        >
+                                                            <span
+                                                                className={
+                                                                    isSelected
+                                                                        ? 'text-[#1D1D1F]'
+                                                                        : 'text-[#86868B]'
+                                                                }
+                                                            >
+                                                                {row.displayName}
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            {filteredCategories.length === 0 && (
+                                                <p className="py-8 text-center text-sm text-[#86868B]">
+                                                    {lang === 'da'
+                                                        ? 'Ingen kategorier fundet.'
+                                                        : 'No categories found.'}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex gap-3 border-t border-gray-100 bg-gray-50/80 px-4 py-4">
+                                            <button
+                                                type="button"
+                                                onClick={closeCategoryModal}
+                                                className="flex-1 rounded-xl py-3.5 font-bold text-[#86868B] hover:bg-gray-100 hover:text-[#1D1D1F]"
+                                            >
+                                                {lang === 'da' ? 'Annuller' : 'Cancel'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={!formData.category}
+                                                onClick={closeCategoryModal}
+                                                className="flex-1 rounded-xl bg-[#1D1D1F] py-3.5 font-bold text-white hover:bg-black disabled:opacity-30"
+                                            >
+                                                {lang === 'da' ? 'Brug valg' : 'Use selection'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

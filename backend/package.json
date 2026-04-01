@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/prisma/seed.ts",
     "db:studio": "prisma studio",
-    "test:connection": "tsx test-connection.ts"
+    "test:connection": "tsx test-connection.ts",
+    "stripe:seed-products": "tsx scripts/stripeSeedProducts.ts"
   },
   "keywords": [],
   "author": "",

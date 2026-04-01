@@ -16,6 +16,7 @@ import AuthPage from './components/pages/auth/AuthPage';
 import SignupSelectPage from './components/pages/auth/SignupSelectPage';
 import { OtpVerification } from './components/auth/OtpVerification';
 import Get3QuotesPage from './components/pages/Get3QuotesPage';
+import MockGet3QuotesModalCPage from './components/pages/mock/MockGet3QuotesModalCPage';
 import Footer from './components/layout/Footer';
 import ConsumerSidebar from './components/layout/ConsumerSidebar';
 import PartnerSidebar from './components/layout/PartnerSidebar';
@@ -191,6 +192,7 @@ const App: React.FC = () => {
             } />
             <Route path="/verify-email" element={<OtpVerification />} />
             <Route path="/get-offers" element={<Get3QuotesPage lang={lang} />} />
+            <Route path="/mock/get-offers-modal-c" element={<MockGet3QuotesModalCPage lang={lang} />} />
 
             <Route path="/profile/:id" element={<ProfileView company={selectedCompany || companies[0]} onBack={() => navigate('/browse')} lang={lang} onOpenModal={() => { }} />} />
 
