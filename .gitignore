@@ -14,6 +14,8 @@ dist-ssr
 .env
 .env.local
 .env*.local
+# All env variants and samples (do not commit)
+.env.*
 
 # Editor / IDE
 .cursor/
@@ -32,3 +34,12 @@ dist-ssr
 # Documentation
 docs/
 .archived_docs/
+
+# Markdown — keep local only (not on GitHub)
+*.md
+
+# Local / dev SQLite
+*.db
+
+# Rich-text notes (often contain pasted secrets)
+*.rtf
