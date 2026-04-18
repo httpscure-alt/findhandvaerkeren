@@ -94,10 +94,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
     password: '',
     companyName: '',
     ownerName: '',
-    category: 'tomrer',
+    category: '',
     location: 'København',
     pricingTier: 'Basic'
   });
+
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -135,6 +137,16 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
         errorRate: parseFloat((0.01 + Math.random() * 0.05).toFixed(2)),
         activeConnections: stats.securityMetrics?.activeSessions || 12
       });
+
+      // Fetch categories for the modal
+      const categoriesRes = await api.getCategories();
+      if (categoriesRes && categoriesRes.categories) {
+        setCategories(categoriesRes.categories);
+        // Default to first category if none selected
+        if (!manualOnboardingData.category && categoriesRes.categories.length > 0) {
+          setManualOnboardingData(prev => ({ ...prev, category: categoriesRes.categories[0].slug }));
+        }
+      }
 
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data');
@@ -649,11 +661,17 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
                     onChange={(e) => setManualOnboardingData({ ...manualOnboardingData, category: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
-                    <option value="tomrer">Tømrer</option>
-                    <option value="murer">Murer</option>
-                    <option value="vvs">VVS</option>
-                    <option value="elektriker">Elektriker</option>
-                    <option value="maler">Maler</option>
+                    {categories.length > 0 ? (
+                      categories.map(cat => (
+                        <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="tomrer">Tømrer</option>
+                        <option value="murer">Murer</option>
+                        <option value="vvs">VVS</option>
+                      </>
+                    )}
                   </select>
                 </div>
                 <div>

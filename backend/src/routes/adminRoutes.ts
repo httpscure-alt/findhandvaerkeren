@@ -55,7 +55,7 @@ router.delete('/users/:id', deleteUser);
 router.post('/users/:id/reset-password', resetUserPassword);
 router.post('/users/:id/reset-profile', resetPartnerProfile);
 router.patch('/users/:id/role', updateUserRole);
-router.post('/companies/manual', createManualBusiness);
+router.post('/onboard', createManualBusiness);
 
 // Admin management (Super Admin)
 router.post('/admins', createAdminUser);

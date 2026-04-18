@@ -1517,7 +1517,7 @@ class ApiService {
     pricingTier?: string;
   }) {
     try {
-      return await this.request<{ message: string; user: any; company: any }>('/admin/companies/manual', {
+      return await this.request<{ message: string; user: any; company: any }>('/admin/onboard', {
         method: 'POST',
         body: data,
       });
