@@ -86,10 +86,12 @@ app.use(cors({
     // Check if origin matches allowed list
     const isAllowed = allowedOrigins.some(ao => origin.startsWith(ao.trim()));
     
-    // Special check for our specific domains (handling Punycode variations)
-    const isOwnDomain = origin.includes('findhåndværkeren.dk') || 
-                       origin.includes('xn--findhndvrkeren-pibt.dk') ||
-                       origin.includes('vercel.app');
+    // Special check for our specific domains (highly inclusive)
+    const isOwnDomain = origin.includes('findhandvaerkeren') || 
+                       origin.includes('findhåndværkeren') ||
+                       origin.includes('xn--findhndvrkeren') ||
+                       origin.includes('vercel.app') ||
+                       origin.includes('onrender.com');
     
     if (isAllowed || isOwnDomain || process.env.NODE_ENV === 'development') {
       callback(null, true);
