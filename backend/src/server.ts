@@ -74,6 +74,12 @@ if (process.env.SENTRY_DSN) {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Fast Health Check (Bypass CORS/Security)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
@@ -151,14 +157,14 @@ app.use(express.urlencoded({ extended: true }));
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 app.use('/uploads', express.static(path.join(process.cwd(), uploadDir)));
 
-// Health check with database verification
-app.get('/health', async (req, res) => {
+// Detailed Health Check with Database
+app.get('/api/health-db', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
   } catch (error) {
     logger.error('Health check failed: database unreachable');
-    res.status(503).json({ status: 'degraded', database: 'disconnected', timestamp: new Date().toISOString() });
+    res.status(503).json({ status: 'error', database: 'disconnected' });
   }
 });
 
