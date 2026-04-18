@@ -34,8 +34,13 @@ const HomePage: React.FC<HomePageProps> = ({ onCompanyClick }) => {
 
     const [localSearch, setLocalSearch] = useState(filters.searchQuery || '');
     const [localZip, setLocalZip] = useState(filters.zipCode || '');
-
     const t = translations[lang];
+
+    React.useEffect(() => {
+        document.title = lang === 'da' 
+            ? 'Findhåndværkeren | Find de bedste lokale håndværkere' 
+            : 'Findhåndværkeren | Find the Best Local Craftsmen';
+    }, [lang]);
 
     const handleHeroSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -253,7 +258,7 @@ const HomePage: React.FC<HomePageProps> = ({ onCompanyClick }) => {
                             {t.businessTeaser.cards.map((card: any, i: number) => (
                                 <div
                                     key={i}
-                                    onClick={() => navigate('/for-businesses')}
+                                    onClick={() => navigate('/marketing')}
                                     className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
                                 >
                                     <h3 className="font-bold text-[#1D1D1F] mb-2 flex items-center justify-between">

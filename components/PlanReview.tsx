@@ -100,7 +100,6 @@ const PlanReview: React.FC<PlanReviewProps> = ({ lang, onContinueToPayment, onBa
         // ONLY redirect if it's a Stripe checkout URL
         if (url.startsWith('https://checkout.stripe.com') || url.includes('stripe.com')) {
           // Redirect to Stripe Checkout - this is what we want!
-          console.log('✅ Redirecting to Stripe Checkout:', url);
           window.location.href = url;
           return;
         }

@@ -1,0 +1,76 @@
+# Render Blueprint: API (Express + Prisma)
+# https://render.com/docs/infrastructure-as-code
+#
+# Secrets use sync: false — Render prompts for values when you first apply this Blueprint.
+# After that, update secrets in the Render Dashboard (updates to sync: false keys are not re-prompted from YAML).
+# Do NOT commit real API keys into this file.
+
+services:
+  - type: web
+    name: findhandvaerkeren-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: LOG_LEVEL
+        value: info
+      # Required for the process to start (see backend/src/server.ts)
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        sync: false
+      # Site URL(s) — match your Vercel deployment exactly (https://..., no trailing slash)
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      # Stripe (optional for boot; required for billing)
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_PRICE_BASIC_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_BASIC_ANNUAL
+        sync: false
+      - key: STRIPE_PRICE_GOLD_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_GOLD_ANNUAL
+        sync: false
+      - key: STRIPE_PRICE_ADS_BASIC
+        sync: false
+      - key: STRIPE_PRICE_ADS_STANDARD
+        sync: false
+      - key: STRIPE_PRICE_ADS_PRO
+        sync: false
+      - key: STRIPE_PRICE_SEO_BASIC
+        sync: false
+      - key: STRIPE_PRICE_SEO_STANDARD
+        sync: false
+      - key: STRIPE_PRICE_SEO_PRO
+        sync: false
+      - key: STRIPE_TAX_RATE_ID
+        sync: false
+      # Optional
+      - key: SENTRY_DSN
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

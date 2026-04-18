@@ -522,3 +522,28 @@ model MarketingTransaction {
   @@index([status])
   @@index([createdAt])
 }
+
+model BlogPost {
+  id               String    @id @default(cuid())
+  title            String
+  slug             String    @unique
+  excerpt          String
+  content          String    @db.Text
+  metaTitle        String?
+  metaDescription  String?
+  coverImageUrl    String?
+  category         String    @default("general")
+  tags             String[]  @default([])
+  status           String    @default("draft") // 'draft' | 'published'
+  lang             String    @default("da")    // 'da' | 'en'
+  authorName       String    @default("Findhåndværkeren")
+  publishedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+  @@index([lang])
+  @@index([publishedAt])
+}

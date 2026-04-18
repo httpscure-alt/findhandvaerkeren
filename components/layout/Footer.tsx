@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Language } from '../../types';
 import { translations } from '../../translations';
 import { useMarketplace } from '../../contexts/MarketplaceContext';
+import BrandLogo from '../BrandLogo';
 
 interface FooterProps {
   lang: Language;
@@ -24,11 +25,8 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           <div className="md:col-span-5">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-[#1D1D1F] rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">F</span>
-              </div>
-              <span className="font-bold text-xl tracking-tight text-[#1D1D1F]">Findhåndværkeren</span>
+            <div className="mb-6">
+              <BrandLogo variant="full" />
             </div>
             <p className="max-w-sm text-[#86868B] font-medium leading-relaxed mb-8">
               {lang === 'da'
@@ -85,6 +83,11 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
               <li>
                 <button onClick={() => handleNavigate('/for-businesses')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
                   {t.nav.forBusinesses}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavigate('/marketing')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
+                  {t.nav.marketing}
                 </button>
               </li>
             </ul>

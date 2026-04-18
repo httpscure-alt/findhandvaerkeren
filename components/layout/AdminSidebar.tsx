@@ -20,7 +20,8 @@ import {
   Database,
   Activity,
   FileText,
-  Zap
+  Zap,
+  BookOpen
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -122,6 +123,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ lang, onLogout }) => {
       path: '/admin/database',
       icon: Database,
       label: lang === 'da' ? 'Database' : 'Database'
+    },
+    {
+      path: '/admin/blog',
+      icon: BookOpen,
+      label: lang === 'da' ? 'Blog CMS' : 'Blog CMS'
     },
     {
       path: '/admin/api-monitoring',

@@ -20,6 +20,7 @@ import recentSearchRoutes from './routes/recentSearchRoutes';
 import jobRoutes from './routes/jobRoutes';
 import growthRoutes from './routes/growthRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import blogRoutes from './routes/blogRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import { apiLimiter, authLimiter } from './middleware/rateLimiter';
 import { prisma } from './prisma/client';
@@ -168,6 +169,7 @@ app.use('/api/recent-searches', recentSearchRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/growth', growthRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/blog', blogRoutes);
 
 // Sentry Error Handler (must be before custom error handler)
 if (process.env.SENTRY_DSN) {

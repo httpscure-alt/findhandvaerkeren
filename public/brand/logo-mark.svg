@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="title">
+  <title id="title">Findhåndværkeren Mark</title>
+  <circle cx="16" cy="16" r="14" fill="#1D1D1F"/>
+  <!-- Vectorized letter 'F' for robust rendering -->
+  <path d="M11 8H21V11.5H15V14.5H20V18H15V24H11V8Z" fill="#FFFFFF"/>
+</svg>

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Block private/auth/dashboard routes from indexing
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /auth
+Disallow: /signup
+
+Sitemap: https://findhandvaerkeren.dk/sitemap.xml

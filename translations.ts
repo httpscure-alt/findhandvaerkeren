@@ -5,7 +5,8 @@ export const translations = {
       home: "Hjem",
       findPros: "Gennemse",
       pricing: "Priser",
-      forBusinesses: "Markedsføring",
+      forBusinesses: "For Virksomheder",
+      marketing: "Markedsføring",
       listBusiness: "Opret din virksomhed",
       login: "Log ind",
       dashboard: "Mit Dashboard",
@@ -156,15 +157,15 @@ export const translations = {
       cards: [
         {
           title: "Bliv verificeret",
-          description: "Opbyg tillid med et verificeret emblem på din profil."
+          description: "Opbyg tillid med et verificeret emblem og øg din konvertering."
         },
         {
-          title: "Få flere opgaver",
-          description: "Prioriteret placering i søgeresultaterne når kunder søger."
+          title: "Eksklusiv Vækst",
+          description: "Vi driver kvalificerede leads til din forretning via Google Ads."
         },
         {
-          title: "Øg din synlighed",
-          description: "Professionel SEO og Google Ads til din virksomhed."
+          title: "SEO Dominans",
+          description: "Dominer de lokale søgeresultater og få gratis trafik hver måned."
         }
       ]
     },
@@ -251,7 +252,8 @@ export const translations = {
       home: "Home",
       findPros: "Browsing",
       pricing: "Pricing",
-      forBusinesses: "Marketing",
+      forBusinesses: "For Businesses",
+      marketing: "Marketing",
       listBusiness: "List Your Business",
       login: "Log in",
       dashboard: "My Dashboard",
@@ -401,16 +403,16 @@ export const translations = {
       title: "Helping professionals grow",
       cards: [
         {
-          title: "Get verified",
-          description: "Build trust with a verification badge on your profile."
+          title: "Get Verified",
+          description: "Build trust with a verified badge and increase your conversion rate."
         },
         {
-          title: "Get more jobs",
-          description: "Priority placement in search results when customers search."
+          title: "Exclusive Growth",
+          description: "We drive qualified leads to your business via high-intent Google Ads."
         },
         {
-          title: "Grow visibility",
-          description: "Professional SEO and Google Ads for your business."
+          title: "SEO Dominance",
+          description: "Dominate local search results and get free organic traffic every month."
         }
       ]
     },

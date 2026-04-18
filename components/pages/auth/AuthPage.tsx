@@ -4,6 +4,7 @@ import { Language } from '../../../types';
 import { translations } from '../../../translations';
 import { useAuth } from '../../../contexts/AuthContext';
 import SignupPage from './SignupPage';
+import { useToast } from '../../../hooks/useToast';
 
 interface AuthPageProps {
   lang: Language;
@@ -21,6 +22,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBac
   const [error, setError] = useState<string | null>(null);
   const [showPasswordStep, setShowPasswordStep] = useState(false);
   const { login } = useAuth();
+  const toast = useToast();
   const t = translations[lang].auth;
 
   // Check URL params for mode
@@ -70,12 +72,16 @@ const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBac
 
     try {
       await login(email, password);
+      toast.success(lang === 'da' ? 'Logget ind med succes!' : 'Logged in successfully!');
       onSuccess?.();
     } catch (err: any) {
       if (err.message && !err.message.includes('API_NOT_AVAILABLE')) {
-        setError(err.message || 'Login failed');
+        const msg = err.message || (lang === 'da' ? 'Login mislykkedes' : 'Login failed');
+        setError(msg);
+        toast.error(msg);
       } else {
         // API not available, but auth should still work with mock
+        toast.success(lang === 'da' ? 'Velkommen tilbage!' : 'Welcome back!');
         onSuccess?.();
       }
     } finally {

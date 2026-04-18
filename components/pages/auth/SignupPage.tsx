@@ -5,6 +5,7 @@ import { translations } from '../../../translations';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SelectedPlan } from '../../../types';
+import { useToast } from '../../../hooks/useToast';
 
 interface SignupPageProps {
   lang: Language;
@@ -25,6 +26,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { register, isAuthenticated, user } = useAuth();
+  const toast = useToast();
   const t = (translations[lang] as any).auth;
 
   useEffect(() => {
@@ -71,6 +73,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
         // Partner signup
         const response: any = await register(email, password, fullName || undefined, undefined, undefined, 'PARTNER');
         if (response && response.requiresVerification) {
+          toast.info(lang === 'da' ? 'Tjek din e-mail for en bekræftelseskode' : 'Please check your email for a verification code');
           window.location.href = `/verify-email?email=${email}`;
           return;
         }
@@ -78,6 +81,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
         // Consumer signup
         const response: any = await register(email, password, fullName || undefined, undefined, undefined, 'CONSUMER');
         if (response && response.requiresVerification) {
+          toast.info(lang === 'da' ? 'Tjek din e-mail for en bekræftelseskode' : 'Please check your email for a verification code');
           window.location.href = `/verify-email?email=${email}`;
           return;
         }
@@ -85,15 +89,19 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
 
       // Clear signup role from localStorage
       localStorage.removeItem('signupRole');
+      toast.success(lang === 'da' ? 'Konto oprettet med succes!' : 'Account created successfully!');
 
       // Redirect immediately - no success page
       onSuccess(userRole);
     } catch (err: any) {
       if (err.message && !err.message.includes('API_NOT_AVAILABLE')) {
-        setError(err.message || 'An error occurred');
+        const msg = err.message || (lang === 'da' ? 'Der skete en fejl' : 'An error occurred');
+        setError(msg);
+        toast.error(msg);
       } else {
         // API not available, but auth should still work with mock
         localStorage.removeItem('signupRole');
+        toast.success(lang === 'da' ? 'Velkommen! Din konto er klar.' : 'Welcome! Your account is ready.');
         onSuccess(userRole);
       }
     } finally {

@@ -30,9 +30,11 @@ import HowItWorksPage from './components/pages/visitor/HowItWorksPage';
 import AboutPage from './components/pages/visitor/AboutPage';
 import ContactPage from './components/pages/visitor/ContactPage';
 import BlogPage from './components/pages/visitor/BlogPage';
+import BlogPostPage from './components/pages/visitor/BlogPostPage';
 import PrivacyPolicyPage from './components/pages/visitor/PrivacyPolicyPage';
 import TermsOfServicePage from './components/pages/visitor/TermsOfServicePage';
 import ForBusinessesPage from './components/pages/visitor/ForBusinessesPage';
+import MarketingPage from './components/pages/visitor/MarketingPage';
 import CookieConsent from './components/common/CookieConsent';
 
 // Consumer Pages
@@ -71,6 +73,7 @@ import ActivityLogsPage from './components/pages/admin/ActivityLogsPage';
 import SecurityLogsPage from './components/pages/admin/SecurityLogsPage';
 import DatabaseManagementPage from './components/pages/admin/DatabaseManagementPage';
 import ApiMonitoringPage from './components/pages/admin/ApiMonitoringPage';
+import BlogManagementPage from './components/pages/admin/BlogManagementPage';
 
 import BillingSuccessPage from './components/pages/billing/BillingSuccessPage';
 import BillingCancelPage from './components/pages/billing/BillingCancelPage';
@@ -112,6 +115,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     logout();
+    toast.info(lang === 'da' ? 'Du er nu logget ud' : 'Logged out');
     navigate('/');
   };
 
@@ -177,6 +181,7 @@ const App: React.FC = () => {
             } />
             <Route path="/auth" element={<AuthPage lang={lang} initialMode="login" onSuccess={() => navigate('/')} />} />
             <Route path="/for-businesses" element={<ForBusinessesPage lang={lang} />} />
+            <Route path="/marketing" element={<MarketingPage lang={lang} />} />
             <Route path="/signup" element={
               <SignupPage
                 lang={lang}
@@ -190,7 +195,7 @@ const App: React.FC = () => {
                 onBack={() => navigate('/auth')}
               />
             } />
-            <Route path="/verify-email" element={<OtpVerification />} />
+            <Route path="/verify-email" element={<OtpVerification lang={lang} />} />
             <Route path="/get-offers" element={<Get3QuotesPage lang={lang} />} />
             <Route path="/mock/get-offers-modal-c" element={<MockGet3QuotesModalCPage lang={lang} />} />
 
@@ -200,6 +205,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<AboutPage lang={lang} />} />
             <Route path="/contact" element={<ContactPage lang={lang} />} />
             <Route path="/blog" element={<BlogPage lang={lang} />} />
+            <Route path="/blog/:slug" element={<BlogPostPage lang={lang} />} />
             <Route path="/privacy" element={<PrivacyPolicyPage lang={lang} onBack={() => navigate('/')} />} />
             <Route path="/terms" element={<TermsOfServicePage lang={lang} onBack={() => navigate('/')} />} />
 
@@ -256,6 +262,7 @@ const App: React.FC = () => {
             <Route path="/admin/security-logs" element={userRole === 'ADMIN' ? <SecurityLogsPage lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
             <Route path="/admin/database" element={userRole === 'ADMIN' ? <DatabaseManagementPage lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
             <Route path="/admin/api-monitoring" element={userRole === 'ADMIN' ? <ApiMonitoringPage lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
+            <Route path="/admin/blog" element={userRole === 'ADMIN' ? <BlogManagementPage /> : <Navigate to="/auth" />} />
 
             <Route path="/dashboard/saved" element={<SavedListingsPage savedCompanies={companies.filter(c => savedCompanyIds.includes(c.id))} lang={lang} onViewProfile={handleCompanyClick} onToggleFavorite={toggleFavorite} onBack={() => navigate('/dashboard')} />} />
             <Route path="/dashboard/inquiries" element={userRole === 'PARTNER' ? <PartnerLeadDashboard /> : <MyInquiriesPage lang={lang} onBack={() => navigate('/dashboard')} />} />

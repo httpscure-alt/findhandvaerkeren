@@ -1726,6 +1726,66 @@ class ApiService {
       throw error;
     }
   }
+
+  // ── Blog (Public) ──────────────────────────────────────────────────────────
+  async getBlogPosts(params?: { lang?: string; category?: string; page?: number; limit?: number }) {
+    try {
+      return await this.request<{ posts: any[]; pagination: any }>('/blog', {
+        requiresAuth: false,
+        params,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { posts: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } };
+      }
+      throw error;
+    }
+  }
+
+  async getBlogPost(slug: string) {
+    try {
+      return await this.request<{ post: any }>(`/blog/${slug}`, { requiresAuth: false });
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  // ── Blog (Admin) ───────────────────────────────────────────────────────────
+  async adminGetAllBlogPosts(params?: { status?: string; page?: number; limit?: number }) {
+    try {
+      return await this.request<{ posts: any[]; pagination: any }>('/blog/admin/posts', { params });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { posts: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } };
+      }
+      throw error;
+    }
+  }
+
+  async adminCreateBlogPost(data: any) {
+    try {
+      return await this.request<{ post: any }>('/blog/admin/posts', { method: 'POST', body: data });
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  async adminUpdateBlogPost(id: string, data: any) {
+    try {
+      return await this.request<{ post: any }>(`/blog/admin/posts/${id}`, { method: 'PUT', body: data });
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  async adminDeleteBlogPost(id: string) {
+    try {
+      return await this.request<{ message: string }>(`/blog/admin/posts/${id}`, { method: 'DELETE' });
+    } catch (error: any) {
+      throw error;
+    }
+  }
 }
 
 export const api = new ApiService();
+

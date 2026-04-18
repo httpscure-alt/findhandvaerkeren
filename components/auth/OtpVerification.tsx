@@ -3,14 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Loader2, CheckCircle, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../hooks/useToast';
+import { Language } from '../../types';
 
-export const OtpVerification = () => {
+export const OtpVerification = ({ lang = 'da' }: { lang?: Language }) => {
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [resendStatus, setResendStatus] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
+    const toast = useToast();
     const { login } = useAuth(); // We might need to manually set auth state
 
     const email = location.state?.email || new URLSearchParams(location.search).get('email');
@@ -47,13 +50,19 @@ export const OtpVerification = () => {
                     localStorage.setItem('user', JSON.stringify(response.user));
                 }
 
+                toast.success(lang === 'da' ? 'Konto bekræftet!' : 'Account verified successfully!');
+
                 // Navigate to dashboard
                 window.location.href = '/dashboard';
             } else {
-                setError('Verification failed. Please try again.');
+                const msg = lang === 'da' ? 'Bekræftelse mislykkedes. Prøv igen.' : 'Verification failed. Please try again.';
+                setError(msg);
+                toast.error(msg);
             }
         } catch (err: any) {
-            setError(err.message || 'Invalid OTP');
+            const msg = err.message || (lang === 'da' ? 'Ugyldig kode' : 'Invalid OTP');
+            setError(msg);
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -64,9 +73,12 @@ export const OtpVerification = () => {
             setResendStatus('Sending...');
             await api.resendOtp(email);
             setResendStatus('Sent!');
+            toast.success(lang === 'da' ? 'Ny kode sendt til din e-mail' : 'New code sent to your email');
             setTimeout(() => setResendStatus(''), 3000);
         } catch (err) {
-            setError('Failed to resend OTP');
+            const msg = lang === 'da' ? 'Kunne ikke sende koden igen' : 'Failed to resend OTP';
+            setError(msg);
+            toast.error(msg);
             setResendStatus('');
         }
     };

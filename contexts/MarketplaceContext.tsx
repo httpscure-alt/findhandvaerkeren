@@ -114,9 +114,16 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
             toast.error(lang === 'da' ? 'Log venligst ind for at gemme.' : 'Please log in to save listings.');
             return;
         }
-        setSavedCompanyIds(prev =>
-            prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
-        );
+        setSavedCompanyIds(prev => {
+            const isSaved = prev.includes(id);
+            if (isSaved) {
+                toast.info(lang === 'da' ? 'Fjernet fra dine gemte' : 'Removed from your saved list');
+                return prev.filter(cid => cid !== id);
+            } else {
+                toast.success(lang === 'da' ? 'Håndværker er nu gemt!' : 'Craftsman saved to favorites!');
+                return [...prev, id];
+            }
+        });
     }, [isAuthenticated, lang, toast]);
 
     const handleSearch = useCallback(async (query?: string) => {

@@ -43,6 +43,12 @@ export default function Get3QuotesPage({ lang }: Get3QuotesPageProps) {
         loadCategories();
     }, []);
 
+    useEffect(() => {
+        document.title = lang === 'da' 
+            ? 'Indhent 3 tilbud | Findhåndværkeren' 
+            : 'Get 3 Quotes | Findhåndværkeren';
+    }, [lang]);
+
     const loadCategories = async () => {
         setCategoriesLoading(true);
         try {

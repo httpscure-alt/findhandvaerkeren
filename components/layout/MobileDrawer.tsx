@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { X, User, Briefcase, Shield } from 'lucide-react';
 import { Language } from '../../types';
 import { translations } from '../../translations';
+import BrandLogo from '../BrandLogo';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -59,11 +60,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
       {/* Drawer Content */}
       <div className="absolute right-0 top-0 h-full w-[80%] max-w-sm bg-white shadow-2xl animate-slideInRight flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#1D1D1F] rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">F</span>
-            </div>
-            <span className="font-bold text-xl tracking-tight text-[#1D1D1F]">Findhåndværkeren</span>
+          <div className="min-w-0 flex-1 pr-2">
+            <BrandLogo variant="full" className="max-w-[calc(100%-2rem)]" />
           </div>
           <button onClick={onClose} className="p-2 text-[#86868B] hover:text-[#1D1D1F]">
             <X size={24} />

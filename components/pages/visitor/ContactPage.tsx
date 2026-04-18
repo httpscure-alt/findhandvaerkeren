@@ -5,6 +5,7 @@ import { translations } from '../../../translations';
 import { Mail, Phone, MapPin, Send, Loader2, Paperclip, X } from 'lucide-react';
 import { api } from '../../../services/api';
 import { FileUpload } from '../../common/FileUpload';
+import { useToast } from '../../../hooks/useToast';
 
 interface ContactPageProps {
   lang: Language;
@@ -13,9 +14,16 @@ interface ContactPageProps {
 const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
   const t = translations[lang].contact;
   const [searchParams] = useSearchParams();
-  const initialSubject = searchParams.get('subject') === 'audit'
+  const toast = useToast();
+  const initialSubject = searchParams.get('subject') === 'marketing'
     ? (lang === 'da' ? 'Jeg ønsker en SEO & Ads audit' : 'I want an SEO & Ads audit')
     : '';
+
+  useEffect(() => {
+    document.title = lang === 'da' 
+      ? 'Kontakt os | Findhåndværkeren' 
+      : 'Contact Us | Findhåndværkeren';
+  }, [lang]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -38,6 +46,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
       await api.submitContactForm(formData);
       setIsSubmitting(false);
       setIsSubmitted(true);
+      toast.success(lang === 'da' ? 'Din besked er blevet sendt!' : 'Your message has been sent!');
       setFormData({
         name: '',
         email: '',
@@ -49,7 +58,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ lang }) => {
       setTimeout(() => setIsSubmitted(false), 5000);
     } catch (err: any) {
       setIsSubmitting(false);
-      setError(err.message || t.error);
+      const msg = err.message || (lang === 'da' ? 'Der skete en fejl. Prøv igen senere.' : 'An error occurred. Please try again later.');
+      setError(msg);
+      toast.error(msg);
     }
   };
 

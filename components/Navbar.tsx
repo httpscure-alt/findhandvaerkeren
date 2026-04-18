@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Language } from '../types';
 import { translations } from '../translations';
 import MobileDrawer from './layout/MobileDrawer';
+import BrandLogo from './BrandLogo';
 
 interface NavbarProps {
   lang: Language;
@@ -68,13 +69,8 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#1D1D1F] rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">F</span>
-                </div>
-                <span className="font-bold text-xl tracking-tight text-[#1D1D1F]">Findhåndværkeren</span>
-              </div>
+            <div className="flex-shrink-0">
+              <BrandLogo variant="full" onClick={() => navigate('/')} />
             </div>
 
             {/* Desktop Nav */}
@@ -87,6 +83,9 @@ const Navbar: React.FC<NavbarProps> = ({ lang, setLang, onLoginPartner, onLoginC
               </span>
               <span onClick={() => navigate('/for-businesses')} className={navLinkClass('/for-businesses')}>
                 {t.forBusinesses}
+              </span>
+              <span onClick={() => navigate('/marketing')} className={navLinkClass('/marketing')}>
+                {t.marketing}
               </span>
             </div>
 
