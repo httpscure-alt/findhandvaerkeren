@@ -22,6 +22,7 @@ import {
   Key,
   HardDrive,
   UserPlus,
+  Briefcase,
   X
 } from 'lucide-react';
 import { Language } from '../../../types';
@@ -79,12 +80,23 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
+  const [showManualOnboardingModal, setShowManualOnboardingModal] = useState(false);
   const [newAdminData, setNewAdminData] = useState({
     email: '',
     password: '',
     name: '',
     firstName: '',
     lastName: '',
+  });
+
+  const [manualOnboardingData, setManualOnboardingData] = useState({
+    email: '',
+    password: '',
+    companyName: '',
+    ownerName: '',
+    category: 'tomrer',
+    location: 'København',
+    pricingTier: 'Basic'
   });
 
   useEffect(() => {
@@ -146,6 +158,34 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
       toast.error(err.message || (lang === 'da' ? 'Kunne ikke oprette admin' : 'Failed to create admin'));
     }
   };
+
+  const handleManualOnboarding = async () => {
+    if (!manualOnboardingData.email || !manualOnboardingData.companyName) {
+      toast.warning(lang === 'da' ? 'Email og firmanavn er påkrævet' : 'Email and company name are required');
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      await api.createManualBusiness(manualOnboardingData);
+      toast.success(lang === 'da' ? 'Virksomhed oprettet succesfuldt' : 'Business created successfully');
+      setShowManualOnboardingModal(false);
+      setManualOnboardingData({
+        email: '',
+        password: '',
+        companyName: '',
+        ownerName: '',
+        category: 'tomrer',
+        location: 'København',
+        pricingTier: 'Basic'
+      });
+      fetchData(); // Refresh stats
+    } catch (err: any) {
+      toast.error(err.message || (lang === 'da' ? 'Kunne ikke oprette virksomhed' : 'Failed to create business'));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
 
   const isDa = lang === 'da';
 
@@ -434,6 +474,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
             {isDa ? 'Hurtige Handlinger' : 'Quick Actions'}
           </h2>
           <button
+            onClick={() => setShowManualOnboardingModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            <Briefcase size={18} />
+            {isDa ? 'Tilføj Virksomhed' : 'Add Business'}
+          </button>
+          <button
             onClick={() => setShowCreateAdminModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
@@ -528,6 +575,114 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
                   className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700"
                 >
                   {isDa ? 'Opret' : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Business Onboarding Modal */}
+      {showManualOnboardingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-[#1D1D1F]">
+                {isDa ? 'Tilføj Ny Virksomhed' : 'Add New Business'}
+              </h3>
+              <button
+                onClick={() => setShowManualOnboardingModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isDa ? 'Ejer Email *' : 'Owner Email *'}
+                  </label>
+                  <input
+                    type="email"
+                    value={manualOnboardingData.email}
+                    onChange={(e) => setManualOnboardingData({ ...manualOnboardingData, email: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="owner@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isDa ? 'Adgangskode *' : 'Password *'}
+                  </label>
+                  <input
+                    type="text"
+                    value={manualOnboardingData.password}
+                    onChange={(e) => setManualOnboardingData({ ...manualOnboardingData, password: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Minimum 8 characters"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {isDa ? 'Firmanavn *' : 'Company Name *'}
+                </label>
+                <input
+                  type="text"
+                  value={manualOnboardingData.companyName}
+                  onChange={(e) => setManualOnboardingData({ ...manualOnboardingData, companyName: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="ACME Corp"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isDa ? 'Kategori' : 'Category'}
+                  </label>
+                  <select
+                    value={manualOnboardingData.category}
+                    onChange={(e) => setManualOnboardingData({ ...manualOnboardingData, category: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="tomrer">Tømrer</option>
+                    <option value="murer">Murer</option>
+                    <option value="vvs">VVS</option>
+                    <option value="elektriker">Elektriker</option>
+                    <option value="maler">Maler</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isDa ? 'Medlemsskab' : 'Pricing Tier'}
+                  </label>
+                  <select
+                    value={manualOnboardingData.pricingTier}
+                    onChange={(e) => setManualOnboardingData({ ...manualOnboardingData, pricingTier: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="Basic">Basic</option>
+                    <option value="Gold">Gold Partner</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex items-center gap-3">
+                <button
+                  onClick={() => setShowManualOnboardingModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {isDa ? 'Annuller' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleManualOnboarding}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-md shadow-blue-200 transition-all font-medium"
+                >
+                  {isDa ? 'Opret Virksomhed' : 'Create Business'}
                 </button>
               </div>
             </div>

@@ -907,3 +907,95 @@ export const getAdminJobRequests = async (req: AuthRequest, res: Response): Prom
     throw new AppError('Failed to fetch job requests', 500);
   }
 };
+
+/**
+ * Super Admin manually creates a business (Partner user + Company)
+ */
+export const createManualBusiness = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      email,
+      password,
+      ownerName,
+      companyName,
+      category,
+      location,
+      pricingTier = 'Basic'
+    } = req.body;
+
+    if (!email || !password || !companyName) {
+      res.status(400).json({ error: 'Email, password, and company name are required' });
+      return;
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ error: 'User with this email already exists' });
+      return;
+    }
+
+    // Hash password
+    const { hashPassword } = await import('../utils/password');
+    const hashedPassword = await hashPassword(password);
+
+    // Create User and Company in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create Partner User
+      const user = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name: ownerName || companyName,
+          role: 'PARTNER',
+          isVerified: true // Admin created accounts are pre-verified
+        }
+      });
+
+      // 2. Create Company
+      const company = await tx.company.create({
+        data: {
+          name: companyName,
+          description: `Manual onboarding for ${companyName}`,
+          shortDescription: `Manual onboarding for ${companyName}`,
+          category,
+          location: location || 'Denmark',
+          contactEmail: email,
+          pricingTier,
+          ownerId: user.id,
+          isVerified: true,
+          verificationStatus: 'verified',
+          onboardingCompleted: true,
+          profileCompleted: true,
+          companyCreated: true
+        }
+      });
+
+      return { user, company };
+    });
+
+    // Log the manual creation
+    await prisma.adminActivityLog.create({
+      data: {
+        adminId: req.userId!,
+        action: 'create_manual_business',
+        targetType: 'Company',
+        targetId: result.company.id,
+        details: { companyName, ownerEmail: email }
+      }
+    });
+
+    res.status(201).json({
+      message: 'Business created successfully',
+      user: { id: result.user.id, email: result.user.email },
+      company: result.company
+    });
+
+  } catch (error: any) {
+    console.error('Manual onboarding error:', error);
+    res.status(500).json({
+      error: 'Failed to create business manually',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

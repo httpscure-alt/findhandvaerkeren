@@ -1507,6 +1507,32 @@ class ApiService {
     }
   }
 
+  async createManualBusiness(data: {
+    email: string;
+    password?: string;
+    ownerName?: string;
+    companyName: string;
+    category: string;
+    location?: string;
+    pricingTier?: string;
+  }) {
+    try {
+      return await this.request<{ message: string; user: any; company: any }>('/admin/companies/manual', {
+        method: 'POST',
+        body: data,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return {
+          message: 'Success (Mock)',
+          user: { id: 'mock-u', email: data.email },
+          company: { id: 'mock-c', name: data.companyName }
+        };
+      }
+      throw error;
+    }
+  }
+
   async getStripeSessionDetails(sessionId: string) {
     try {
       const result = await this.request<{
