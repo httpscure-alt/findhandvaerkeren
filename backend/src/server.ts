@@ -81,14 +81,15 @@ const allowedOrigins = process.env.CORS_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
     // Check if origin matches allowed list
-    const isAllowed = allowedOrigins.some(ao => origin.startsWith(ao.trim()));
+    const isAllowed = allowedOrigins.some(ao => origin.includes(ao.trim()));
     
-    // Special check for our specific domains (highly inclusive)
-    const isOwnDomain = origin.includes('findhandvaerkeren') || 
-                       origin.includes('findhåndværkeren') ||
+    // Special check for our specific domains (Super Permissive for launch)
+    const isOwnDomain = origin.includes('findha') || 
+                       origin.includes('findhå') || 
                        origin.includes('xn--findhndvrkeren') ||
                        origin.includes('vercel.app') ||
                        origin.includes('onrender.com');
@@ -96,7 +97,9 @@ app.use(cors({
     if (isAllowed || isOwnDomain || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      logger.warn('CORS Rejected for origin:', origin);
+      // Don't throw a generic error which causes a 500, return a 403-style response
+      callback(new Error(`CORS Not Allowed for ${origin}`));
     }
   },
   credentials: true,
