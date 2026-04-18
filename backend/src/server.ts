@@ -82,7 +82,16 @@ const allowedOrigins = process.env.CORS_ORIGINS
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    
+    // Check if origin matches allowed list
+    const isAllowed = allowedOrigins.some(ao => origin.startsWith(ao.trim()));
+    
+    // Special check for our specific domains (handling Punycode variations)
+    const isOwnDomain = origin.includes('findhåndværkeren.dk') || 
+                       origin.includes('xn--findhndvrkeren-pibt.dk') ||
+                       origin.includes('vercel.app');
+    
+    if (isAllowed || isOwnDomain || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
