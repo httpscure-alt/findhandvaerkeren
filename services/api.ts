@@ -71,7 +71,9 @@ class ApiService {
       },
     };
 
-    let url = `${API_BASE_URL}${endpoint}`;
+    const baseUrl = API_BASE_URL.replace(/\/$/, '');
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    let url = `${baseUrl}${cleanEndpoint}`;
     if (options.params) {
       const queryParams = new URLSearchParams();
       Object.entries(options.params).forEach(([key, value]) => {

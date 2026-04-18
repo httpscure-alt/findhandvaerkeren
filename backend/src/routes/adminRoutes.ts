@@ -30,6 +30,12 @@ router.use(authenticate);
 router.use(requireRole('ADMIN'));
 router.use(adminLimiter);
 
+// Diagnostic Ping
+router.get('/ping', (req, res) => res.json({ message: 'pong', role: (req as any).user?.role }));
+
+// Manual Onboarding (Placed top-level to avoid parameter conflicts)
+router.post('/onboard', createManualBusiness);
+
 // Finance metrics
 router.get('/metrics/revenue', getFinanceMetrics);
 
@@ -55,7 +61,6 @@ router.delete('/users/:id', deleteUser);
 router.post('/users/:id/reset-password', resetUserPassword);
 router.post('/users/:id/reset-profile', resetPartnerProfile);
 router.patch('/users/:id/role', updateUserRole);
-router.post('/onboard', createManualBusiness);
 
 // Admin management (Super Admin)
 router.post('/admins', createAdminUser);
