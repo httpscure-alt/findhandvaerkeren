@@ -221,6 +221,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBac
                   onClick={() => {
                     if (onNavigateToSignup) {
                       onNavigateToSignup();
+                    } else {
+                      setMode('signup');
                     }
                   }}
                   className="text-sm text-gray-600 hover:text-nexus-accent transition-colors"
@@ -286,6 +288,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ lang, initialMode, onSuccess, onBac
                   onClick={() => {
                     if (onNavigateToSignup) {
                       onNavigateToSignup();
+                    } else {
+                      setMode('signup');
                     }
                   }}
                   className="text-sm text-gray-600 hover:text-nexus-accent transition-colors"
