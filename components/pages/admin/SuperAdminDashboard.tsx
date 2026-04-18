@@ -105,23 +105,24 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ lang, onNavig
         monthlyRevenue: stats.monthlyRevenue,
       });
 
-      // Simulate live system health updates
+      if (stats.securityMetrics) {
+        setSecurityMetrics({
+          totalLogins: stats.securityMetrics.totalLogins || 0,
+          failedAttempts: stats.securityMetrics.failedAttempts || 0,
+          blockedIPs: stats.securityMetrics.blockedIPs || 0,
+          activeSessions: stats.securityMetrics.activeSessions || 0,
+          lastSecurityIncident: stats.securityMetrics.failedAttempts > 10 ? 'High failure rate detected' : 'None today'
+        });
+      }
+
+      // Simulate live system health updates (keep for now as latency/status)
       setSystemHealth({
-        status: Math.random() > 0.95 ? 'warning' : 'healthy',
+        status: stats.pendingVerifications > 5 ? 'warning' : 'healthy',
         uptime: '99.9%',
         responseTime: Math.floor(120 + Math.random() * 60),
         errorRate: parseFloat((0.01 + Math.random() * 0.05).toFixed(2)),
-        activeConnections: Math.floor(1000 + Math.random() * 500)
+        activeConnections: stats.securityMetrics?.activeSessions || 12
       });
-
-      // Simulate live security metric updates
-      setSecurityMetrics(prev => ({
-        totalLogins: Math.floor(5000 + Math.random() * 2000),
-        failedAttempts: Math.floor(5 + Math.random() * 15),
-        blockedIPs: Math.floor(2 + Math.random() * 5),
-        activeSessions: Math.floor(120 + Math.random() * 80),
-        lastSecurityIncident: prev.lastSecurityIncident === '-' ? 'None today' : prev.lastSecurityIncident
-      }));
 
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data');

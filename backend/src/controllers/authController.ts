@@ -189,6 +189,15 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
+      // Log failed attempt for non-existent user
+      await prisma.securityLog.create({
+        data: {
+          email,
+          eventType: 'LOGIN_FAILURE',
+          ipAddress: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      });
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
@@ -203,9 +212,30 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const isValid = await comparePassword(password, user.password);
 
     if (!isValid) {
+      // Log failed attempt for existing user
+      await prisma.securityLog.create({
+        data: {
+          userId: user.id,
+          email,
+          eventType: 'LOGIN_FAILURE',
+          ipAddress: req.ip,
+          userAgent: req.get('user-agent')
+        }
+      });
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
+
+    // Log successful login
+    await prisma.securityLog.create({
+      data: {
+        userId: user.id,
+        email,
+        eventType: 'LOGIN_SUCCESS',
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent')
+      }
+    });
 
     // Generate token
     const token = generateToken(user.id, user.role);

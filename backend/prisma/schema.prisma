@@ -547,3 +547,18 @@ model BlogPost {
   @@index([lang])
   @@index([publishedAt])
 }
+
+model SecurityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String?
+  eventType String   // 'LOGIN_SUCCESS', 'LOGIN_FAILURE', 'LOGOUT'
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
