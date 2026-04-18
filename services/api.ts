@@ -113,21 +113,18 @@ class ApiService {
         const error = await response.json().catch(() => ({ error: 'Request failed' }));
         const errorMessage = error.error || `HTTP error! status: ${response.status}`;
 
-        // If it's a database connection error, treat as API not available
-        // BUT: Don't do this for Stripe endpoints - Stripe works without database
-        if (!endpoint.includes('/stripe/')) {
+        // In production, NEVER fall back to mock data - show the real error
+        const IS_PROD = (import.meta as any).env.PROD;
+        
+        if (!IS_PROD && !endpoint.includes('/stripe/')) {
           if (errorMessage.includes('Database connection error') ||
             errorMessage.includes('Can\'t reach database') ||
             (errorMessage.includes('database') && errorMessage.includes('Failed to fetch'))) {
             throw new Error('API_NOT_AVAILABLE');
           }
-        }
-
-        // Don't treat "Failed to login/register" as API unavailable for Stripe
-        if (errorMessage.includes('Failed to login') ||
-          errorMessage.includes('Failed to register')) {
-          // Only treat as unavailable if it's not a Stripe endpoint
-          if (!endpoint.includes('/stripe/')) {
+          
+          if (errorMessage.includes('Failed to login') ||
+            errorMessage.includes('Failed to register')) {
             throw new Error('API_NOT_AVAILABLE');
           }
         }

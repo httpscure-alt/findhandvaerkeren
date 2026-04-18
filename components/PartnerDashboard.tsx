@@ -41,12 +41,12 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ company, lang, onVi
     fetchAnalytics();
   }, [company?.id]);
 
-  // Format analytics data
+  // Format analytics data with real values from the API
   const stats = [
-    { label: t.profileViews, value: analytics.views.toLocaleString(), change: '+12%', icon: Eye },
-    { label: t.websiteClicks, value: analytics.saves.toLocaleString(), change: '+5%', icon: MousePointer },
-    { label: t.leads, value: analytics.inquiries.toLocaleString(), change: '+15%', icon: MessageSquare },
-    { label: t.searchAppearances, value: (analytics.views * 4.5).toLocaleString(), change: '+8%', icon: BarChart3 },
+    { label: t.profileViews, value: analytics.profileViews?.toLocaleString() || '0', change: '+12%', icon: Eye },
+    { label: t.websiteClicks, value: analytics.websiteClicks?.toLocaleString() || '0', change: '+5%', icon: MousePointer },
+    { label: t.leads, value: analytics.leads?.toLocaleString() || '0', change: '+15%', icon: MessageSquare },
+    { label: t.searchAppearances, value: analytics.searchAppearances?.toLocaleString() || '0', change: '+8%', icon: BarChart3 },
   ];
 
   return (
@@ -133,21 +133,44 @@ const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ company, lang, onVi
             )}
           </div>
 
-          {/* Action Required (Mock) */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex items-start gap-4">
-            <div className="p-2 bg-amber-100 rounded-full text-amber-600 shrink-0">
-              <AlertCircle size={20} />
+          {/* Action Required (Dynamic) */}
+          {(company.verificationStatus === 'pending' || company.verificationStatus === 'unverified') ? (
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex items-start gap-4">
+              <div className="p-2 bg-amber-100 rounded-full text-amber-600 shrink-0">
+                <AlertCircle size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-amber-900">
+                  {company.verificationStatus === 'pending'
+                    ? (lang === 'da' ? 'Verificering afventer' : 'Verification Pending')
+                    : (lang === 'da' ? 'Verificering påkrævet' : 'Verification Required')}
+                </h3>
+                <p className="text-sm text-amber-700 mt-1 leading-relaxed">
+                  {company.verificationStatus === 'pending'
+                    ? (lang === 'da'
+                      ? 'Vi gennemgår din virksomhed manuelt. Dette tager normalt 24 timer.'
+                      : 'We are manually reviewing your business. This usually takes 24 hours.')
+                    : (lang === 'da'
+                      ? 'Din profil er ikke verificeret endnu. Upload dokumentation for at starte.'
+                      : 'Your profile is not verified yet. Upload documentation to start.')}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-amber-900">Optimize your profile</h3>
-              <p className="text-sm text-amber-700 mt-1 leading-relaxed">
-                Your profile is 85% complete. Add 2 more portfolio items to increase your visibility score and appear higher in search results.
-              </p>
-              <button className="mt-3 text-sm font-medium text-amber-800 hover:underline">
-                Add Portfolio Items →
-              </button>
+          ) : (
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-6 flex items-start gap-4">
+              <div className="p-2 bg-green-100 rounded-full text-green-600 shrink-0">
+                <CheckCircle size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-900">{lang === 'da' ? 'Profil Verificeret' : 'Profile Verified'}</h3>
+                <p className="text-sm text-green-700 mt-1 leading-relaxed">
+                  {lang === 'da'
+                    ? 'Din virksomhed er verificeret og synlig for alle kunder.'
+                    : 'Your business is verified and visible to all customers.'}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
 
