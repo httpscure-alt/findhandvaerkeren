@@ -9,3 +9,12 @@ render-env-paste.txt
 .DS_Store
 uploads/
 *.pem
+
+# Database files
+*.db
+prisma/*.db
+
+# Test scripts & logs
+*.txt
+check-stripe-config.js
+verify_stripe_live.js

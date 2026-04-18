@@ -43,3 +43,10 @@ docs/
 
 # Rich-text notes (often contain pasted secrets)
 *.rtf
+
+# Scripts & Test Files
+*.sh
+test-stripe-api.js
+
+# Text files (often contain pasted keys/logs)
+*.txt
