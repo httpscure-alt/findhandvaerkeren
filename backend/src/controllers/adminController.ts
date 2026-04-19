@@ -272,6 +272,9 @@ export const getAdminStats = async (req: AuthRequest, res: Response): Promise<vo
       totalPartners,
       totalConsumers,
       activeSubscriptions,
+      loginSuccess,
+      loginFailure,
+      totalLoginsToday
     ] = await Promise.all([
       prisma.company.count(),
       prisma.company.count({ where: { isVerified: true } }),
