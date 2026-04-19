@@ -174,13 +174,13 @@ const SecurityLogsPage: React.FC<SecurityLogsPageProps> = ({ lang, onBack }) => 
           <table className="w-full text-left">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Type</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Tidspunkt</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Bruger</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">IP Adresse</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Lokation</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Handling</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'Type' : 'Type'}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'Tidspunkt' : 'Timestamp'}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'Bruger' : 'User'}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'IP Adresse' : 'IP Address'}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'Lokation' : 'Location'}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'Handling' : 'Action'}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{isDa ? 'Status' : 'Status'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
