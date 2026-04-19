@@ -25,9 +25,9 @@ import {
 
 const router = express.Router();
 
-// All admin routes require authentication and admin role
+// All admin routes require authentication and admin role (ADMIN or SUPERADMIN)
 router.use(authenticate);
-router.use(requireRole('ADMIN'));
+router.use(requireRole('ADMIN', 'SUPERADMIN'));
 router.use(adminLimiter);
 
 // Diagnostic Ping
