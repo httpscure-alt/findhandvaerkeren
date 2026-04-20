@@ -225,17 +225,6 @@ const SignupPage: React.FC<SignupPageProps> = ({ lang, role: initialRole, onSucc
               </svg>
               {isDa ? 'Fortsæt med Google' : 'Continue with Google'}
             </button>
-
-            <button
-              type="button"
-              onClick={() => startOAuth('apple')}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-semibold text-sm text-[#1D1D1F]"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                <path d="M16.365 1.43c0 1.14-.41 2.21-1.23 3.2-.99 1.18-2.19 1.87-3.49 1.76-.16-1.1.45-2.26 1.38-3.31.51-.59 1.17-1.09 1.91-1.44.73-.35 1.44-.54 2.07-.58.23.12.36.25.36.37ZM21.75 17.26c-.28.66-.62 1.26-1.02 1.8-.55.77-1 1.3-1.35 1.61-.55.51-1.14.77-1.78.78-.46 0-1.01-.13-1.66-.39-.66-.26-1.27-.39-1.82-.39-.58 0-1.21.13-1.9.39-.69.26-1.25.4-1.68.41-.61.03-1.22-.24-1.82-.81-.39-.34-.86-.9-1.42-1.68-.6-.82-1.09-1.78-1.49-2.87-.43-1.18-.65-2.32-.65-3.43 0-1.27.27-2.36.82-3.28.43-.73 1.01-1.3 1.73-1.72.72-.42 1.49-.64 2.32-.66.46 0 1.06.14 1.81.42.74.28 1.22.42 1.43.42.16 0 .68-.16 1.56-.48.83-.3 1.53-.43 2.11-.39 1.56.13 2.73.74 3.52 1.84-1.39.84-2.08 2.01-2.07 3.52.01 1.17.44 2.14 1.28 2.92.38.36.81.64 1.28.83-.1.29-.2.56-.32.8Z"/>
-              </svg>
-              {isDa ? 'Fortsæt med Apple' : 'Continue with Apple'}
-            </button>
           </div>
 
           <div className="relative my-6">
