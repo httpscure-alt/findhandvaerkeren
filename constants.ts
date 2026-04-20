@@ -48,6 +48,33 @@ export const CATEGORIES = ["All", ...CATEGORY_LIST.map(c => c.id)];
 export const CORE_CATEGORIES = CATEGORY_LIST.filter(c => c.isCore).map(c => c.id);
 export const POPULAR_CATEGORIES = CORE_CATEGORIES;
 
+export const DANISH_CITIES = [
+  "København",
+  "Aarhus",
+  "Odense",
+  "Aalborg",
+  "Esbjerg",
+  "Randers",
+  "Kolding",
+  "Horsens",
+  "Vejle",
+  "Roskilde",
+  "Frederiksberg",
+  "Helsingør",
+  "Hørsholm",
+  "Silkeborg",
+  "Næstved",
+  "Fredericia",
+  "Viborg",
+  "Køge",
+  "Holstebro",
+  "Slagelse",
+  "Taastrup",
+  "Hillerød",
+  "Sønderborg",
+  "Svendborg"
+];
+
 export const MOCK_CONSUMER: ConsumerUser = {
   id: 'c1',
   name: 'Anders Jensen',

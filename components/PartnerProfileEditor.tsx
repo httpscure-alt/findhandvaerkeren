@@ -3,6 +3,7 @@ import { Company, Language } from '../types';
 import { api } from '../services/api';
 import { X, Plus, Trash2, Loader2, Save } from 'lucide-react';
 import { translations } from '../translations';
+import { CATEGORY_LIST, DANISH_CITIES } from '../constants';
 
 import { useToast } from '../hooks/useToast';
 
@@ -121,24 +122,43 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <input
-                  type="text"
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent bg-white"
                   required
-                />
+                >
+                  <option value="" disabled>Select a category</option>
+                  {CATEGORY_LIST.filter(c => c.isCore).map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {(t as any).categoryNames?.[cat.id] || cat.id}
+                    </option>
+                  ))}
+                  <optgroup label="Other Categories">
+                    {CATEGORY_LIST.filter(c => c.isLongTail).map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {(t as any).categoryNames?.[cat.id] || cat.id}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input
-                  type="text"
+                <select
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-nexus-accent bg-white"
                   required
-                />
+                >
+                  <option value="" disabled>Select a city</option>
+                  {DANISH_CITIES.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

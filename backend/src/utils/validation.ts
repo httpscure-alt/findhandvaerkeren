@@ -64,6 +64,6 @@ export const companyValidation = [
   body('category').trim().notEmpty(),
   body('location').trim().notEmpty(),
   body('contactEmail').isEmail().normalizeEmail(),
-  body('website').optional().isURL(),
+  body('website').optional({ checkFalsy: true }).isURL(),
   body('tags').optional().isArray(),
 ];
