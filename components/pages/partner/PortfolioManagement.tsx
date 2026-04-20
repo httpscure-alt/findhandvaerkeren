@@ -117,7 +117,8 @@ const PortfolioManagement: React.FC<PortfolioManagementProps> = ({ portfolio, co
                   <ImageIcon size={48} className="mb-2 opacity-20" />
                   <span className="text-sm">{lang === 'da' ? 'Ingen billede' : 'No image'}</span>
                 </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center gap-3">
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <button
                   onClick={() => handleEdit(index)}
                   className="p-3 bg-white rounded-full text-nexus-accent hover:scale-110 transition-transform shadow-lg"
