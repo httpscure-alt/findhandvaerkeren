@@ -14,6 +14,7 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
   const { setLang } = useMarketplace();
   const navigate = useNavigate();
   const isDa = lang === 'da';
+  const year = Math.max(2026, new Date().getFullYear());
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -51,90 +52,127 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
             </div>
           </div>
 
-          <div className="md:col-span-2 md:col-start-7">
-            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'For Forbrugere' : 'For Consumers'}</h3>
-            <ul className="space-y-4">
-              <li>
-                <button onClick={() => handleNavigate('/browse')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.nav.findPros}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigate('/get-offers')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {lang === 'da' ? 'Få 3 tilbud' : 'Get 3 quotes'}
-                </button>
-              </li>
-            </ul>
-          </div>
+          <div className="md:col-span-7">
+            <div className="grid grid-cols-2 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">
+                  {lang === 'da' ? 'For Forbrugere' : 'For Consumers'}
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/browse')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.nav.findPros}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/get-offers')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {lang === 'da' ? 'Få 3 tilbud' : 'Get 3 quotes'}
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-          <div className="md:col-span-2">
-            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'Marketing' : 'Marketing'}</h3>
-            <ul className="space-y-4">
-              <li>
-                <button onClick={() => handleNavigate('/signup?role=PARTNER')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {isDa ? 'Bliv verificeret' : 'Get verified'}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigate('/pricing')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.nav.pricing}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigate('/for-businesses')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.nav.forBusinesses}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigate('/marketing')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.nav.marketing}
-                </button>
-              </li>
-            </ul>
-          </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">
+                  {lang === 'da' ? 'Marketing' : 'Marketing'}
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/signup?role=PARTNER')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {isDa ? 'Bliv verificeret' : 'Get verified'}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/pricing')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.nav.pricing}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/marketing')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.nav.marketing}
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-          <div className="md:col-span-2">
-            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'Virksomhed' : 'Company'}</h3>
-            <ul className="space-y-4">
-              <li>
-                <button onClick={() => handleNavigate('/about')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.footer.about}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigate('/contact')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.footer.contact}
-                </button>
-              </li>
-            </ul>
-          </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">
+                  {lang === 'da' ? 'Virksomhed' : 'Company'}
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/for-businesses')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.nav.forBusinesses}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/about')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.footer.about}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/contact')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.footer.contact}
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-          <div className="md:col-span-2">
-            <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">{lang === 'da' ? 'Juridisk' : 'Legal'}</h3>
-            <ul className="space-y-4">
-              <li>
-                <button onClick={() => handleNavigate('/terms')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.footer.terms}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavigate('/privacy')} className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors">
-                  {t.footer.privacy}
-                </button>
-              </li>
-            </ul>
+              <div>
+                <h3 className="text-sm font-bold text-[#1D1D1F] mb-6 uppercase tracking-wider">
+                  {lang === 'da' ? 'Juridisk' : 'Legal'}
+                </h3>
+                <ul className="space-y-4">
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/terms')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.footer.terms}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleNavigate('/privacy')}
+                      className="text-sm text-[#86868B] font-medium hover:text-[#1D1D1F] transition-colors"
+                    >
+                      {t.footer.privacy}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[#86868B] text-xs font-medium tracking-tight">
-            © 2024 Findhåndværkeren. {t.footer.rights}
+            © {year} Findhåndværkeren. {t.footer.rights}
           </p>
-          <div className="flex items-center gap-8">
-            <span className="text-[#86868B] text-xs font-semibold hover:text-[#1D1D1F] cursor-pointer transition-colors">LinkedIn</span>
-            <span className="text-[#86868B] text-xs font-semibold hover:text-[#1D1D1F] cursor-pointer transition-colors">Facebook</span>
-            <span className="text-[#86868B] text-xs font-semibold hover:text-[#1D1D1F] cursor-pointer transition-colors">Trustpilot</span>
-          </div>
         </div>
       </div>
     </footer>
