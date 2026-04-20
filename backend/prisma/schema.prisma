@@ -47,6 +47,7 @@ model Company {
   location              String
   tags                  String[]           @default([])
   pricingTier           PricingTier        @default(Basic)
+  slug                  String             @unique @default(cuid())
   contactEmail          String
   website               String?
   phone                 String?
@@ -82,6 +83,7 @@ model Company {
   marketingTransactions  MarketingTransaction[]
 
   @@index([ownerId])
+  @@index([slug])
   @@index([category])
   @@index([location])
   @@index([isVerified])

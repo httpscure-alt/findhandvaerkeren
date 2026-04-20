@@ -110,8 +110,13 @@ export const getCompany = async (req: Request, res: Response): Promise<void> => 
   try {
     const { id } = req.params;
 
-    const company = await prisma.company.findUnique({
-      where: { id },
+    const company = await prisma.company.findFirst({
+      where: {
+        OR: [
+          { id: id },
+          { slug: id }
+        ]
+      },
       include: {
         owner: {
           select: {

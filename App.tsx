@@ -22,7 +22,7 @@ import ConsumerSidebar from './components/layout/ConsumerSidebar';
 import PartnerSidebar from './components/layout/PartnerSidebar';
 import AdminSidebar from './components/layout/AdminSidebar';
 import { Company, ModalState } from './types';
-import { useLocation, useNavigate, Routes, Route, Navigate } from 'react-router-dom';
+import { useLocation, useNavigate, Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 // Visitor Pages
 import CategoriesPage from './components/pages/visitor/CategoriesPage';
@@ -78,6 +78,27 @@ import BlogManagementPage from './components/pages/admin/BlogManagementPage';
 import BillingSuccessPage from './components/pages/billing/BillingSuccessPage';
 import BillingCancelPage from './components/pages/billing/BillingCancelPage';
 
+// Wrapper to handle direct URL navigation by slug or ID
+const ProfileRouteWrapper: React.FC<{
+  companies: Company[],
+  selectedCompany: Company | null,
+  lang: Language,
+}> = ({ companies, selectedCompany, lang }) => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  
+  // If clicked directly in UI, use selectedCompany
+  if (selectedCompany && (selectedCompany.id === id || (selectedCompany as any).slug === id)) {
+    return <ProfileView company={selectedCompany} onBack={() => navigate('/browse')} lang={lang} onOpenModal={() => { }} />;
+  }
+
+  // Otherwise find by slug or CUID from the loaded companies
+  const foundCompany = companies.find((c: any) => c.slug === id || c.id === id);
+  
+  // Pass foundCompany (could be undefined if companies haven't loaded yet)
+  return <ProfileView company={foundCompany as Company} onBack={() => navigate('/browse')} lang={lang} onOpenModal={() => { }} />;
+};
+
 const App: React.FC = () => {
   const { user, logout, isAuthenticated, refreshUser, upgradeAccount, showAuthModal, setShowAuthModal } = useAuth();
   const location = useLocation();
@@ -110,7 +131,7 @@ const App: React.FC = () => {
 
   const handleCompanyClick = (company: Company) => {
     setSelectedCompany(company);
-    navigate(`/profile/${company.id}`);
+    navigate(`/profile/${(company as any).slug || company.id}`);
   };
 
   const handleLogout = () => {
@@ -206,7 +227,7 @@ const App: React.FC = () => {
             <Route path="/get-offers" element={<Get3QuotesPage lang={lang} />} />
             <Route path="/mock/get-offers-modal-c" element={<MockGet3QuotesModalCPage lang={lang} />} />
 
-            <Route path="/profile/:id" element={<ProfileView company={selectedCompany || companies[0]} onBack={() => navigate('/browse')} lang={lang} onOpenModal={() => { }} />} />
+            <Route path="/profile/:id" element={<ProfileRouteWrapper companies={companies} selectedCompany={selectedCompany} lang={lang} />} />
 
             <Route path="/how-it-works" element={<HowItWorksPage lang={lang} onGetStarted={() => navigate('/pricing')} />} />
             <Route path="/about" element={<AboutPage lang={lang} />} />

@@ -20,10 +20,23 @@ export const saveBasicInfo = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // Generate unique SEO friendly slug
+    let baseSlug = name.toLowerCase().trim().replace(/[\s\W-]+/g, '-');
+    if (!baseSlug) baseSlug = 'company';
+    let slug = baseSlug;
+    let counter = 1;
+    
+    // Ensure slug is totally unique across the platform
+    while (await prisma.company.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     // Create company with basic info
     const company = await prisma.company.create({
       data: {
         name,
+        slug,
         category,
         location,
         contactEmail,
