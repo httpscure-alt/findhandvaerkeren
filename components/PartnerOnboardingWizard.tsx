@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import { CATEGORY_LIST } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import Pricing from './Pricing';
+import { FileUpload } from './common/FileUpload';
 
 interface PartnerOnboardingWizardProps {
   lang: Language;
@@ -269,21 +270,31 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">{lang === 'da' ? 'Logo URL' : 'Logo URL'}</label>
-                    <input
-                      type="url"
-                      value={formData.logoUrl}
-                      onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                      className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
+                    <FileUpload
+                      label={lang === 'da' ? 'Logo' : 'Logo'}
+                      lang={lang}
+                      currentUrl={formData.logoUrl}
+                      onUpload={async (file) => {
+                        const result = await api.uploadImage(file);
+                        setFormData({ ...formData, logoUrl: result.imageUrl });
+                        return result.imageUrl;
+                      }}
+                      accept="image/*"
+                      maxSize={2}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">{lang === 'da' ? 'Banner URL' : 'Banner URL'}</label>
-                    <input
-                      type="url"
-                      value={formData.bannerUrl}
-                      onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
-                      className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
+                     <FileUpload
+                      label={lang === 'da' ? 'Banner Billede' : 'Banner Image'}
+                      lang={lang}
+                      currentUrl={formData.bannerUrl}
+                      onUpload={async (file) => {
+                        const result = await api.uploadImage(file);
+                        setFormData({ ...formData, bannerUrl: result.imageUrl });
+                        return result.imageUrl;
+                      }}
+                      accept="image/*"
+                      maxSize={5}
                     />
                   </div>
                 </div>
