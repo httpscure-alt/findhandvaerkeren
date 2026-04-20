@@ -143,9 +143,9 @@ const PortfolioManagement: React.FC<PortfolioManagementProps> = ({ portfolio, co
                     lang={lang}
                     currentUrl={item.imageUrl}
                     onUpload={async (file) => {
-                      const result = await api.uploadLogo(file);
-                      handleUpdate(index, 'imageUrl', result.logoUrl);
-                      return result.logoUrl;
+                      const result = await api.uploadImage(file);
+                      handleUpdate(index, 'imageUrl', result.imageUrl);
+                      return result.imageUrl;
                     }}
                     accept="image/*"
                     maxSize={5}

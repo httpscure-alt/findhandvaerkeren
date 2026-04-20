@@ -7,6 +7,7 @@ import {
   uploadLogo,
   uploadBanner,
   uploadDocument,
+  uploadImage,
 } from '../controllers/uploadController';
 
 const router = Router();
@@ -31,6 +32,9 @@ router.post('/banner', requireRole('PARTNER'), bannerUpload.single('file'), uplo
 
 // Document upload (partner only)
 router.post('/document', requireRole('PARTNER'), documentUpload.single('file'), uploadDocument);
+
+// Generic image upload (partner only) - reuse banner storage for high Quality
+router.post('/image', requireRole('PARTNER'), bannerUpload.single('file'), uploadImage);
 
 export default router;
 

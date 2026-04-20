@@ -148,6 +148,26 @@ export const uploadDocument = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
+// Generic image upload (no side effects)
+export const uploadImage = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const file = req.file;
+
+    if (!file) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
+
+    // Just return the Cloudinary URL (file.path)
+    res.json({
+      imageUrl: file.path,
+      message: 'Image uploaded successfully',
+    });
+  } catch (error) {
+    throw new AppError('Failed to upload image', 500);
+  }
+};
+
 
 
 

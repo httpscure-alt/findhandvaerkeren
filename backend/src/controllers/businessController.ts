@@ -73,9 +73,35 @@ export const updateCompanyListing = async (req: AuthRequest, res: Response): Pro
     const userId = req.userId!;
     const updateData = req.body;
 
+    // Sanitize update data to prevent Prisma "invalid value" errors
+    const allowedFields = [
+      'name',
+      'description',
+      'shortDescription',
+      'contactEmail',
+      'website',
+      'logoUrl',
+      'bannerUrl',
+      'category',
+      'location',
+      'phone',
+      'cvrNumber',
+      'vatNumber',
+      'legalName',
+      'businessAddress',
+    ];
+
+    const sanitizedData: any = {};
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        // Map empty strings to null for optional fields in database
+        sanitizedData[field] = updateData[field] === '' ? null : updateData[field];
+      }
+    }
+
     const company = await prisma.company.update({
       where: { ownerId: userId },
-      data: updateData,
+      data: sanitizedData,
       include: {
         services: true,
         portfolio: true,
@@ -84,9 +110,12 @@ export const updateCompanyListing = async (req: AuthRequest, res: Response): Pro
     });
 
     res.json({ company });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update company listing error:', error);
-    res.status(500).json({ error: 'Failed to update listing' });
+    res.status(500).json({ 
+      error: 'Failed to update listing',
+      details: error.message || 'Unknown validation error'
+    });
   }
 };
 
