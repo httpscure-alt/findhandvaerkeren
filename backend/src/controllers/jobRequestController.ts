@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { selectCompaniesForJobRequest } from '../services/leadMatching';
 
 
 // Consumer: Create a new Job Request
@@ -8,6 +9,18 @@ export const createJobRequest = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId; // From authMiddleware (optional now)
         const { title, description, category, postalCode, budget, images, guestName, guestEmail, guestPhone } = req.body;
+
+        // Normalize category: UI may submit slug (e.g. "tømrer") while companies store name (e.g. "Tømrer")
+        const rawCategory = String(category || '').trim();
+        const categoryRow = rawCategory
+            ? await prisma.category.findFirst({
+                where: {
+                    OR: [{ slug: rawCategory }, { name: rawCategory }],
+                },
+                select: { name: true },
+            })
+            : null;
+        const normalizedCategory = categoryRow?.name || rawCategory;
 
         const jobRequest = await prisma.jobRequest.create({
             data: {
@@ -17,7 +30,7 @@ export const createJobRequest = async (req: Request, res: Response) => {
                 guestPhone,
                 title,
                 description,
-                category,
+                category: normalizedCategory,
                 postalCode,
                 budget,
                 images: images || [],
@@ -25,60 +38,27 @@ export const createJobRequest = async (req: Request, res: Response) => {
             },
         });
 
-        // Smart matching logic:
-        // 1. Match by category
-        // 2. Prioritize companies in same postal code area (first 2 digits)
-        // 3. Randomize to give all companies fair chance
-        // 4. Limit to 3 matches (for "3 quotes" feature)
-
-        const postalPrefix = postalCode.substring(0, 2); // e.g., "21" from "2100"
-
-        // Find all companies in same category
-        const allMatchingCompanies = await prisma.company.findMany({
-            where: {
-                category: category,
-            },
+        const selectedCompanies = await selectCompaniesForJobRequest({
+            category: normalizedCategory,
+            postalCode,
+            min: 3,
+            max: 5,
         });
 
-        // Separate into local (same postal prefix) and non-local
-        const localCompanies = allMatchingCompanies.filter(c =>
-            c.location?.startsWith(postalPrefix)
-        );
-        const otherCompanies = allMatchingCompanies.filter(c =>
-            !c.location?.startsWith(postalPrefix)
-        );
+        // Create LeadMatches (idempotent due to @@unique(jobRequestId, companyId))
+        await prisma.leadMatch.createMany({
+            data: selectedCompanies.map((company) => ({
+                jobRequestId: jobRequest.id,
+                companyId: company.id,
+                status: 'pending',
+            })),
+            skipDuplicates: true,
+        });
 
-        // Shuffle arrays for fair distribution
-        const shuffleArray = (array: any[]) => {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        };
-
-        const shuffledLocal = shuffleArray(localCompanies);
-        const shuffledOther = shuffleArray(otherCompanies);
-
-        // Prioritize local, then fill with others, limit to 3
-        const selectedCompanies = [
-            ...shuffledLocal.slice(0, 2),  // Up to 2 local companies
-            ...shuffledOther.slice(0, 3)   // Fill remaining with others
-        ].slice(0, 3); // Final limit: 3 companies
-
-        // Create LeadMatches
-        const matches = await Promise.all(
-            selectedCompanies.map(company =>
-                prisma.leadMatch.create({
-                    data: {
-                        jobRequestId: jobRequest.id,
-                        companyId: company.id,
-                        status: 'pending'
-                    }
-                })
-            )
-        );
+        const matches = await prisma.leadMatch.findMany({
+            where: { jobRequestId: jobRequest.id },
+            select: { id: true },
+        });
 
         res.status(201).json({
             message: 'Job request created',
@@ -167,11 +147,18 @@ export const submitQuote = async (req: Request, res: Response) => {
             return;
         }
 
+        const priceNumber =
+            price === null || price === undefined || price === ''
+                ? null
+                : Number.isFinite(Number(price))
+                    ? Number(price)
+                    : null;
+
         const quote = await prisma.quote.create({
             data: {
                 matchId,
-                price: parseFloat(price),
-                message,
+                price: priceNumber,
+                message: String(message || ''),
                 status: 'sent'
             }
         });

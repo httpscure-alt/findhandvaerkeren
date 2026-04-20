@@ -17,6 +17,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithSupabase: (accessToken: string, roleHint?: 'CONSUMER' | 'PARTNER') => Promise<void>;
   register: (email: string, password: string, name?: string, firstName?: string, lastName?: string, role?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
@@ -55,8 +56,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               setUser(freshUser);
               localStorage.setItem('user', JSON.stringify(freshUser));
             })
-            .catch(() => {
-              // API not available, keep using stored user
+            .catch((err) => {
+              // If user is not found in DB (after reset) or token is invalid, force logout
+              const status = err.status || (err.message === 'AUTHENTICATION_REQUIRED' ? 401 : null);
+              if (status === 401 || status === 404) {
+                logout();
+              }
             });
         }
       } catch {
@@ -102,6 +107,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const loginWithSupabase = async (accessToken: string, roleHint?: 'CONSUMER' | 'PARTNER') => {
+    const { user, token } = await api.loginWithSupabase(accessToken, roleHint);
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setToken(token);
+    setUser(user);
+  };
+
   const register = async (email: string, password: string, name?: string, firstName?: string, lastName?: string, role?: string) => {
     try {
       const { user, token } = await api.register({ email, password, name, firstName, lastName, role });
@@ -127,8 +140,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { user: freshUser } = await api.getMe();
       setUser(freshUser);
       localStorage.setItem('user', JSON.stringify(freshUser));
-    } catch (error) {
+    } catch (error: any) {
       if ((import.meta as any).env.DEV) console.error('Failed to refresh user data:', error);
+      // Force logout if user no longer exists in DB or token is invalid
+      const status = error.status || (error.message === 'AUTHENTICATION_REQUIRED' ? 401 : null);
+      if (status === 401 || status === 404) {
+        logout();
+      }
     }
   };
 
@@ -151,6 +169,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user,
         token,
         login,
+        loginWithSupabase,
         register,
         logout,
         refreshUser,

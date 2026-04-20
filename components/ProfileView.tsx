@@ -17,10 +17,7 @@ interface ProfileViewProps {
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal, lang, isOwner, onEdit }) => {
-  const t = translations[lang].profile;
-  // Map English tab names to translated tab names if necessary, or just use keys
-  const tabs = [t.about, t.services, t.portfolio, t.testimonials];
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+  const [activeTab, setActiveTab] = useState('');
   const [services, setServices] = useState(company?.services || []);
   const [portfolio, setPortfolio] = useState(company?.portfolio || []);
   const [testimonials, setTestimonials] = useState(company?.testimonials || []);
@@ -83,7 +80,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal,
 
   if (!company) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <LoadingSkeleton variant="card" className="h-96 w-full mb-8" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <LoadingSkeleton variant="card" className="col-span-2 h-64" />
@@ -93,7 +90,19 @@ const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal,
     );
   }
 
-  // The t variable is already defined above the if(!company) check for hook ordering stability
+  // Safe translation access after null check
+  const t = translations[lang]?.profile || {} as any;
+  const tabs = [
+    t.about || 'About', 
+    t.services || 'Services', 
+    t.portfolio || 'Portfolio', 
+    t.testimonials || 'Testimonials'
+  ];
+  
+  // Set initial tab if not set
+  if (!activeTab && tabs.length > 0) {
+    setActiveTab(tabs[0]);
+  }
 
   const renderServices = () => {
     if (isLoadingServices) {

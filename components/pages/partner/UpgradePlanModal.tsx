@@ -8,7 +8,7 @@ interface UpgradePlanModalProps {
   isOpen: boolean;
   onClose: () => void;
   lang: Language;
-  currentPlan: string;
+  currentPlan?: string | null;
   onSelectPlan: (planId: string, planName: string, monthlyPrice: number, billingCycle?: 'monthly' | 'annual') => void;
 }
 
@@ -104,7 +104,7 @@ const UpgradePlanModal: React.FC<UpgradePlanModalProps> = ({ isOpen, onClose, la
         <div className="grid grid-cols-1 gap-6 mb-6 max-w-2xl mx-auto">
           {plans.map((plan) => {
             const isSelected = selectedPlan === plan.id;
-            const isCurrent = currentPlan === plan.id;
+            const isCurrent = !!currentPlan && currentPlan === plan.id;
 
             return (
               <div
@@ -175,7 +175,7 @@ const UpgradePlanModal: React.FC<UpgradePlanModalProps> = ({ isOpen, onClose, la
             disabled={!selectedPlan}
             className="px-6 py-2 bg-[#1D1D1F] text-white rounded-xl font-medium hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {lang === 'da' ? 'Kontakt os for opgradering' : 'Contact Support to Upgrade'}
+            {lang === 'da' ? 'Fortsæt til betaling' : 'Continue to payment'}
             <ArrowRight size={18} />
           </button>
         </div>

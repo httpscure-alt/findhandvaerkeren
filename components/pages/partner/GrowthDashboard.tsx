@@ -40,6 +40,10 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
     const [isSuccess, setIsSuccess] = useState(false);
     const [metrics, setMetrics] = useState<any>(null);
     const [loadingMetrics, setLoadingMetrics] = useState(true);
+    const [hasGrowthAccess, setHasGrowthAccess] = useState<boolean>(false);
+    const [campaigns, setCampaigns] = useState<any[]>([]);
+    const [weeklySeo, setWeeklySeo] = useState<any[]>([]);
+    const [weeklyAds, setWeeklyAds] = useState<any[]>([]);
     const toast = useToast();
 
     // Map tier ID to readable name/price
@@ -56,7 +60,34 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
         return mapping[tierId] || { name: 'Unknown Tier', price: '-' };
     };
 
-    // ... fetch metrics ...
+    React.useEffect(() => {
+        const load = async () => {
+            try {
+                setLoadingMetrics(true);
+                const perf: any = await api.getPerformanceMetrics(company.id);
+                setHasGrowthAccess(!!perf?.hasAccess);
+                setMetrics(perf?.metrics || null);
+                const dash = await api.getGrowthDashboard(company.id);
+                setCampaigns(dash.campaigns || []);
+                if (perf?.hasAccess) {
+                    const [seoWeekly, adsWeekly] = await Promise.all([
+                        api.getWeeklyPerformanceMetrics(company.id, { type: 'SEO', weeks: 12 }),
+                        api.getWeeklyPerformanceMetrics(company.id, { type: 'ADS', weeks: 12 }),
+                    ]);
+                    setWeeklySeo(seoWeekly.weekly || []);
+                    setWeeklyAds(adsWeekly.weekly || []);
+                } else {
+                    setWeeklySeo([]);
+                    setWeeklyAds([]);
+                }
+            } catch (e: any) {
+                if ((import.meta as any).env.DEV) console.error('Failed to load growth dashboard:', e);
+            } finally {
+                setLoadingMetrics(false);
+            }
+        };
+        load();
+    }, [company.id]);
 
     // Sync state with URL if it changes 
     React.useEffect(() => {
@@ -104,6 +135,16 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
         try {
             toast.info(lang === 'da' ? 'Sender dig til sikker betaling...' : 'Redirecting to secure payment...');
 
+            // Create a GrowthRequest so Admin can see it immediately (even before payment completes).
+            // This is safe to retry; worst case creates duplicate requests which admins can close.
+            await api.submitGrowthRequest({
+                services: ['seo'],
+                details: {
+                    ...seoForm,
+                    tier: tierToUse,
+                },
+            });
+
             // Call Stripe checkout for SEO
             const data = await api.createCheckoutSession({
                 serviceType: 'seo',
@@ -142,6 +183,15 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
         setIsSubmitting(true);
         try {
             toast.info(lang === 'da' ? 'Sender dig til sikker betaling...' : 'Redirecting to secure payment...');
+
+            // Create a GrowthRequest so Admin can see it immediately (even before payment completes).
+            await api.submitGrowthRequest({
+                services: ['ads'],
+                details: {
+                    ...adsForm,
+                    tier: tierToUse,
+                },
+            });
 
             // Call Stripe checkout for Ads
             const data = await api.createCheckoutSession({
@@ -229,6 +279,69 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
                     ))}
                 </div>
             </div>
+
+            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-lg text-[#1D1D1F]">{lang === 'da' ? 'Ugentlig performance' : 'Weekly performance'}</h3>
+                    <span className="text-[10px] font-bold text-nexus-subtext bg-gray-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                        {lang === 'da' ? 'Sidste 12 uger' : 'Last 12 weeks'}
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="p-5 rounded-[1.75rem] bg-gray-50 border border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                                <span className="text-sm font-bold text-[#1D1D1F]">SEO</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-nexus-subtext">{weeklySeo.length} {lang === 'da' ? 'uger' : 'weeks'}</span>
+                        </div>
+                        {weeklySeo.length === 0 ? (
+                            <p className="text-sm text-nexus-subtext italic">{lang === 'da' ? 'Ingen uge-data endnu.' : 'No weekly data yet.'}</p>
+                        ) : (
+                            <div className="space-y-2">
+                                {weeklySeo.slice(-6).reverse().map((w: any) => (
+                                    <div key={w.id} className="flex items-center justify-between text-sm">
+                                        <span className="text-nexus-subtext font-medium">
+                                            {new Date(w.weekStart).toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US')}
+                                        </span>
+                                        <span className="font-bold text-[#1D1D1F]">
+                                            {w.impressions?.toLocaleString?.() || w.impressions || 0} imp · {w.clicks?.toLocaleString?.() || w.clicks || 0} clk · {w.conversions?.toLocaleString?.() || w.conversions || 0} conv
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-5 rounded-[1.75rem] bg-gray-50 border border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+                                <span className="text-sm font-bold text-[#1D1D1F]">Ads</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-nexus-subtext">{weeklyAds.length} {lang === 'da' ? 'uger' : 'weeks'}</span>
+                        </div>
+                        {weeklyAds.length === 0 ? (
+                            <p className="text-sm text-nexus-subtext italic">{lang === 'da' ? 'Ingen uge-data endnu.' : 'No weekly data yet.'}</p>
+                        ) : (
+                            <div className="space-y-2">
+                                {weeklyAds.slice(-6).reverse().map((w: any) => (
+                                    <div key={w.id} className="flex items-center justify-between text-sm">
+                                        <span className="text-nexus-subtext font-medium">
+                                            {new Date(w.weekStart).toLocaleDateString(lang === 'da' ? 'da-DK' : 'en-US')}
+                                        </span>
+                                        <span className="font-bold text-[#1D1D1F]">
+                                            {w.impressions?.toLocaleString?.() || w.impressions || 0} imp · {w.clicks?.toLocaleString?.() || w.clicks || 0} clk · {w.conversions?.toLocaleString?.() || w.conversions || 0} conv
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
@@ -290,48 +403,29 @@ const GrowthDashboard: React.FC<GrowthDashboardProps> = ({ company, lang }) => {
         );
     };
 
-    const renderCampaignStatus = () => (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                <h3 className="font-bold text-lg text-[#1D1D1F] mb-6">{lang === 'da' ? 'Aktive Kampagner' : 'Active Campaigns'}</h3>
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-blue-500 shadow-sm">
-                                <Search size={24} />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-sm">Local SEO Foundation</h4>
-                                <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">{lang === 'da' ? 'Aktiv' : 'Active'}</p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-xs font-bold text-[#1D1D1F]">1.000 DKK / md.</p>
-                            <p className="text-[10px] text-nexus-subtext italic">Næste faktura: 01. mar</p>
-                        </div>
+    const renderCampaignStatus = () => {
+        const seo = campaigns.find((c) => c.type === 'SEO');
+        const ads = campaigns.find((c) => c.type === 'ADS');
+
+        const row = (label: string, c: any) => (
+            <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <div className="font-bold text-[#1D1D1F]">{label}</div>
+                    <div className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
+                        {c?.status || 'NOT_STARTED'}
                     </div>
                 </div>
+                {c?.notes ? <div className="text-sm text-nexus-subtext mt-3 whitespace-pre-wrap">{c.notes}</div> : null}
             </div>
+        );
 
-            <div className="bg-indigo-600 text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-                <div className="relative z-10">
-                    <h3 className="text-2xl font-bold mb-4">{lang === 'da' ? 'Klar til at skalere?' : 'Ready to scale?'}</h3>
-                    <p className="text-indigo-100 mb-8 max-w-sm">
-                        {lang === 'da'
-                            ? 'Aktiver Google Ads og nå ud til flere kunder præcis når de søger.'
-                            : 'Enable Google Ads and reach more customers exactly when they are searching.'}
-                    </p>
-                    <button
-                        onClick={() => setActiveTab('ads')}
-                        className="px-8 py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-lg"
-                    >
-                        {lang === 'da' ? 'Aktiver Ads nu' : 'Activate Ads now'}
-                    </button>
-                </div>
-                <TrendingUp size={120} className="absolute -bottom-4 -right-4 text-white/10" />
+        return (
+            <div className="space-y-4 animate-in fade-in duration-500">
+                {row(lang === 'da' ? 'SEO status' : 'SEO status', seo)}
+                {row(lang === 'da' ? 'Google Ads status' : 'Google Ads status', ads)}
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

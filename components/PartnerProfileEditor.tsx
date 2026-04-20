@@ -24,17 +24,17 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: company.name,
-    description: company.description,
-    shortDescription: company.shortDescription,
-    category: company.category,
-    location: company.location,
-    contactEmail: company.contactEmail,
-    website: company.website || '',
-    tags: company.tags.join(', '),
+    name: company?.name || '',
+    description: company?.description || '',
+    shortDescription: company?.shortDescription || '',
+    category: company?.category || '',
+    location: company?.location || '',
+    contactEmail: company?.contactEmail || '',
+    website: company?.website || '',
+    tags: company?.tags?.join(', ') || '',
   });
-  const [services, setServices] = useState(company.services || []);
-  const [portfolio, setPortfolio] = useState(company.portfolio || []);
+  const [services, setServices] = useState(company?.services || []);
+  const [portfolio, setPortfolio] = useState(company?.portfolio || []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

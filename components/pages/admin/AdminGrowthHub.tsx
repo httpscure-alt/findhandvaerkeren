@@ -66,10 +66,24 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
         conversions: '',
         trend: ''
     });
+    const [metricsType, setMetricsType] = useState<'SEO' | 'ADS'>('SEO');
+    const [weeklyForm, setWeeklyForm] = useState({
+        weekStart: '',
+        impressions: '',
+        clicks: '',
+        conversions: '',
+        spend: ''
+    });
+    const [weeklyType, setWeeklyType] = useState<'SEO' | 'ADS'>('SEO');
     const [logForm, setLogForm] = useState({
         title: '',
         description: '',
         type: 'seo' as 'seo' | 'ads'
+    });
+    const [campaignForm, setCampaignForm] = useState({
+        type: 'SEO' as 'SEO' | 'ADS',
+        status: 'NOT_STARTED',
+        notes: '',
     });
 
     const handleUpdateMetrics = async (e: React.FormEvent) => {
@@ -78,6 +92,7 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
 
         try {
             const metrics = {
+                type: metricsType,
                 impressions: parseInt(metricsForm.impressions),
                 clicks: parseInt(metricsForm.clicks),
                 conversions: parseInt(metricsForm.conversions),
@@ -87,6 +102,7 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
             toast.success(isDa ? 'Metrics opdateret' : 'Metrics updated');
             setSelectedCompanyId(null);
             setMetricsForm({ impressions: '', clicks: '', conversions: '', trend: '' });
+            setMetricsType('SEO');
         } catch (error) {
             toast.error(isDa ? 'Kunne ikke opdatere metrics' : 'Failed to update metrics');
         }
@@ -103,6 +119,45 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
             setLogForm({ title: '', description: '', type: 'seo' });
         } catch (error) {
             toast.error(isDa ? 'Kunne ikke tilføje historik' : 'Failed to add log');
+        }
+    };
+
+    const handleUpdateCampaign = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCompanyId) return;
+        try {
+            await api.updateCampaignStatus(selectedCompanyId, {
+                type: campaignForm.type,
+                status: campaignForm.status,
+                notes: campaignForm.notes || undefined,
+            });
+            toast.success(isDa ? 'Kampagnestatus opdateret' : 'Campaign status updated');
+            setSelectedCompanyId(null);
+            setCampaignForm({ type: 'SEO', status: 'NOT_STARTED', notes: '' });
+        } catch (error) {
+            toast.error(isDa ? 'Kunne ikke opdatere kampagne' : 'Failed to update campaign');
+        }
+    };
+
+    const handleUpsertWeeklyMetrics = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCompanyId) return;
+
+        try {
+            await api.upsertWeeklyPerformanceMetrics(selectedCompanyId, {
+                type: weeklyType,
+                weekStart: weeklyForm.weekStart,
+                impressions: weeklyForm.impressions === '' ? 0 : parseInt(weeklyForm.impressions),
+                clicks: weeklyForm.clicks === '' ? 0 : parseInt(weeklyForm.clicks),
+                conversions: weeklyForm.conversions === '' ? 0 : parseInt(weeklyForm.conversions),
+                spend: weeklyForm.spend === '' ? null : parseInt(weeklyForm.spend),
+            });
+            toast.success(isDa ? 'Uge-metrics opdateret' : 'Weekly metrics updated');
+            setSelectedCompanyId(null);
+            setWeeklyForm({ weekStart: '', impressions: '', clicks: '', conversions: '', spend: '' });
+            setWeeklyType('SEO');
+        } catch (error) {
+            toast.error(isDa ? 'Kunne ikke opdatere uge-metrics' : 'Failed to update weekly metrics');
         }
     };
 
@@ -285,6 +340,13 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
                                                 {isDa ? 'Performance Tal' : 'Performance Stats'}
                                             </h4>
                                             <form onSubmit={handleUpdateMetrics} className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Service' : 'Service'}</label>
+                                                    <select value={metricsType} onChange={(e) => setMetricsType(e.target.value as any)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none">
+                                                        <option value="SEO">SEO</option>
+                                                        <option value="ADS">Google Ads</option>
+                                                    </select>
+                                                </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Eksponeringer' : 'Impressions'}</label>
@@ -310,6 +372,55 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
                                                     {isDa ? 'Opdater Tal' : 'Update Stats'}
                                                 </button>
                                             </form>
+
+                                            <div className="pt-8 border-t border-gray-100">
+                                                <h4 className="font-bold text-[#1D1D1F] flex items-center gap-2">
+                                                    <Calendar size={18} className="text-indigo-500" />
+                                                    {isDa ? 'Ugentlige Metrics (overtid)' : 'Weekly Metrics (over time)'}
+                                                </h4>
+                                                <p className="text-nexus-subtext text-sm mt-1">
+                                                    {isDa ? 'Indtast én uge ad gangen. Systemet normaliserer til mandag (uge-start).' : 'Enter one week at a time. System normalizes to Monday (week start).'}
+                                                </p>
+                                                <form onSubmit={handleUpsertWeeklyMetrics} className="space-y-4 mt-4">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Service' : 'Service'}</label>
+                                                            <select value={weeklyType} onChange={(e) => setWeeklyType(e.target.value as any)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none">
+                                                                <option value="SEO">SEO</option>
+                                                                <option value="ADS">Google Ads</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Uge-start' : 'Week start'}</label>
+                                                            <input type="date" required value={weeklyForm.weekStart} onChange={(e) => setWeeklyForm({ ...weeklyForm, weekStart: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Eksponeringer' : 'Impressions'}</label>
+                                                            <input type="number" value={weeklyForm.impressions} onChange={(e) => setWeeklyForm({ ...weeklyForm, impressions: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" placeholder="12400" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Klik' : 'Clicks'}</label>
+                                                            <input type="number" value={weeklyForm.clicks} onChange={(e) => setWeeklyForm({ ...weeklyForm, clicks: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" placeholder="842" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Konverteringer' : 'Conversions'}</label>
+                                                            <input type="number" value={weeklyForm.conversions} onChange={(e) => setWeeklyForm({ ...weeklyForm, conversions: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" placeholder="24" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Spend (valgfri)' : 'Spend (optional)'}</label>
+                                                            <input type="number" value={weeklyForm.spend} onChange={(e) => setWeeklyForm({ ...weeklyForm, spend: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" placeholder={isDa ? 'DKK eller øre (din standard)' : 'DKK or cents (your standard)'} />
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 italic transition-all active:scale-95">
+                                                        <ArrowUpRight size={18} />
+                                                        {isDa ? 'Gem uge-metrics' : 'Save weekly metrics'}
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
 
                                         {/* Right: Optimization Work Log */}
@@ -343,6 +454,40 @@ const AdminGrowthHub: React.FC<AdminGrowthHubProps> = ({ lang, onBack }) => {
                                                     </div>
                                                 </div>
                                             </form>
+
+                                            <div className="pt-6 border-t border-gray-100">
+                                                <h4 className="font-bold text-[#1D1D1F] flex items-center gap-2">
+                                                    <Globe size={18} className="text-blue-500" />
+                                                    {isDa ? 'Kampagne Status' : 'Campaign Status'}
+                                                </h4>
+                                                <form onSubmit={handleUpdateCampaign} className="space-y-4 mt-4">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Type' : 'Type'}</label>
+                                                            <select value={campaignForm.type} onChange={(e) => setCampaignForm({ ...campaignForm, type: e.target.value as any })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none">
+                                                                <option value="SEO">SEO</option>
+                                                                <option value="ADS">Google Ads</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Status' : 'Status'}</label>
+                                                            <select value={campaignForm.status} onChange={(e) => setCampaignForm({ ...campaignForm, status: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none">
+                                                                {['NOT_STARTED', 'SETUP', 'RUNNING', 'OPTIMIZING', 'PAUSED'].map(s => (
+                                                                    <option key={s} value={s}>{s}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-nexus-subtext uppercase tracking-wider ml-1">{isDa ? 'Noter' : 'Notes'}</label>
+                                                        <textarea rows={2} value={campaignForm.notes} onChange={(e) => setCampaignForm({ ...campaignForm, notes: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none resize-none" placeholder={isDa ? 'Valgfrit' : 'Optional'} />
+                                                    </div>
+                                                    <button type="submit" className="w-full py-3 bg-[#1D1D1F] text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg italic transition-all active:scale-95">
+                                                        <ArrowUpRight size={18} />
+                                                        {isDa ? 'Gem Kampagnestatus' : 'Save Campaign Status'}
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex justify-center mt-8 pt-4 border-t border-gray-50">

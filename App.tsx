@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useMarketplace } from './contexts/MarketplaceContext';
 import HomePage from './components/pages/visitor/HomePage';
@@ -15,6 +15,9 @@ import { useToast } from './hooks/useToast';
 import AuthPage from './components/pages/auth/AuthPage';
 import SignupSelectPage from './components/pages/auth/SignupSelectPage';
 import { OtpVerification } from './components/auth/OtpVerification';
+import SupabaseCallbackPage from './components/pages/auth/SupabaseCallbackPage';
+import ForgotPasswordPage from './components/pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './components/pages/auth/ResetPasswordPage';
 import Get3QuotesPage from './components/pages/Get3QuotesPage';
 import MockGet3QuotesModalCPage from './components/pages/mock/MockGet3QuotesModalCPage';
 import Footer from './components/layout/Footer';
@@ -48,6 +51,7 @@ import ServicesManagement from './components/pages/partner/ServicesManagement';
 import PortfolioManagement from './components/pages/partner/PortfolioManagement';
 import TestimonialsManagement from './components/pages/partner/TestimonialsManagement';
 import PartnerLeadDashboard from './components/pages/partner/PartnerLeadDashboard';
+import LeadsMessagesPage from './components/pages/partner/LeadsMessagesPage';
 import SubscriptionBillingPage from './components/pages/partner/SubscriptionBillingPage';
 import PartnerAccountSettings from './components/pages/partner/PartnerAccountSettings';
 import VerificationSection from './components/pages/partner/VerificationSection';
@@ -77,6 +81,7 @@ import BlogManagementPage from './components/pages/admin/BlogManagementPage';
 
 import BillingSuccessPage from './components/pages/billing/BillingSuccessPage';
 import BillingCancelPage from './components/pages/billing/BillingCancelPage';
+import { api } from './services/api';
 
 // Wrapper to handle direct URL navigation by slug or ID
 const ProfileRouteWrapper: React.FC<{
@@ -99,6 +104,89 @@ const ProfileRouteWrapper: React.FC<{
   return <ProfileView company={foundCompany as Company} onBack={() => navigate('/browse')} lang={lang} onOpenModal={() => { }} />;
 };
 
+const ReplayOnboardingRoute: React.FC<{
+  lang: Language;
+  onComplete: () => void;
+}> = ({ lang, onComplete }) => {
+  const { step } = useParams<{ step: string }>();
+  const s = step ? Number(step) : 5;
+  const forceStep = Number.isFinite(s) ? Math.max(1, Math.min(5, s)) : 5;
+  return (
+    <PartnerOnboardingWizard
+      key={`replay-${forceStep}`}
+      lang={lang}
+      currentStep={forceStep}
+      forceReplay={true}
+      forceStep={forceStep}
+      onNavigate={() => { }}
+      onComplete={onComplete}
+    />
+  );
+};
+
+// Wrapper for Partner routes to ensure company exists
+const PartnerRoute: React.FC<{
+  children: React.ReactElement;
+  company: Company | null;
+  isLoading?: boolean;
+}> = ({ children, company, isLoading }) => {
+  const { isLoading: authLoading } = useAuth();
+  
+  if (isLoading || authLoading) {
+    return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-nexus-accent" size={32} /></div>;
+  }
+  
+  if (!company) {
+    return <Navigate to="/dashboard/onboarding" replace />;
+  }
+  
+  return children;
+};
+
+const NexusGuard: React.FC<{
+  children: (company: Company) => React.ReactElement;
+  company: Company | null;
+}> = ({ children, company }) => {
+  const { isLoading: authLoading, user } = useAuth();
+  
+  if (authLoading) {
+    return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-nexus-accent" size={32} /></div>;
+  }
+  
+  const bypassEmails = new Set(
+    String((import.meta as any).env?.VITE_TEST_BYPASS_EMAILS || 'httpscure@gmail.com')
+      .split(',')
+      .map((e: string) => e.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const isBypassUser = !!user?.email && bypassEmails.has(user.email.toLowerCase());
+
+  if (!company && !isBypassUser) {
+    return <Navigate to="/dashboard/onboarding" replace />;
+  }
+
+  // For bypass users, allow rendering partner pages even if company is missing.
+  // We provide a minimal "fake" company to satisfy existing components.
+  const safeCompany = (company || ({
+    id: 'test-bypass-company',
+    name: user?.name || user?.email || 'Test user',
+    shortDescription: '',
+    isVerified: false,
+    rating: 0,
+    reviewCount: 0,
+    category: '',
+    location: '',
+    tags: [],
+    pricingTier: 'Basic',
+    contactEmail: user?.email || '',
+    website: '',
+    services: [],
+    portfolio: [],
+    testimonials: [],
+  } as any)) as Company;
+  return children(safeCompany);
+};
+
 const App: React.FC = () => {
   const { user, logout, isAuthenticated, refreshUser, upgradeAccount, showAuthModal, setShowAuthModal } = useAuth();
   const location = useLocation();
@@ -113,21 +201,54 @@ const App: React.FC = () => {
   } = useMarketplace();
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [partnerCompanyCache, setPartnerCompanyCache] = useState<Company | null>(() => {
+    try {
+      const raw = localStorage.getItem('partnerCompanyCache');
+      return raw ? (JSON.parse(raw) as Company) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const userRole = user?.role || null;
   const isLoggedIn = isAuthenticated;
 
   const getCurrentCompany = (): Company | null => {
-    if (!user || (user.role !== 'PARTNER' && user.role !== 'ADMIN')) return null;
+    if (!user) return null;
+    if (user.role !== 'PARTNER' && user.role !== 'ADMIN') return null;
 
-    // 1. Try pre-populated company from user context
-    if (user.ownedCompany) return user.ownedCompany as Company;
-    if ((user as any).company) return (user as any).company as Company;
+    // 1. Search in companies list using ownerId
+    const found = companies.find((c: any) => c.ownerId === user.id);
+    if (found) return found;
 
-    // 2. Fallback: Search in companies list using user ID
-    // In mock mode, the company ID typically matches the partner user ID
-    return companies.find(c => c.id === user.id) || null;
+    // 2. Fall back to cached company (useful right after onboarding completes before marketplace list refreshes)
+    if (partnerCompanyCache && (partnerCompanyCache as any).ownerId === user.id) {
+      return partnerCompanyCache;
+    }
+
+    return null;
   };
+
+  // Keep partner company cache fresh (prevents guard redirect loops after onboarding)
+  useEffect(() => {
+    const refreshCachedCompany = async () => {
+      if (!user || user.role !== 'PARTNER') return;
+      try {
+        const status = await api.getOnboardingStatus();
+        if (status?.company) {
+          setPartnerCompanyCache(status.company);
+          try {
+            localStorage.setItem('partnerCompanyCache', JSON.stringify(status.company));
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+    refreshCachedCompany();
+  }, [user?.id, user?.role]);
 
   const handleCompanyClick = (company: Company) => {
     setSelectedCompany(company);
@@ -142,8 +263,23 @@ const App: React.FC = () => {
 
   const needsSidebar = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin') || location.pathname.startsWith('/super-admin');
 
+  // Ensure redirects land at top (fixes "navigated to onboarding but stayed scrolled down")
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen bg-nexus-bg font-sans text-nexus-text selection:bg-nexus-text selection:text-white relative">
+      {(import.meta as any).env?.MODE === 'sim' && (
+        <div className="fixed top-20 right-4 z-[9999] px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-black shadow-2xl">
+          SIM MODE
+        </div>
+      )}
+      {location.pathname.startsWith('/dashboard/onboarding/replay') && (
+        <div className="fixed bottom-4 left-4 z-[9999] px-4 py-2 rounded-xl bg-black text-white text-xs font-bold shadow-2xl">
+          REPLAY ROUTE ACTIVE: {location.pathname}
+        </div>
+      )}
       <Navbar
         lang={lang}
         setLang={setLang}
@@ -208,6 +344,9 @@ const App: React.FC = () => {
               />
             } />
             <Route path="/auth" element={<AuthPage lang={lang} initialMode="login" onSuccess={() => navigate('/')} />} />
+            <Route path="/auth/supabase/callback" element={<SupabaseCallbackPage lang={lang} />} />
+            <Route path="/auth/forgot-password" element={<ForgotPasswordPage lang={lang} />} />
+            <Route path="/auth/reset-password" element={<ResetPasswordPage lang={lang} />} />
             <Route path="/for-businesses" element={<ForBusinessesPage lang={lang} />} />
             <Route path="/marketing" element={<MarketingPage lang={lang} />} />
             <Route path="/signup" element={
@@ -292,24 +431,111 @@ const App: React.FC = () => {
             <Route path="/admin/api-monitoring" element={userRole === 'ADMIN' ? <ApiMonitoringPage lang={lang} onBack={() => navigate('/admin')} /> : <Navigate to="/auth" />} />
             <Route path="/admin/blog" element={userRole === 'ADMIN' ? <BlogManagementPage /> : <Navigate to="/auth" />} />
 
-            <Route path="/dashboard/saved" element={<SavedListingsPage savedCompanies={companies.filter(c => savedCompanyIds.includes(c.id))} lang={lang} onViewProfile={handleCompanyClick} onToggleFavorite={toggleFavorite} onBack={() => navigate('/dashboard')} />} />
-            <Route path="/dashboard/inquiries" element={userRole === 'PARTNER' ? <PartnerLeadDashboard /> : <MyInquiriesPage lang={lang} onBack={() => navigate('/dashboard')} />} />
-            <Route path="/dashboard/settings" element={userRole === 'PARTNER' ? <PartnerAccountSettings company={getCurrentCompany()!} lang={lang} onBack={() => navigate('/dashboard')} onSave={async () => { }} /> : <ConsumerAccountSettings user={user as any} lang={lang} onBack={() => navigate('/dashboard')} onSave={async () => { }} />} />
+            <Route path="/dashboard/settings" element={userRole === 'PARTNER' ? (
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <PartnerAccountSettings company={company} lang={lang} onBack={() => navigate('/dashboard')} onSave={async () => { }} />}
+              </NexusGuard>
+            ) : <ConsumerAccountSettings user={user as any} lang={lang} onBack={() => navigate('/dashboard')} onSave={async () => { }} />} />
 
-            <Route path="/dashboard/profile" element={<PartnerProfileEditor company={getCurrentCompany()!} lang={lang} onSave={() => { refreshUser(); navigate('/dashboard'); }} onCancel={() => navigate('/dashboard')} />} />
-            <Route path="/dashboard/services" element={<ServicesManagement services={getCurrentCompany()?.services || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
-            <Route path="/dashboard/portfolio" element={<PortfolioManagement portfolio={getCurrentCompany()?.portfolio || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
-            <Route path="/dashboard/testimonials" element={<TestimonialsManagement testimonials={getCurrentCompany()?.testimonials || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
-            <Route path="/dashboard/billing" element={<SubscriptionBillingPage company={getCurrentCompany()!} lang={lang} onBack={() => navigate('/dashboard')} onNavigate={() => { }} />} />
-            <Route path="/dashboard/verification" element={<div className="max-w-5xl mx-auto px-4 py-10"><VerificationSection company={getCurrentCompany()!} lang={lang} onUpdate={() => navigate('/dashboard')} /></div>} />
-            <Route path="/dashboard/growth" element={(userRole === 'PARTNER' || userRole === 'ADMIN') ? <GrowthDashboard company={getCurrentCompany() || companies[0] || {} as any} lang={lang} /> : <Navigate to="/auth" />} />
-            <Route path="/dashboard/onboarding" element={<PartnerOnboardingWizard lang={lang} currentStep={1} onNavigate={() => { }} onComplete={() => {
+            <Route path="/dashboard/profile" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <PartnerProfileEditor company={company} lang={lang} onSave={() => { refreshUser(); navigate('/dashboard'); }} onCancel={() => navigate('/dashboard')} />}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/services" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <ServicesManagement services={company.services || []} companyId={company.id} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/portfolio" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <PortfolioManagement portfolio={company.portfolio || []} companyId={company.id} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/testimonials" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <TestimonialsManagement testimonials={company.testimonials || []} companyId={company.id} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/inquiries" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <LeadsMessagesPage lang={lang} onBack={() => navigate('/dashboard')} />}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/billing" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <SubscriptionBillingPage company={company} lang={lang} onBack={() => navigate('/dashboard')} onNavigate={() => { }} />}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/verification" element={
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => (
+                  <div className="max-w-5xl mx-auto px-4 py-10">
+                    <VerificationSection company={company} lang={lang} onUpdate={() => navigate('/dashboard')} />
+                  </div>
+                )}
+              </NexusGuard>
+            } />
+            <Route path="/dashboard/growth" element={(userRole === 'PARTNER' || userRole === 'ADMIN') ? (
+              <NexusGuard company={getCurrentCompany()}>
+                {(company) => <GrowthDashboard company={company} lang={lang} />}
+              </NexusGuard>
+            ) : <Navigate to="/auth" />} />
+
+            {/* Replay onboarding (no querystring) */}
+            <Route
+              path="/dashboard/onboarding/replay"
+              element={
+                <PartnerOnboardingWizard
+                  key="replay"
+                  lang={lang}
+                  currentStep={5}
+                  forceReplay={true}
+                  forceStep={5}
+                  onNavigate={() => { }}
+                  onComplete={() => navigate('/dashboard')}
+                />
+              }
+            />
+            <Route
+              path="/dashboard/onboarding/replay/5"
+              element={
+                <PartnerOnboardingWizard
+                  key="replay-5-exact"
+                  lang={lang}
+                  currentStep={5}
+                  forceReplay={true}
+                  forceStep={5}
+                  onNavigate={() => { }}
+                  onComplete={() => navigate('/dashboard')}
+                />
+              }
+            />
+            <Route
+              path="/dashboard/onboarding/replay/:step"
+              element={
+                <ReplayOnboardingRoute
+                  lang={lang}
+                  onComplete={() => navigate('/dashboard')}
+                />
+              }
+            />
+
+            <Route path="/dashboard/onboarding" element={<PartnerOnboardingWizard
+              key={location.search}
+              lang={lang}
+              currentStep={1}
+              forceReplay={new URLSearchParams(location.search).has('replay')}
+              forceStep={Number(new URLSearchParams(location.search).get('step') || '') || undefined}
+              onNavigate={() => { }}
+              onComplete={() => {
               if (localStorage.getItem('selectedGrowthServices')) {
                 navigate('/dashboard/growth');
               } else {
                 navigate('/dashboard');
               }
-            }} />} />
+            }}
+            />} />
 
             <Route path="/billing/success" element={<BillingSuccessPage lang={lang} onContinue={() => navigate('/dashboard')} />} />
             <Route path="/billing/cancel" element={<BillingCancelPage lang={lang} onBack={() => navigate('/')} onRetry={() => navigate('/pricing')} />} />

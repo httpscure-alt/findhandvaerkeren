@@ -12,6 +12,21 @@ export const translations = {
       dashboard: "Mit Dashboard",
       logout: "Log ud"
     },
+    profile: {
+      about: "Om",
+      services: "Ydelser",
+      portfolio: "Portfolio",
+      testimonials: "Anmeldelser",
+      contact: "Kontakt",
+      location: "Lokation",
+      website: "Website",
+      verified: "Verificeret Virksomhed",
+      notVerified: "Ikke Verificeret",
+      rating: "Bedømmelse",
+      reviews: "anmeldelser",
+      requestQuote: "Få et tilbud",
+      back: "Tilbage"
+    },
     pricing: {
       title: "Priser",
       tiers: {
@@ -258,6 +273,21 @@ export const translations = {
       login: "Log in",
       dashboard: "My Dashboard",
       logout: "Logout"
+    },
+    profile: {
+      about: "About",
+      services: "Services",
+      portfolio: "Portfolio",
+      testimonials: "Testimonials",
+      contact: "Contact",
+      location: "Location",
+      website: "Website",
+      verified: "Verified Business",
+      notVerified: "Not Verified",
+      rating: "Rating",
+      reviews: "reviews",
+      requestQuote: "Request Quote",
+      back: "Back"
     },
     pricing: {
       title: "Pricing",

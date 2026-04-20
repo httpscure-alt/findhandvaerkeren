@@ -12,8 +12,10 @@ import {
   FileText,
   Settings,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface BusinessDashboardProps {
   lang: Language;
@@ -34,6 +36,7 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
   onViewInquiries,
   onViewGrowth,
 }) => {
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +64,31 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="animate-spin text-nexus-accent" size={32} />
+      </div>
+    );
+  }
+
+  // If loading finished but no company data found (ghost session)
+  if (!dashboardData) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center">
+        <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-amber-500 shadow-sm">
+          <AlertCircle size={40} />
+        </div>
+        <h2 className="text-2xl font-bold text-[#1D1D1F] mb-4">
+          {lang === 'da' ? 'Virksomhed ikke fundet' : 'Company not found'}
+        </h2>
+        <p className="text-nexus-subtext mb-8">
+          {lang === 'da' 
+            ? 'Vi kunne ikke hente dine virksomhedsoplysninger. Gennemfør venligst din onboarding.' 
+            : 'We could not find your business profile. Please complete your onboarding.'}
+        </p>
+        <button 
+          onClick={() => navigate('/dashboard/onboarding')}
+          className="px-8 py-4 bg-[#1D1D1F] text-white rounded-2xl font-bold hover:bg-black transition-all shadow-lg"
+        >
+          {lang === 'da' ? 'Gå til Onboarding' : 'Go to Onboarding'}
+        </button>
       </div>
     );
   }
@@ -256,7 +284,10 @@ const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                 : `Current plan: ${company?.pricingTier || 'Basic'}`}
             </p>
           </div>
-          <button className="px-4 py-2 bg-[#1D1D1F] text-white rounded-xl text-sm font-medium hover:bg-black transition-all">
+          <button
+            onClick={() => navigate('/dashboard/billing')}
+            className="px-4 py-2 bg-[#1D1D1F] text-white rounded-xl text-sm font-medium hover:bg-black transition-all"
+          >
             {lang === 'da' ? 'Opgrader' : 'Upgrade'}
           </button>
         </div>

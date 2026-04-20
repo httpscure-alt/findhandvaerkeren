@@ -264,24 +264,20 @@ export const rejectVerification = async (req: AuthRequest, res: Response): Promi
 // Get admin dashboard stats
 export const getAdminStats = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const [
-      totalCompanies,
-      verifiedCompanies,
-      pendingVerifications,
-      totalUsers,
-      totalPartners,
-      totalConsumers,
-      activeSubscriptions,
-      loginSuccess,
-      loginFailure,
-      totalLoginsToday
-    ] = await Promise.all([
+    // Execute counts in smaller batches to avoid hitting connection limits
+    const batch1 = await Promise.all([
       prisma.company.count(),
       prisma.company.count({ where: { isVerified: true } }),
       prisma.company.count({ where: { verificationStatus: 'pending' } }),
+    ]);
+
+    const batch2 = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { role: 'PARTNER' } }),
       prisma.user.count({ where: { role: 'CONSUMER' } }),
+    ]);
+
+    const batch3 = await Promise.all([
       prisma.subscription.count({ where: { status: 'active' } }),
       prisma.securityLog.count({ where: { eventType: 'LOGIN_SUCCESS' } }),
       prisma.securityLog.count({ where: { eventType: 'LOGIN_FAILURE' } }),
@@ -293,6 +289,25 @@ export const getAdminStats = async (req: AuthRequest, res: Response): Promise<vo
         }
       }),
     ]);
+
+    const [
+      totalCompanies,
+      verifiedCompanies,
+      pendingVerifications,
+    ] = batch1;
+
+    const [
+      totalUsers,
+      totalPartners,
+      totalConsumers,
+    ] = batch2;
+
+    const [
+      activeSubscriptions,
+      loginSuccess,
+      loginFailure,
+      totalLoginsToday
+    ] = batch3;
 
     // Calculate blocked IPs (unique IPs with more than 5 failures)
     const blockedIPsResult = await prisma.securityLog.groupBy({

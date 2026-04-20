@@ -30,165 +30,9 @@ function isStripeConfigured(): boolean {
   return stripe !== null && STRIPE_SECRET_KEY !== undefined && STRIPE_SECRET_KEY.trim() !== '';
 }
 
-/**
- * Partner listing subscription created when a company only subscribes to Ads/SEO (no separate Stripe partner plan).
- * Identified by this billingCycle so we can revoke it when marketing ends.
- */
-const MARKETING_LISTING_BUNDLE_BILLING_CYCLE = 'marketing_included';
-
-/**
- * Ensure Basic business listing + PARTNER access when someone subscribes to marketing only.
- * Skips if the company already has a Stripe-backed partner (listing) subscription.
- */
-async function ensureCompanyListingFromMarketing(
-  companyId: string,
-  stripeSubscription: Stripe.Subscription,
-  customerId: string
-): Promise<void> {
-  const company = await prisma.company.findUnique({
-    where: { id: companyId },
-    include: { owner: true },
-  });
-
-  if (!company) {
-    logger.warn(`ensureCompanyListingFromMarketing: company ${companyId} not found`);
-    return;
-  }
-
-  if (company.owner.role === 'CONSUMER') {
-    await prisma.user.update({
-      where: { id: company.ownerId },
-      data: { role: 'PARTNER' },
-    });
-  }
-
-  const paidPartnerListing = await prisma.subscription.findFirst({
-    where: {
-      companyId,
-      stripeSubscriptionId: { not: null },
-      status: { in: ['active', 'past_due'] },
-    },
-  });
-
-  if (paidPartnerListing) {
-    logger.info(
-      `Company ${companyId} already has a Stripe partner listing; skipping marketing bundle`
-    );
-    return;
-  }
-
-  const periodStart = new Date(stripeSubscription.current_period_start * 1000);
-  const periodEnd = new Date(stripeSubscription.current_period_end * 1000);
-  const priceId = stripeSubscription.items.data[0]?.price?.id ?? null;
-  const isActive = stripeSubscription.status === 'active';
-
-  const bundled = await prisma.subscription.findFirst({
-    where: {
-      companyId,
-      billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  if (bundled) {
-    await prisma.subscription.update({
-      where: { id: bundled.id },
-      data: {
-        status: isActive ? 'active' : 'inactive',
-        tier: 'Basic',
-        stripeCustomerId: customerId,
-        stripePriceId: priceId,
-        currentPeriodStart: periodStart,
-        currentPeriodEnd: periodEnd,
-        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-      },
-    });
-  } else {
-    await prisma.subscription.create({
-      data: {
-        companyId,
-        tier: 'Basic',
-        status: isActive ? 'active' : 'inactive',
-        billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
-        startDate: periodStart,
-        currentPeriodStart: periodStart,
-        currentPeriodEnd: periodEnd,
-        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-        stripeCustomerId: customerId,
-        stripePriceId: priceId,
-      },
-    });
-  }
-
-  if (company.pricingTier !== 'Gold') {
-    await prisma.company.update({
-      where: { id: companyId },
-      data: { pricingTier: 'Basic' },
-    });
-  }
-
-  logger.info(`Marketing bundle: ensured Basic listing subscription for company ${companyId}`);
-}
-
-async function syncBundledListingSubscriptionPeriod(
-  companyId: string,
-  stripeSubscription: Stripe.Subscription
-): Promise<void> {
-  const bundled = await prisma.subscription.findFirst({
-    where: {
-      companyId,
-      billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  if (!bundled) {
-    return;
-  }
-
-  const isActive = stripeSubscription.status === 'active';
-
-  await prisma.subscription.update({
-    where: { id: bundled.id },
-    data: {
-      status: isActive ? 'active' : 'inactive',
-      currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-      cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-    },
-  });
-}
-
-async function revokeMarketingBundledListing(companyId: string): Promise<void> {
-  const rows = await prisma.subscription.findMany({
-    where: {
-      companyId,
-      billingCycle: MARKETING_LISTING_BUNDLE_BILLING_CYCLE,
-      status: { in: ['active', 'past_due'] },
-    },
-  });
-
-  for (const row of rows) {
-    await prisma.subscription.update({
-      where: { id: row.id },
-      data: {
-        status: 'canceled',
-        endDate: new Date(),
-        cancelAtPeriodEnd: false,
-      },
-    });
-
-    await prisma.subscriptionHistory.create({
-      data: {
-        subscriptionId: row.id,
-        action: 'canceled',
-        previousStatus: row.status,
-        newStatus: 'canceled',
-        reason: 'Marketing subscription ended',
-      },
-    });
-  }
-}
+// NOTE:
+// Marketing subscriptions (Ads/SEO) are intentionally decoupled from Partner listing access.
+// A CONSUMER can purchase marketing without becoming a PARTNER or being listed on the marketplace.
 
 /**
  * Create Stripe Checkout Session
@@ -215,6 +59,13 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
 
     // Determine if this is a marketing service or partner plan
     const isMarketingService = serviceType === 'ads' || serviceType === 'seo';
+    const userRole = req.userRole;
+
+    // Only Partners can purchase partner listing plans (marketing can be purchased by any authenticated user)
+    if (!isMarketingService && userRole !== 'PARTNER') {
+      res.status(403).json({ error: 'Partner access required for partner plans' });
+      return;
+    }
 
     // Validate based on service type
     if (isMarketingService) {
@@ -276,6 +127,31 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       return;
     }
 
+    // For marketing services (SEO/Ads), create a GrowthRequest so Admin Growth Hub isn't empty.
+    // This is intentionally created at checkout-init time (not webhook) so admins can act immediately.
+    if (isMarketingService && company?.id) {
+      try {
+        const type = serviceType === 'seo' ? 'SEO' : serviceType === 'ads' ? 'ADS' : null;
+        if (type) {
+          await prisma.growthRequest.create({
+            data: {
+              companyId: company.id,
+              type: type as any,
+              status: 'PENDING',
+              details: {
+                tier: planTier,
+                billingCycle: billingCycle || 'monthly',
+                source: 'stripe_checkout_init',
+              } as any,
+            },
+          });
+        }
+      } catch (e: any) {
+        // Don't block checkout if request creation fails; admin list will just be empty for this attempt.
+        logger.warn('Failed to create GrowthRequest during checkout init', { error: e?.message });
+      }
+    }
+
     // Get price ID from environment based on service type
     let priceId: string | undefined;
 
@@ -326,6 +202,11 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
 
     // Create checkout session
     logger.info('🔵 Creating Stripe session with price:', priceId);
+
+    const taxRateId = process.env.STRIPE_TAX_RATE_ID?.trim();
+    const validTaxRate =
+      !!taxRateId && taxRateId.startsWith('txr_') && !/placeholder|example|your_/i.test(taxRateId);
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -349,7 +230,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       cancel_url: `${clientUrl}/billing/cancel`,
       subscription_data: {
         ...(isMarketingService ? {} : { trial_period_days: 90 }),
-        default_tax_rates: process.env.STRIPE_TAX_RATE_ID ? [process.env.STRIPE_TAX_RATE_ID] : [],
+        default_tax_rates: validTaxRate ? [taxRateId!] : [],
         metadata: {
           userId: userId || 'test-user',
           companyId: company?.id || 'test-company',
@@ -508,8 +389,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     logger.info(`✅ Marketing subscription created: ${marketingSubscription.id}`);
-
-    await ensureCompanyListingFromMarketing(metadata.companyId, subscription, customerId);
 
     return; // Exit early for marketing services
   }
@@ -745,9 +624,6 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
     logger.info(`✅ Marketing payment recorded: ${invoice.id}`);
 
-    const customerId = subscription.customer as string;
-    await ensureCompanyListingFromMarketing(dbSubscription.companyId, subscription, customerId);
-
     return; // Exit early for marketing services
   }
 
@@ -822,7 +698,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
         },
       });
-      await syncBundledListingSubscriptionPeriod(marketingSub.companyId, subscription);
     }
     return;
   }
@@ -914,10 +789,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
         cancelAtPeriodEnd: false,
       },
     });
-    await revokeMarketingBundledListing(marketingSub.companyId);
-    logger.info(
-      `Marketing subscription ${subscriptionId} canceled; bundled listing revoked for company ${marketingSub.companyId}`
-    );
+    logger.info(`Marketing subscription ${subscriptionId} canceled for company ${marketingSub.companyId}`);
   }
 }
 
@@ -1017,12 +889,17 @@ export const createPortalSession = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    // Get user's company and subscription
+    // Get user's company and latest subscription (partner or marketing)
     const company = await prisma.company.findUnique({
       where: { ownerId: userId },
       include: {
         subscriptions: {
           where: { status: 'active' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+        marketingSubscriptions: {
+          where: { status: { in: ['active', 'past_due'] } },
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
@@ -1034,8 +911,11 @@ export const createPortalSession = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    const subscription = company.subscriptions[0];
-    if (!subscription || !subscription.stripeCustomerId) {
+    const partnerSub = company.subscriptions[0];
+    const marketingSub = company.marketingSubscriptions[0];
+    const stripeCustomerId = partnerSub?.stripeCustomerId || marketingSub?.stripeCustomerId;
+
+    if (!stripeCustomerId) {
       res.status(404).json({ error: 'No active subscription found' });
       return;
     }
@@ -1045,7 +925,7 @@ export const createPortalSession = async (req: AuthRequest, res: Response): Prom
 
     // Create billing portal session
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
+      customer: stripeCustomerId,
       return_url: `${clientUrl}/dashboard/billing`,
     });
 

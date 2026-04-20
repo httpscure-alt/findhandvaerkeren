@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, getMe, verifyOtp, resendOtp, logout, updateProfile } from '../controllers/authController';
+import { register, login, getMe, verifyOtp, resendOtp, logout, updateProfile, loginWithSupabase, forgotPassword, resetPassword } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { registerSchema, loginSchema, verifyOtpSchema } from '../validations/authValidation';
@@ -12,6 +12,9 @@ router.post('/login', authLimiter, validate(loginSchema), login);
 router.post('/verify-otp', authLimiter, validate(verifyOtpSchema), verifyOtp);
 router.post('/resend-otp', authLimiter, resendOtp);
 router.post('/logout', logout);
+router.post('/supabase', authLimiter, loginWithSupabase);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', authLimiter, resetPassword);
 router.put('/profile', authenticate, updateProfile);
 router.get('/me', authenticate, getMe);
 

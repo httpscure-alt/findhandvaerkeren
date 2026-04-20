@@ -22,12 +22,15 @@ model User {
   isVerified     Boolean        @default(false)
   otpCode        String?
   otpExpiresAt   DateTime?
+  passwordResetTokenHash String?
+  passwordResetExpiresAt DateTime?
   ownedCompany   Company?
   sentInquiries  Inquiry[]      @relation("ConsumerInquiries")
   jobRequests    JobRequest[]
   recentSearches RecentSearch[]
   savedListings  SavedListing[]
   notifications  Notification[]
+  updatedGrowthCampaigns GrowthCampaign[] @relation("GrowthCampaignUpdatedBy")
 
   @@index([email])
   @@index([role])
@@ -79,6 +82,10 @@ model Company {
   subscriptions         Subscription[]
   testimonials          Testimonial[]
   growthRequests        GrowthRequest[]
+  growthCampaigns       GrowthCampaign[]
+  growthMetrics         GrowthPerformanceMetrics[]
+  growthWeeklyMetrics   GrowthPerformanceWeekly[]
+  growthOptimizationLogs GrowthOptimizationLog[]
   marketingSubscriptions MarketingSubscription[]
   marketingTransactions  MarketingTransaction[]
 
@@ -123,6 +130,8 @@ model Testimonial {
   company         String
   content         String
   rating          Int
+  partnerReply    String?
+  partnerReplyAt  DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   companyRelation Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -438,6 +447,14 @@ enum GrowthRequestStatus {
   REJECTED
 }
 
+enum GrowthCampaignStatus {
+  NOT_STARTED
+  SETUP
+  RUNNING
+  OPTIMIZING
+  PAUSED
+}
+
 model GrowthRequest {
   id        String              @id @default(cuid())
   companyId String
@@ -450,6 +467,74 @@ model GrowthRequest {
 
   @@index([companyId])
   @@index([status])
+  @@index([createdAt])
+}
+
+model GrowthCampaign {
+  id          String              @id @default(cuid())
+  companyId   String
+  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type        GrowthRequestType   // SEO | ADS
+  status      GrowthCampaignStatus @default(NOT_STARTED)
+  notes       String?
+  updatedById String?
+  updatedBy   User?               @relation("GrowthCampaignUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt   DateTime            @updatedAt
+  createdAt   DateTime            @default(now())
+
+  @@unique([companyId, type])
+  @@index([companyId])
+  @@index([type])
+  @@index([status])
+}
+
+model GrowthPerformanceMetrics {
+  id          String            @id @default(cuid())
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type        GrowthRequestType // SEO | ADS
+  impressions Int               @default(0)
+  clicks      Int               @default(0)
+  conversions Int               @default(0)
+  trend       Int[]             @default([])
+  updatedAt   DateTime          @updatedAt
+  createdAt   DateTime          @default(now())
+
+  @@unique([companyId, type])
+  @@index([companyId])
+  @@index([type])
+}
+
+model GrowthPerformanceWeekly {
+  id          String            @id @default(cuid())
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type        GrowthRequestType // SEO | ADS
+  weekStart   DateTime          // normalized to Monday 00:00:00 UTC (or server-local)
+  impressions Int               @default(0)
+  clicks      Int               @default(0)
+  conversions Int               @default(0)
+  spend       Int?              // optional (e.g. cents) for Ads
+  updatedAt   DateTime          @updatedAt
+  createdAt   DateTime          @default(now())
+
+  @@unique([companyId, type, weekStart])
+  @@index([companyId])
+  @@index([type])
+  @@index([weekStart])
+}
+
+model GrowthOptimizationLog {
+  id          String            @id @default(cuid())
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  type        GrowthRequestType // SEO | ADS
+  title       String
+  description String
+  createdAt   DateTime          @default(now())
+
+  @@index([companyId])
+  @@index([type])
   @@index([createdAt])
 }
 

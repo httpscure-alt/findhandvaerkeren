@@ -20,6 +20,9 @@ export interface TestimonialItem {
   company: string;
   content: string;
   rating: number;
+  partnerReply?: string | null;
+  partnerReplyAt?: string | null;
+  createdAt?: string;
 }
 
 export type VerificationStatus = 'unverified' | 'pending' | 'verified';

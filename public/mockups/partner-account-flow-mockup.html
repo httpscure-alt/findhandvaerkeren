@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Account → Partner / Marketing subscription — flow mockup</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #fff;
+      --border: #d2d2d7;
+      --text: #1d1d1f;
+      --muted: #86868b;
+      --accent: #0071e3;
+      --ok: #34c759;
+      --warn: #ff9500;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      line-height: 1.45;
+      max-width: 960px;
+      margin-inline: auto;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 0.5rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 2rem 0 1rem; }
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+    .arrow-down {
+      text-align: center;
+      padding: 0.35rem 0;
+      color: var(--muted);
+      font-size: 1.25rem;
+    }
+    .box {
+      flex: 1;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      min-height: 88px;
+    }
+    .box strong { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; }
+    .box p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+    .tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+    }
+    .tag.db { background: #e8f4ff; color: #0066cc; }
+    .tag.public { background: #e8f8ec; color: #1a7f37; }
+    .tag.pay { background: #fff4e5; color: #b35c00; }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 640px) {
+      .split { grid-template-columns: 1fr; }
+      .row { flex-direction: column; }
+    }
+    .legend {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .legend ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+    .screen {
+      border: 3px solid var(--text);
+      border-radius: 16px;
+      padding: 1.25rem;
+      background: #fafafa;
+      margin: 1rem 0;
+    }
+    .screen h3 { margin: 0 0 1rem; font-size: 1rem; }
+    .field {
+      margin-bottom: 0.75rem;
+    }
+    .field label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-bottom: 0.25rem; }
+    .fake-input {
+      height: 36px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .checkbox-line { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-top: 0.75rem; }
+    .sq { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; }
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(245,245,247,0.92);
+      backdrop-filter: blur(8px);
+      padding: 0.75rem 0;
+      margin: -2rem 0 1.25rem;
+      border-bottom: 1px solid rgba(210,210,215,0.8);
+    }
+    .nav-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.8rem;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .pill:hover { border-color: #b9b9c0; }
+    .pill.primary { border-color: rgba(0,113,227,0.35); background: #f2f7ff; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .btnrow { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.55rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.ghost { background: transparent; }
+    .btn.danger { background: #fff; border-color: rgba(180,35,24,0.25); color: #b42318; }
+    .hint { font-size: 0.75rem; color: var(--muted); margin: 0.6rem 0 0; }
+    .hr { height: 1px; background: rgba(210,210,215,0.9); margin: 1.25rem 0; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+    }
+    .badge.ok { border-color: rgba(52,199,89,0.45); background: rgba(52,199,89,0.12); }
+    .badge.warn { border-color: rgba(255,149,0,0.45); background: rgba(255,149,0,0.12); }
+    .badge.muted { border-color: rgba(134,134,139,0.35); background: rgba(134,134,139,0.10); color: #4f4f55; }
+    .badge.blue { border-color: rgba(0,113,227,0.35); background: rgba(0,113,227,0.10); color: #0b4aa2; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+    .card h4 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+    .card p { margin: 0; color: var(--muted); font-size: 0.8rem; }
+    .price { margin-top: 0.5rem; font-size: 0.95rem; font-weight: 900; }
+    .kvs { margin-top: 0.6rem; display: grid; grid-template-columns: 140px 1fr; gap: 0.35rem 0.6rem; font-size: 0.8rem; }
+    .kvs div:nth-child(odd) { color: var(--muted); font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner">
+      <a class="pill primary" href="#overview">Overview</a>
+      <a class="pill" href="#screen-signup">Signup</a>
+      <a class="pill" href="#screen-account-type">Account type</a>
+      <a class="pill" href="#screen-existing-user">Existing user</a>
+      <a class="pill" href="#screen-intent">Choose path</a>
+      <a class="pill" href="#screen-marketing-plans">Marketing plans</a>
+      <a class="pill" href="#screen-checkout">Checkout</a>
+      <a class="pill" href="#screen-post-purchase">Post-purchase dashboard</a>
+      <a class="pill" href="#screen-growth-subscribed">Growth dashboard (subscribed)</a>
+      <a class="pill" href="#screen-admin-growth-subscribed">Admin growth hub (subscribed)</a>
+      <a class="pill" href="#screen-partner-onboarding">Partner onboarding</a>
+      <a class="pill" href="#screen-publish">Publish listing</a>
+    </div>
+  </div>
+
+  <h1>Account → Partner / Marketing subscription — suggested flow (wireframe)</h1>
+  <p class="sub">
+    Idea: There are <strong>two account types</strong> (Customer + Partner), but
+    <strong>Company</strong> is a shared billing anchor for subscriptions.
+    <strong>Public listing</strong> is separate from “has Company” (draft vs published).
+  </p>
+
+  <h2 id="overview">Conceptual flow</h2>
+  <div class="flow">
+    <div class="box">
+      <span class="tag db">Database</span>
+      <strong>1. User signs up as PARTNER</strong>
+      <p>User row only. No public profile yet.</p>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="split">
+      <div class="box">
+        <span class="tag pay">Intent</span>
+        <strong>2a. “I only want growth / marketing”</strong>
+        <p>Fast path: minimal business shell + payment. Not in search.</p>
+      </div>
+      <div class="box">
+        <span class="tag public">Intent</span>
+        <strong>2b. “I want to be found on the marketplace”</strong>
+        <p>Full onboarding + profile. Still starts as <em>draft</em> until they publish.</p>
+      </div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="box">
+      <span class="tag db">Company row created</span>
+      <strong>3. Company record (required)</strong>
+      <p>
+        <code>ownerId</code> = user · <code>name</code> = business name <em>or</em> “Trading as [email local part]” if they choose email-only label ·
+        <code>slug</code> unique · default <strong>visibility: not published</strong>.
+      </p>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="box">
+      <span class="tag pay">Stripe</span>
+      <strong>4. Subscription checkout</strong>
+      <p>
+        User chooses a subscription:
+        <strong>Partner listing plan</strong> (marketplace) or <strong>Marketing plan</strong> (Google Ads / Google SEO).
+        Uses <code>companyId</code> in metadata. Works even if profile is incomplete or unpublished.
+      </p>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="split">
+      <div class="box">
+        <span class="tag db">Private</span>
+        <strong>5a. Not listed</strong>
+        <p>No public URL in search. Dashboard shows “Complete profile to go live” (optional).</p>
+      </div>
+      <div class="box">
+        <span class="tag public">Public</span>
+        <strong>5b. Listed (opt-in)</strong>
+        <p>User clicks “Publish listing” when ready → <code>published</code> / visible in marketplace.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Clickable screens (mock)</h2>
+
+  <div class="screen" id="screen-signup">
+    <h3>Signup (Account creation)</h3>
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label>Email</label>
+          <div class="fake-input"></div>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="fake-input"></div>
+        </div>
+        <div class="checkbox-line">
+          <span class="sq"></span>
+          I accept Terms &amp; Privacy
+        </div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-account-type">Create account</a>
+          <a class="btn ghost" href="#overview">Back to overview</a>
+        </div>
+        <p class="hint">Creates: <span class="badge muted">User</span> (no company yet).</p>
+      </div>
+      <div class="card">
+        <h4>What happens next?</h4>
+        <p>You pick what you’re trying to achieve first: marketplace listing (Partner) or marketing subscription (Google Ads/SEO).</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Goal</div><div>Reduce friction at signup</div>
+          <div>Decision</div><div>Partner vs Marketing-only</div>
+          <div>Billing</div><div>Always anchored to a <strong>Company</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-account-type">
+    <h3>Select account type</h3>
+    <p class="sub" style="margin:0 0 1rem;">
+      Customer and Partner accounts can both buy subscriptions. Partner accounts are for marketplace listings.
+    </p>
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Customer account</span>
+        <h4>I’m looking for a craftsman</h4>
+        <p>Browse listings, contact partners, save favorites. Can also buy marketing if you later run a business.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-customer-dashboard">Continue as Customer</a>
+          <a class="btn" href="#screen-existing-user">I already have an account</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge warn">Partner account</span>
+        <h4>I am a craftsman / business</h4>
+        <p>Create a company profile, get listed (optional), and manage subscriptions.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-intent">Continue as Partner</a>
+          <a class="btn" href="#screen-partner-onboarding">See onboarding screens</a>
+        </div>
+      </div>
+    </div>
+    <p class="hint">
+      Rule: <strong>Company</strong> is required for billing (Google Ads/SEO subscriptions). Listing publication is optional.
+    </p>
+  </div>
+
+  <div class="screen" id="screen-customer-dashboard">
+    <h3>Customer dashboard (logged in)</h3>
+    <div class="grid">
+      <div class="card">
+        <span class="badge muted">Customer</span>
+        <h4>Find a craftsman</h4>
+        <p>Search marketplace, manage inquiries, favorites, and profile settings.</p>
+        <div class="btnrow">
+          <a class="btn" href="#screen-public-profile">Browse a listing</a>
+          <a class="btn" href="#screen-existing-user">Account settings</a>
+        </div>
+        <div class="hr"></div>
+        <span class="badge ok">Upsell</span>
+        <h4 style="margin-top:0.6rem;">Are you a business? Boost your leads</h4>
+        <p>Buy Google Ads / Google SEO marketing subscription (creates billing company if missing).</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-billing-company">See marketing plans</a>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Key constraint</h4>
+        <p>
+          Even for a Customer account, checkout can work by creating a lightweight <strong>billing company</strong> record
+          (not a public listing).
+        </p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Billing company</div><div>needed for Stripe customer + invoices</div>
+          <div>Public listing</div><div>optional, only for Partner marketplace presence</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-billing-company">
+    <h3>Create billing company (required for checkout)</h3>
+    <p class="sub" style="margin:0 0 1rem;">
+      This is <strong>not</strong> a public listing. It’s just billing details so we can create invoices and attach the subscription.
+    </p>
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label>Company / billing name</label>
+          <div class="fake-input"></div>
+        </div>
+        <div class="field">
+          <label>VAT / CVR (optional)</label>
+          <div class="fake-input"></div>
+        </div>
+        <div class="field">
+          <label>Billing email (defaults to account email)</label>
+          <div class="fake-input"></div>
+        </div>
+        <div class="checkbox-line">
+          <span class="sq"></span>
+          I don’t want to be listed on the marketplace (keep private)
+        </div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-marketing-plans">Continue to marketing plans</a>
+          <a class="btn" href="#screen-customer-dashboard">Back</a>
+        </div>
+        <p class="hint">Creates: <span class="badge muted">Company</span> (private; unpublished).</p>
+      </div>
+      <div class="card">
+        <h4>Why this step exists</h4>
+        <p>Your Stripe integration wants a Company anchor. This keeps “Customer vs Partner” separate from billing needs.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Creates</div><div>Company + Stripe customer (or on-demand)</div>
+          <div>Does not</div><div>create a public listing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-existing-user">
+    <h3>Existing account → Buy marketing subscription</h3>
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Already logged in</span>
+        <h4>Entry points</h4>
+        <p>From dashboard, business settings, or a “Boost my leads” CTA.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-marketing-plans">Choose marketing plan</a>
+          <a class="btn" href="#screen-company">Create/confirm company</a>
+        </div>
+        <p class="hint">
+          If the user has no <strong>Company</strong> yet, create it first (billing anchor), then send them to plans.
+        </p>
+      </div>
+      <div class="card">
+        <span class="badge muted">Decision</span>
+        <h4>Do we already have a Company?</h4>
+        <p>Marketing subscriptions must attach to a Company for invoices, ownership, and Stripe customer mapping.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>If yes</div><div>Go straight to <a href="#screen-marketing-plans">Marketing plans</a></div>
+          <div>If no</div><div>Show <a href="#screen-company">Company setup</a> first</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-intent">
+    <h3>Choose your path</h3>
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Partner path</span>
+        <h4>Get found on Findhåndværkeren</h4>
+        <p>Create a public listing (draft first), complete onboarding, then publish when ready.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-company">Continue as Partner</a>
+          <a class="btn" href="#screen-partner-onboarding">See onboarding screens</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge warn">Marketing-only</span>
+        <h4>Buy growth / marketing subscription</h4>
+        <p>Stay private (not listed). Create a minimal company shell for billing, then pick Google Ads or Google SEO plan.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-company">Continue to company setup</a>
+          <a class="btn" href="#screen-marketing-plans">Skip to marketing plans</a>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Both paths converge on creating: <span class="badge muted">Company</span> (billing anchor).</p>
+  </div>
+
+  <div class="screen" id="screen-company">
+    <h3>Company setup (billing anchor)</h3>
+    <div class="field">
+      <label>Business name (internal label)</label>
+      <div class="fake-input"></div>
+    </div>
+    <div class="checkbox-line">
+      <span class="sq"></span>
+      Use my account email as the label (private / sole trader)
+    </div>
+    <div class="field" style="margin-top:1rem;">
+      <label>Marketplace visibility</label>
+      <div class="checkbox-line" style="margin-top:0;">
+        <span class="sq"></span>
+        List my business on Findhåndværkeren (draft; can finish later)
+      </div>
+    </div>
+    <div class="btnrow">
+      <a class="btn primary" href="#screen-marketing-plans">Continue</a>
+      <a class="btn" href="#screen-intent">Back</a>
+    </div>
+    <p class="hint">
+      Creates: <span class="badge muted">Company</span> (unpublished by default) + optional “listing intent” flag.
+    </p>
+  </div>
+
+  <div class="screen" id="screen-marketing-plans">
+    <h3>Choose your subscription (Marketing)</h3>
+    <p class="sub" style="margin:0 0 1rem;">
+      Two productized options: <strong>Google Ads management</strong> or <strong>Google SEO growth</strong>. Both can be bought even if listing is not published.
+    </p>
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Google Ads</span>
+        <h4>Marketing — Google Ads</h4>
+        <p>For fast lead generation via paid search.</p>
+        <div class="price">From DKK X / month</div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-checkout">Select Google Ads plan</a>
+          <a class="btn" href="#screen-ads-setup">Pre-check setup</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge ok">Google SEO</span>
+        <h4>Marketing — Google SEO</h4>
+        <p>For long-term organic traffic and visibility.</p>
+        <div class="price">From DKK Y / month</div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-checkout">Select Google SEO plan</a>
+          <a class="btn" href="#screen-seo-setup">Pre-check setup</a>
+        </div>
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:1rem;">
+      <a class="btn ghost" href="#screen-partner-onboarding">I also want to be listed (Partner)</a>
+      <a class="btn" href="#screen-company">Back</a>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-ads-setup">
+    <h3>Google Ads setup (pre-check)</h3>
+    <div class="grid">
+      <div>
+        <div class="checkbox-line"><span class="sq"></span> I have a Google Ads account</div>
+        <div class="checkbox-line"><span class="sq"></span> I have a website / landing page</div>
+        <div class="checkbox-line"><span class="sq"></span> I know my service areas (cities/zip codes)</div>
+        <div class="checkbox-line"><span class="sq"></span> I accept ad spend is separate from subscription</div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-checkout">Continue to checkout</a>
+          <a class="btn" href="#screen-marketing-plans">Back to plans</a>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Notes</h4>
+        <p>In a real product, this screen can drive better outcomes by collecting constraints before charging.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Outputs</div><div>website URL, service areas, budget range</div>
+          <div>After purchase</div><div>kickoff checklist + “connect Google Ads”</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-seo-setup">
+    <h3>Google SEO setup (pre-check)</h3>
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label>Your website URL</label>
+          <div class="fake-input"></div>
+        </div>
+        <div class="checkbox-line"><span class="sq"></span> I can edit my website (or have someone who can)</div>
+        <div class="checkbox-line"><span class="sq"></span> I want to rank for specific services + locations</div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-checkout">Continue to checkout</a>
+          <a class="btn" href="#screen-marketing-plans">Back to plans</a>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Notes</h4>
+        <p>SEO is slower than ads; set expectations early to avoid churn.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Outputs</div><div>website URL, target services, target areas</div>
+          <div>After purchase</div><div>site audit + tracking + content plan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-checkout">
+    <h3>Checkout (Stripe)</h3>
+    <div class="grid">
+      <div>
+        <div class="card">
+          <span class="badge muted">Summary</span>
+          <h4>Plan selected</h4>
+          <p>Marketing subscription (Google Ads or Google SEO)</p>
+          <div class="hr"></div>
+          <div class="kvs">
+            <div>Billed to</div><div>Company</div>
+            <div>Includes</div><div>Management / delivery (ad spend not included)</div>
+            <div>Metadata</div><div><code>companyId</code>, <code>planKey</code></div>
+          </div>
+        </div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-post-purchase">Pay &amp; start subscription</a>
+          <a class="btn" href="#screen-marketing-plans">Back</a>
+        </div>
+        <p class="hint">This represents your hosted Stripe Checkout.</p>
+      </div>
+      <div class="card">
+        <h4>Failure modes to handle</h4>
+        <p>Payment failed, requires action (3DS), incomplete session, or webhook delays.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>UI states</div><div>processing, active, past_due, cancelled</div>
+          <div>Source of truth</div><div>webhooks → subscription status</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-post-purchase">
+    <h3>Dashboard (post-purchase)</h3>
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Subscription active</span>
+        <h4>Marketing subscription</h4>
+        <p>You’re subscribed. Next: complete the kickoff checklist.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-marketing-kickoff">Open kickoff checklist</a>
+          <a class="btn" href="#screen-publish">Publish listing (optional)</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge warn">Past due</span>
+        <h4>Action required</h4>
+        <p>Payment failed. Update card to continue.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-billing-portal">Update payment method</a>
+          <a class="btn" href="#screen-checkout">Retry checkout</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge muted">Cancelled</span>
+        <h4>Subscription ended</h4>
+        <p>Access ends at period end (or immediately, depending on policy).</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-marketing-plans">Resubscribe</a>
+          <a class="btn" href="#screen-intent">Change goal</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge muted">Still private</span>
+        <h4>Not listed on marketplace</h4>
+        <p>You can stay private forever — or publish later when you’re ready.</p>
+        <div class="btnrow">
+          <a class="btn" href="#screen-partner-onboarding">Complete listing profile</a>
+          <a class="btn" href="#screen-publish">Publish listing</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-growth-subscribed">
+    <h3>Growth dashboard (partner) — already subscribed</h3>
+    <p class="sub" style="margin:0 0 1rem;">
+      This is how it looks when a partner already has an active <strong>SEO</strong> or <strong>Google Ads</strong> subscription.
+      The page opens directly and shows real progress + billing actions.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Access: Active subscription</span>
+        <h4>Growth services</h4>
+        <p>Tabs: SEO / Ads. Each shows status, metrics, recommendations, and billing management.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Who</div><div>Company owner (partner) + bypass testers</div>
+          <div>Data</div><div>Campaign + Metrics + Work log</div>
+          <div>Gating</div><div>Active SEO/Ads subscription (or bypass email)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">SEO</span>
+        <h4>Campaign status</h4>
+        <p><strong>RUNNING</strong> — “Tracking installed, content plan approved.”</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Last updated</div><div>Today (Admin)</div>
+          <div>Next milestone</div><div>Publish 3 new pages + internal links</div>
+          <div>Tips</div><div>Prioritize local pages for DK-2100 + DK-2200</div>
+        </div>
+        <div class="btnrow">
+          <a class="btn" href="#screen-billing-portal">Manage billing</a>
+          <a class="btn danger" href="#screen-billing-portal">Cancel subscription</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">SEO</span>
+        <h4>Performance overview</h4>
+        <p class="hint">Example KPIs (mock numbers)</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Impressions</div><div>84,120</div>
+          <div>Clicks</div><div>3,482</div>
+          <div>Conversions</div><div>126</div>
+          <div>Trend</div><div>↗ steady growth (8 weeks)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">SEO</span>
+        <h4>Recommendations / work log</h4>
+        <p>What Admin is doing + what partner should do next.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Today</div><div>Fixed GSC issues + submitted sitemap</div>
+          <div>Yesterday</div><div>Keyword map drafted for 10 services</div>
+          <div>Next</div><div>Add photos + improve service descriptions</div>
+        </div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-admin-growth-subscribed">See admin edit view</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">ADS</span>
+        <h4>Google Ads snapshot</h4>
+        <p><strong>OPTIMIZING</strong> — “New ad groups created; split by service area.”</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Impressions</div><div>12,904</div>
+          <div>Clicks</div><div>642</div>
+          <div>Conversions</div><div>31</div>
+          <div>Tip</div><div>Increase budget on best postcode</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <a class="btn" href="#screen-post-purchase">Back</a>
+      <a class="btn primary" href="#screen-admin-growth-subscribed">Admin Growth Hub</a>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-admin-growth-subscribed">
+    <h3>Admin growth hub — managing subscribed users</h3>
+    <p class="sub" style="margin:0 0 1rem;">
+      Superadmin updates <strong>campaign status</strong>, <strong>performance metrics</strong>, and <strong>recommendations/work log</strong>
+      for companies with active SEO/Ads subscriptions (or bypass testers).
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">SEO subscription active</span>
+        <h4>Company: “Nordic Tømrer ApS”</h4>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Owner</div><div>owner@company.dk</div>
+          <div>Services</div><div>SEO (active), Ads (inactive)</div>
+          <div>Billing</div><div>Stripe customer + invoices</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">Campaign status editor</span>
+        <h4>SEO campaign</h4>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Type</div><div>SEO</div>
+          <div>Status</div><div>RUNNING</div>
+          <div>Notes</div><div>Tracking installed, content in progress</div>
+        </div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-growth-subscribed">Save (mock)</a>
+        </div>
+        <p class="hint">Writes to <code>GrowthCampaign</code>.</p>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">Performance metrics editor</span>
+        <h4>Update KPIs</h4>
+        <div class="field"><label>Type (SEO / ADS)</label><div class="fake-input"></div></div>
+        <div class="field"><label>Impressions</label><div class="fake-input"></div></div>
+        <div class="field"><label>Clicks</label><div class="fake-input"></div></div>
+        <div class="field"><label>Conversions</label><div class="fake-input"></div></div>
+        <div class="field"><label>Trend (comma-separated)</label><div class="fake-input"></div></div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-growth-subscribed">Save metrics (mock)</a>
+        </div>
+        <p class="hint">Upsert to <code>GrowthPerformanceMetrics</code>.</p>
+      </div>
+
+      <div class="card">
+        <span class="badge blue">Recommendations / work log</span>
+        <h4>Add a new entry</h4>
+        <div class="field"><label>Title</label><div class="fake-input"></div></div>
+        <div class="field"><label>Description</label><div class="fake-input"></div></div>
+        <div class="field"><label>Type (seo / ads)</label><div class="fake-input"></div></div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-growth-subscribed">Add log entry (mock)</a>
+        </div>
+        <p class="hint">Creates <code>GrowthOptimizationLog</code>.</p>
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <a class="btn primary" href="#screen-growth-subscribed">Preview partner view</a>
+      <a class="btn" href="#screen-post-purchase">Back</a>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-marketing-kickoff">
+    <h3>Marketing kickoff checklist</h3>
+    <div class="checkbox-line"><span class="sq"></span> Confirm contact person + phone</div>
+    <div class="checkbox-line"><span class="sq"></span> Add website / landing page URL</div>
+    <div class="checkbox-line"><span class="sq"></span> Select service categories</div>
+    <div class="checkbox-line"><span class="sq"></span> Select service areas (cities/zip codes)</div>
+    <div class="checkbox-line"><span class="sq"></span> Connect Google account (Ads / Search Console)</div>
+    <div class="btnrow">
+      <a class="btn primary" href="#screen-post-purchase">Done</a>
+      <a class="btn" href="#screen-billing-portal">Manage billing</a>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-billing-portal">
+    <h3>Billing portal (Stripe)</h3>
+    <p class="sub" style="margin:0 0 1rem;">Mock of Stripe Customer Portal: update payment method, invoices, cancel.</p>
+    <div class="btnrow">
+      <a class="btn primary" href="#screen-post-purchase">Return to dashboard</a>
+      <a class="btn" href="#screen-marketing-plans">Change plan</a>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-partner-onboarding">
+    <h3>Partner onboarding (listing profile — draft)</h3>
+    <div class="grid">
+      <div>
+        <div class="field"><label>Company description</label><div class="fake-input"></div></div>
+        <div class="field"><label>Services</label><div class="fake-input"></div></div>
+        <div class="field"><label>Service areas</label><div class="fake-input"></div></div>
+        <div class="field"><label>Photos</label><div class="fake-input"></div></div>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-publish">Continue to publish</a>
+          <a class="btn" href="#screen-post-purchase">Back to dashboard</a>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Important: draft vs public</h4>
+        <p>Partner onboarding can be completed before or after buying marketing subscription. Visibility stays <strong>draft</strong> until publish.</p>
+        <div class="hr"></div>
+        <div class="kvs">
+          <div>Draft</div><div>Editable, not searchable</div>
+          <div>Published</div><div>Search + public profile URL</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-publish">
+    <h3>Publish listing</h3>
+    <div class="card">
+      <span class="badge warn">Pre-publish checks</span>
+      <p style="margin-top:0.5rem;">Before going live, ensure profile has minimum required fields and policies are accepted.</p>
+      <div class="hr"></div>
+      <div class="checkbox-line"><span class="sq"></span> Description added</div>
+      <div class="checkbox-line"><span class="sq"></span> At least 1 service selected</div>
+      <div class="checkbox-line"><span class="sq"></span> At least 1 service area selected</div>
+      <div class="checkbox-line"><span class="sq"></span> Contact details verified</div>
+      <div class="btnrow">
+        <a class="btn primary" href="#screen-public-profile">Publish now</a>
+        <a class="btn" href="#screen-partner-onboarding">Back</a>
+      </div>
+      <p class="hint">Sets: <span class="badge ok">published</span> flag on Company/Profile (or equivalent).</p>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-public-profile">
+    <h3>Public profile (marketplace)</h3>
+    <div class="grid">
+      <div class="card">
+        <span class="badge ok">Live</span>
+        <h4>Company name</h4>
+        <p>Public listing page. Shows services, areas, photos, reviews (later), and CTA to contact.</p>
+        <div class="btnrow">
+          <a class="btn" href="#screen-post-purchase">Back to dashboard</a>
+          <a class="btn" href="#screen-partner-onboarding">Edit profile</a>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Optional upsell</h4>
+        <p>Offer marketing subscription here as an add-on: “Boost leads with Google Ads / SEO”.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="#screen-marketing-plans">View marketing plans</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <strong>Rules of thumb</strong>
+    <ul>
+      <li><strong>Company</strong> = billing &amp; ownership anchor (always needed for your current Stripe/marketing code).</li>
+      <li><strong>Name</strong> = human-readable label; can default from email if product allows.</li>
+      <li><strong>Listed</strong> = separate from “has company”; controlled by draft / publish (or equivalent flags).</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,25 +1,58 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ArrowRight, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
-import { Language, ViewState } from '../types';
+import { Language, SelectedPlan, ViewState } from '../types';
 import { translations } from '../translations';
 import { api } from '../services/api';
-import { CATEGORY_LIST } from '../constants';
+import { CATEGORY_LIST, DANISH_CITIES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import Pricing from './Pricing';
 import { FileUpload } from './common/FileUpload';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface PartnerOnboardingWizardProps {
   lang: Language;
   currentStep: number;
   onNavigate: (view: ViewState) => void;
   onComplete: () => void;
+  forceReplay?: boolean;
+  forceStep?: number;
 }
 
-const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang, currentStep: propStep, onNavigate, onComplete }) => {
+const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang, currentStep: propStep, onNavigate, onComplete, forceReplay, forceStep }) => {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(propStep || 1);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const replayParams = React.useMemo(() => {
+    const rawSearch =
+      (location && typeof location.search === 'string' ? location.search : '') ||
+      (typeof window !== 'undefined' ? window.location.search : '');
+    const params = new URLSearchParams(rawSearch);
+    const allowReplay = params.has('replay');
+    const stepParam = params.get('step');
+    const nextStep = stepParam ? Math.max(1, Math.min(5, Number(stepParam))) : 5;
+    return {
+      allowReplay: !!forceReplay || allowReplay,
+      nextStep: Number.isFinite(forceStep as number)
+        ? Math.max(1, Math.min(5, Number(forceStep)))
+        : (Number.isFinite(nextStep) ? nextStep : 5),
+    };
+  }, [location, forceReplay, forceStep]);
+
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (replayParams.allowReplay) return replayParams.nextStep;
+    return propStep || 1;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [categoryQuery, setCategoryQuery] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(() => {
+    try {
+      const raw = localStorage.getItem('selectedPlan');
+      return raw ? (JSON.parse(raw) as SelectedPlan) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,10 +69,25 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
   });
 
   const t = translations[lang];
+  const categoryNames = (translations[lang] as any).categoryNames || {};
+
+  const visibleCategories = useMemo(() => {
+    const q = categoryQuery.trim().toLowerCase();
+    if (!q) return CATEGORY_LIST;
+    return CATEGORY_LIST.filter((cat) => {
+      const label = (categoryNames[cat.id] || cat.id) as string;
+      return label.toLowerCase().includes(q) || cat.id.toLowerCase().includes(q);
+    });
+  }, [categoryQuery, categoryNames]);
 
   React.useEffect(() => {
     const checkOnboarding = async () => {
       try {
+        if (replayParams.allowReplay) {
+          setCurrentStep(replayParams.nextStep);
+          return;
+        }
+
         const status = await api.getOnboardingStatus();
         if (status.onboardingCompleted) {
           onComplete();
@@ -49,7 +97,7 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
       }
     };
     checkOnboarding();
-  }, []);
+  }, [location.search, replayParams.allowReplay, replayParams.nextStep, onComplete]);
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -69,6 +117,17 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
     setIsLoading(true);
     setError(null);
     try {
+      // Frontend guardrails (must also be validated server-side)
+      if (!formData.name.trim()) {
+        throw new Error(lang === 'da' ? 'Virksomhedsnavn er påkrævet' : 'Company name is required');
+      }
+      if (formData.cvrNumber.replace(/\D/g, '').length !== 8) {
+        throw new Error(lang === 'da' ? 'CVR-nummer skal være 8 cifre' : 'CVR number must be 8 digits');
+      }
+      if (formData.phone.replace(/\D/g, '').length < 8) {
+        throw new Error(lang === 'da' ? 'Telefonnummer er påkrævet' : 'Phone number is required');
+      }
+
       // 1. Save Basic Info
       await api.saveOnboardingStep1({
         name: formData.name,
@@ -95,7 +154,30 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
       });
 
       // 4. Complete Onboarding
-      await api.completeOnboarding();
+      const completed = await api.completeOnboarding();
+      if (completed?.company) {
+        try {
+          localStorage.setItem('partnerCompanyCache', JSON.stringify(completed.company));
+        } catch {
+          // ignore
+        }
+      }
+
+      // After onboarding, route the user based on what they chose.
+      // - Growth services: go to growth dashboard (existing behavior via onComplete)
+      // - Platform plan selected: go to billing/checkout
+      const hasSelectedGrowth = !!localStorage.getItem('selectedGrowthServices');
+      if (hasSelectedGrowth) {
+        onComplete();
+        return;
+      }
+
+      const plan = selectedPlan;
+      if (plan) {
+        // Use full reload to avoid race with guarded routes that depend on company availability.
+        window.location.href = `/dashboard/billing?plan=${encodeURIComponent(plan.id)}&period=${encodeURIComponent(plan.billingPeriod)}`;
+        return;
+      }
 
       onComplete();
     } catch (err: any) {
@@ -118,6 +200,11 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
               {currentStep} / 5
             </span>
           </div>
+          {replayParams.allowReplay && (
+            <div className="mt-3 text-xs font-bold uppercase tracking-widest text-gray-500">
+              {lang === 'da' ? 'Replay mode' : 'Replay mode'}
+            </div>
+          )}
           <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-[#1D1D1F] transition-all duration-500 ease-out"
@@ -146,6 +233,7 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
                     placeholder="F.eks. Mesterbyg ApS"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -153,18 +241,30 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                   <input
                     type="text"
                     value={formData.cvrNumber}
-                    onChange={(e) => setFormData({ ...formData, cvrNumber: e.target.value })}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+                      setFormData({ ...formData, cvrNumber: digits });
+                    }}
                     className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
                     placeholder="12345678"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">{lang === 'da' ? 'Telefon' : 'Phone'}</label>
                   <input
-                    type="tel"
+                    type="text"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 15);
+                      setFormData({ ...formData, phone: digits });
+                    }}
                     className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -179,7 +279,11 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                 </div>
               </div>
               <div className="pt-8 flex justify-end">
-                <button onClick={handleNext} disabled={!formData.name} className="px-10 py-4 bg-[#1D1D1F] text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-black transition-all disabled:opacity-30">
+                <button
+                  onClick={handleNext}
+                  disabled={!formData.name || formData.cvrNumber.length !== 8 || formData.phone.length < 8}
+                  className="px-10 py-4 bg-[#1D1D1F] text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                >
                   {lang === 'da' ? 'Næste' : 'Next'} <ArrowRight size={20} />
                 </button>
               </div>
@@ -190,8 +294,20 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
           {currentStep === 2 && (
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-[#1D1D1F]">{lang === 'da' ? 'Vælg din kategori' : 'Select your category'}</h3>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">
+                  {lang === 'da' ? 'Søg kategori' : 'Search category'}
+                </label>
+                <input
+                  type="text"
+                  value={categoryQuery}
+                  onChange={(e) => setCategoryQuery(e.target.value)}
+                  className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
+                  placeholder={lang === 'da' ? 'Skriv fx “VVS” eller “Maler”' : 'Type e.g. “Plumber” or “Painter”'}
+                />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {CATEGORY_LIST.map((cat) => (
+                {visibleCategories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setFormData({ ...formData, category: cat.id })}
@@ -201,11 +317,16 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                       }`}
                   >
                     <div className={`font-bold text-lg ${formData.category === cat.id ? 'text-[#1D1D1F]' : 'text-[#86868B]'}`}>
-                      {(translations[lang] as any).categoryNames[cat.id] || cat.id}
+                      {categoryNames[cat.id] || cat.id}
                     </div>
                   </button>
                 ))}
               </div>
+              {visibleCategories.length === 0 && (
+                <div className="text-sm text-gray-500">
+                  {lang === 'da' ? 'Ingen kategorier matcher din søgning.' : 'No categories match your search.'}
+                </div>
+              )}
               <div className="pt-8 flex justify-between">
                 <button onClick={handleBack} className="px-8 py-4 text-[#86868B] font-bold hover:text-[#1D1D1F] transition-all flex items-center gap-2">
                   <ArrowLeft size={20} /> {lang === 'da' ? 'Tilbage' : 'Back'}
@@ -224,13 +345,17 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">{lang === 'da' ? 'By' : 'City'}</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium"
-                    placeholder="F.eks. København"
-                  />
+                    className="w-full px-5 py-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#1D1D1F] font-medium appearance-none"
+                    required
+                  >
+                    <option value="">{lang === 'da' ? 'Vælg by...' : 'Select city...'}</option>
+                    {DANISH_CITIES.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-[#1D1D1F] uppercase tracking-tight">{lang === 'da' ? 'Adresse' : 'Address'}</label>
@@ -340,7 +465,11 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                     <Pricing
                       lang={lang}
                       isEmbedded={true}
-                      onSelectPlan={() => { }}
+                      selectedPlan={selectedPlan}
+                      onSelectPlan={(plan) => {
+                        setSelectedPlan(plan);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
                     />
                   </div>
                 </div>
@@ -350,7 +479,11 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                   <Pricing
                     lang={lang}
                     isEmbedded={true}
-                    onSelectPlan={() => { }}
+                    selectedPlan={selectedPlan}
+                    onSelectPlan={(plan) => {
+                      setSelectedPlan(plan);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                   />
                 </>
               )}
@@ -358,16 +491,22 @@ const PartnerOnboardingWizard: React.FC<PartnerOnboardingWizardProps> = ({ lang,
                 <button onClick={handleBack} className="px-8 py-4 text-[#86868B] font-bold hover:text-[#1D1D1F] transition-all flex items-center gap-2">
                   <ArrowLeft size={20} /> {lang === 'da' ? 'Tilbage' : 'Back'}
                 </button>
-                {!localStorage.getItem('selectedGrowthServices') && (
+                {!localStorage.getItem('selectedGrowthServices') ? (
                   <button
                     onClick={handleSubmit}
-                    disabled={isLoading}
-                    className="px-10 py-4 bg-[#1D1D1F] text-white rounded-2xl font-extrabold text-lg flex items-center gap-2 hover:bg-black transition-all shadow-xl active:scale-[0.98]"
+                    disabled={isLoading || !selectedPlan}
+                    className="px-10 py-4 bg-[#1D1D1F] text-white rounded-2xl font-extrabold text-lg flex items-center gap-2 hover:bg-black transition-all shadow-xl active:scale-[0.98] disabled:opacity-30"
                   >
-                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : (lang === 'da' ? 'Færdiggør profil' : 'Finish profile')}
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : (lang === 'da' ? 'Næste' : 'Next')}
+                    {!isLoading && <ArrowRight size={20} />}
                   </button>
-                )}
+                ) : null}
               </div>
+              {!localStorage.getItem('selectedGrowthServices') && !selectedPlan && (
+                <p className="text-sm text-gray-500 text-center">
+                  {lang === 'da' ? 'Vælg en plan for at fortsætte til betaling.' : 'Select a plan to continue to payment.'}
+                </p>
+              )}
             </div>
           )}
         </div>

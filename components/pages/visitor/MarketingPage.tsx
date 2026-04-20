@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../../services/api';
 import {
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Language } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useMarketplace } from '../../../contexts/MarketplaceContext';
 import { useToast } from '../../../hooks/useToast';
 
 interface MarketingPageProps {
@@ -30,6 +31,9 @@ interface MarketingPageProps {
 const MarketingPage: React.FC<MarketingPageProps> = ({ lang }) => {
     const navigate = useNavigate();
     const { isAuthenticated, user, upgradeAccount } = useAuth();
+    // NOTE: We intentionally do not gate marketing checkout on marketplace company listing state.
+    // Billing-only companies are hidden from public listing endpoints.
+    useMarketplace();
     const toast = useToast();
     const isDa = lang === 'da';
 
@@ -46,16 +50,32 @@ const MarketingPage: React.FC<MarketingPageProps> = ({ lang }) => {
     };
 
     const [isProcessing, setIsProcessing] = useState<string | null>(null);
+    const [showBillingModal, setShowBillingModal] = useState(false);
+    const [pendingTierId, setPendingTierId] = useState<string | null>(null);
+    const [billingName, setBillingName] = useState('');
+
+    const defaultBillingName = useMemo(() => {
+        const n = (user?.name || '').trim();
+        if (n) return n;
+        const email = (user?.email || '').trim();
+        if (!email) return '';
+        const local = email.split('@')[0] || '';
+        return local ? `Trading as ${local}` : '';
+    }, [user?.name, user?.email]);
 
     const handleSelectTier = async (tierId: string) => {
         if (isAuthenticated) {
-            // Only PARTNER users can access growth services
             if (user?.role === 'PARTNER') {
                 try {
                     setIsProcessing(tierId);
 
                     // Parse tierId (e.g., 'ads_basic' -> ['ads', 'basic'])
                     const [serviceType] = tierId.split('_');
+
+                    // Ensure billing company exists (idempotent backend: returns existing if present).
+                    // We do NOT rely on marketplace "companies" list, because billing-only companies are hidden from public listing APIs.
+                    const inferredName = defaultBillingName || (lang === 'da' ? 'Faktureringsvirksomhed' : 'Billing company');
+                    await api.createBillingCompany({ name: inferredName, contactEmail: user?.email });
 
                     const data = await api.createCheckoutSession({
                         serviceType,
@@ -78,29 +98,51 @@ const MarketingPage: React.FC<MarketingPageProps> = ({ lang }) => {
                     setIsProcessing(null);
                 }
             } else {
-                // Consumer tries to pick a package: Upgrade them and send them to Onboarding
-                try {
-                    setIsProcessing(tierId);
-                    toast.success(lang === 'da'
-                        ? 'Opgraderer din konto til Erhverv...'
-                        : 'Upgrading your account to Business...');
-                    
-                    await upgradeAccount();
-                    
-                    // Save the intended package so Onboarding Wizard picks it up afterwards
-                    localStorage.setItem('selectedGrowthServices', JSON.stringify([{
-                        serviceId: tierId,
-                        budget: 0
-                    }]));
-                    
-                    navigate('/dashboard/onboarding');
-                } catch (error: any) {
-                    toast.error(lang === 'da' ? 'Kunne ikke opgradere konto: ' + error.message : 'Could not upgrade account: ' + error.message);
-                    setIsProcessing(null);
-                }
+                // Consumer can buy marketing too: create a private billing-company if needed, then checkout.
+                setPendingTierId(tierId);
+                setBillingName(defaultBillingName);
+                setShowBillingModal(true);
             }
         } else {
             navigate(`/signup?service=${activeTab}&tier=${tierId}`);
+        }
+    };
+
+    const startConsumerCheckout = async () => {
+        if (!pendingTierId) return;
+        const name = billingName.trim();
+        if (!name) {
+            toast.error(isDa ? 'Indtast virksomhedsnavn til fakturering' : 'Enter a billing company name');
+            return;
+        }
+
+        try {
+            setIsProcessing(pendingTierId);
+
+            // Ensure billing company exists (idempotent backend: returns existing if present)
+            await api.createBillingCompany({ name, contactEmail: user?.email });
+
+            const [serviceType] = pendingTierId.split('_');
+            const data = await api.createCheckoutSession({
+                serviceType,
+                tier: pendingTierId,
+                billingCycle: 'monthly'
+            });
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error(isDa ? 'Kunne ikke oprette betalingssession' : 'Could not create payment session');
+            }
+        } catch (error: any) {
+            if ((import.meta as any).env.DEV) console.error('Checkout error:', error);
+            toast.error(isDa
+                ? (error.message || 'Der opstod en fejl ved oprettelse af betaling')
+                : (error.message || 'An error occurred while creating payment'));
+        } finally {
+            setIsProcessing(null);
+            setShowBillingModal(false);
+            setPendingTierId(null);
         }
     };
 
@@ -204,6 +246,60 @@ const MarketingPage: React.FC<MarketingPageProps> = ({ lang }) => {
 
     return (
         <div className="bg-white">
+            {/* Billing company modal for consumers */}
+            {showBillingModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+                    <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+                        <div className="p-6 sm:p-8">
+                            <h3 className="text-xl font-bold text-[#1D1D1F]">
+                                {isDa ? 'Faktureringsoplysninger' : 'Billing details'}
+                            </h3>
+                            <p className="text-sm text-[#86868B] mt-2">
+                                {isDa
+                                    ? 'For at starte et Google Ads/SEO abonnement skal vi bruge et virksomhedsnavn til faktura.'
+                                    : 'To start a Google Ads/SEO subscription we need a company name for invoicing.'}
+                            </p>
+
+                            <div className="mt-6">
+                                <label className="block text-xs font-bold text-[#86868B] uppercase tracking-wider mb-2">
+                                    {isDa ? 'Virksomhedsnavn (kun til fakturering)' : 'Company name (billing only)'}
+                                </label>
+                                <input
+                                    value={billingName}
+                                    onChange={(e) => setBillingName(e.target.value)}
+                                    placeholder={defaultBillingName || (isDa ? 'Fx: Din virksomhed ApS' : 'e.g. Your Business Ltd')}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1D1D1F]/10 focus:border-gray-300 font-medium"
+                                />
+                                <p className="text-xs text-gray-400 mt-2">
+                                    {isDa
+                                        ? 'Dette opretter en privat “billing company” og gør dig ikke synlig på marketplace.'
+                                        : 'This creates a private billing company and does not publish you in the marketplace.'}
+                                </p>
+                            </div>
+
+                            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowBillingModal(false);
+                                        setPendingTierId(null);
+                                    }}
+                                    className="w-full sm:w-auto px-6 py-3 rounded-xl border border-gray-200 font-bold text-[#1D1D1F] hover:bg-gray-50 transition"
+                                >
+                                    {isDa ? 'Annuller' : 'Cancel'}
+                                </button>
+                                <button
+                                    onClick={startConsumerCheckout}
+                                    disabled={!pendingTierId || !!isProcessing}
+                                    className="w-full sm:flex-1 px-6 py-3 rounded-xl bg-[#1D1D1F] text-white font-bold hover:bg-black transition disabled:opacity-60"
+                                >
+                                    {isDa ? 'Fortsæt til betaling' : 'Continue to payment'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* 1. HERO SECTION */}
             <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 overflow-hidden bg-gray-50 border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">

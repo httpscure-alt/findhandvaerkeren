@@ -31,7 +31,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const { isAuthenticated } = useAuth();
     const toast = useToast();
 
-    const [lang, setLang] = useState<Language>('da');
+    const [lang, setLangState] = useState<Language>('da');
     const [filters, setFilters] = useState<FilterState>({
         category: 'All',
         location: 'All',
@@ -51,6 +51,34 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [savedCompanyIds, setSavedCompanyIds] = useState<string[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [aiSuggestion, setAiSuggestion] = useState<GeminiSearchResponse | null>(null);
+
+    // Language persistence: default Danish, but persist user toggle across pages/reloads.
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem('lang') as Language | null;
+            if (saved === 'da' || saved === 'en') {
+                setLangState(saved);
+            }
+        } catch {
+            // ignore
+        }
+    }, []);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('lang', lang);
+        } catch {
+            // ignore
+        }
+        // Keep the document language in sync (helps accessibility + browser defaults)
+        if (typeof document !== 'undefined') {
+            document.documentElement.lang = lang;
+        }
+    }, [lang]);
+
+    const setLang = useCallback((next: Language) => {
+        setLangState(next);
+    }, []);
 
     // Fetch companies from API
     const fetchCompanies = useCallback(async () => {
@@ -181,7 +209,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }), [
         companies, categories, locations, isLoadingCompanies, isLoadingCategories,
         isLoadingLocations, companiesError, filters, savedCompanyIds,
-        toggleFavorite, lang, isAnalyzing, aiSuggestion, handleSearch, fetchCompanies
+        toggleFavorite, lang, setLang, isAnalyzing, aiSuggestion, handleSearch, fetchCompanies
     ]);
 
     return (

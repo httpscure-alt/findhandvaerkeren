@@ -6,6 +6,7 @@ import { logger } from '../config/logger';
 
 interface EmailProvider {
     sendOtp(to: string, code: string): Promise<void>;
+    sendPasswordReset(to: string, resetUrl: string): Promise<void>;
     sendInquiryNotification(to: string, companyName: string, message: string): Promise<void>;
     sendPaymentSuccess(to: string, data: PaymentSuccessData): Promise<void>;
     sendPaymentFailed(to: string, data: PaymentFailedData): Promise<void>;
@@ -39,6 +40,10 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://findhandvaerkeren.dk';
 class ConsoleEmailProvider implements EmailProvider {
     async sendOtp(to: string, code: string): Promise<void> {
         logger.info(`[EMAIL] OTP sent to: ${to}, code: ${code}`);
+    }
+
+    async sendPasswordReset(to: string, resetUrl: string): Promise<void> {
+        logger.info(`[EMAIL] Password reset sent to: ${to}, url: ${resetUrl}`);
     }
 
     async sendInquiryNotification(to: string, companyName: string, message: string): Promise<void> {
@@ -80,6 +85,24 @@ class ResendEmailProvider implements EmailProvider {
                         <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1D1D1F;">${code}</span>
                     </div>
                     <p style="color: #86868B;">Denne kode udløber om 10 minutter.</p>
+                </div>
+            `,
+        });
+    }
+
+    async sendPasswordReset(to: string, resetUrl: string): Promise<void> {
+        await this.resend.emails.send({
+            from: this.fromEmail,
+            to,
+            subject: 'Nulstil adgangskode - Findhåndværkeren',
+            html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #1D1D1F;">Nulstil adgangskode</h2>
+                    <p>Klik på linket herunder for at vælge en ny adgangskode:</p>
+                    <p style="margin-top: 16px;">
+                      <a href="${resetUrl}" style="background-color: #1D1D1F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Nulstil adgangskode</a>
+                    </p>
+                    <p style="color: #86868B; margin-top: 16px;">Linket udløber om 60 minutter.</p>
                 </div>
             `,
         });
@@ -205,6 +228,15 @@ class EmailService {
         } catch (error) {
             logger.error('Failed to send OTP email:', error);
             throw new Error('Failed to send verification email');
+        }
+    }
+
+    async sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+        try {
+            await this.provider.sendPasswordReset(to, resetUrl);
+            logger.info(`Password reset email sent to ${to}`);
+        } catch (error) {
+            logger.error('Failed to send password reset email:', error);
         }
     }
 

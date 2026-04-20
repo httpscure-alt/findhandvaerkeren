@@ -187,7 +187,8 @@ export const getSubscription = async (req: AuthRequest, res: Response): Promise<
     });
 
     if (!subscription) {
-      res.status(404).json({ error: 'No active subscription found' });
+      // No subscription yet is a valid state for a newly onboarded partner.
+      res.json({ subscription: null });
       return;
     }
 

@@ -2,6 +2,46 @@
 import { Request, Response } from 'express';
 import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
+import { GrowthCampaignStatus } from '@prisma/client';
+
+const isBypassEmail = (email?: string | null) => (email || '').toLowerCase() === 'httpscure@gmail.com';
+
+async function ensureCompanyAccess(req: Request, companyId: string) {
+  const userId = (req as any).userId as string | undefined;
+  const userRole = (req as any).userRole as string | undefined;
+  if (!userId) return { ok: false as const, status: 401, error: 'Unauthorized' };
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, email: true },
+  });
+  if (!user) return { ok: false as const, status: 401, error: 'Unauthorized' };
+
+  if (user.role === 'ADMIN' || userRole === 'ADMIN') return { ok: true as const, user };
+
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: { id: true, ownerId: true },
+  });
+  if (!company) return { ok: false as const, status: 404, error: 'Company not found' };
+
+  if (company.ownerId !== userId) return { ok: false as const, status: 403, error: 'Not authorized' };
+
+  return { ok: true as const, user };
+}
+
+async function hasGrowthAccess(companyId: string, userEmail?: string | null) {
+  if (isBypassEmail(userEmail)) return true;
+  const active = await prisma.marketingSubscription.findFirst({
+    where: {
+      companyId,
+      status: { in: ['active', 'past_due'] },
+      serviceType: { in: ['seo', 'ads'] },
+    },
+    select: { id: true },
+  });
+  return !!active;
+}
 
 
 // Submit a new growth request
@@ -123,4 +163,107 @@ export const updateGrowthRequestStatus = async (req: Request, res: Response): Pr
         console.error('Error updating growth request status:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
+};
+
+export const getCompanyGrowthDashboard = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { companyId } = req.params;
+    const access = await ensureCompanyAccess(req, companyId);
+    if (!access.ok) {
+      res.status(access.status).json({ error: access.error });
+      return;
+    }
+
+    const allowed = await hasGrowthAccess(companyId, access.user.email);
+    if (!allowed) {
+      res.json({ hasAccess: false });
+      return;
+    }
+
+    const [campaigns, metrics, logs] = await Promise.all([
+      prisma.growthCampaign.findMany({
+        where: { companyId, type: { in: ['SEO', 'ADS'] } as any },
+        orderBy: { updatedAt: 'desc' },
+      }),
+      prisma.growthPerformanceMetrics.findMany({
+        where: { companyId, type: { in: ['SEO', 'ADS'] } as any },
+      }),
+      prisma.growthOptimizationLog.findMany({
+        where: { companyId, type: { in: ['SEO', 'ADS'] } as any },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+    ]);
+
+    res.json({ hasAccess: true, campaigns, metrics, logs });
+  } catch (error) {
+    console.error('Error fetching growth dashboard:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getCompanyCampaigns = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { companyId } = req.params;
+    const access = await ensureCompanyAccess(req, companyId);
+    if (!access.ok) {
+      res.status(access.status).json({ error: access.error });
+      return;
+    }
+
+    const allowed = await hasGrowthAccess(companyId, access.user.email);
+    if (!allowed) {
+      res.json({ hasAccess: false, campaigns: [] });
+      return;
+    }
+
+    const campaigns = await prisma.growthCampaign.findMany({
+      where: { companyId, type: { in: ['SEO', 'ADS'] } as any },
+      orderBy: { updatedAt: 'desc' },
+    });
+    res.json({ hasAccess: true, campaigns });
+  } catch (error) {
+    console.error('Error fetching campaigns:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const upsertCompanyCampaign = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { companyId } = req.params;
+    const userId = (req as any).userId as string | undefined;
+    const { type, status, notes } = req.body as { type: 'SEO' | 'ADS'; status: string; notes?: string };
+
+    if (!type || (type !== 'SEO' && type !== 'ADS')) {
+      res.status(400).json({ error: 'type must be SEO or ADS' });
+      return;
+    }
+    if (!status) {
+      res.status(400).json({ error: 'status is required' });
+      return;
+    }
+
+    const allowedStatuses = new Set<GrowthCampaignStatus>([
+      'NOT_STARTED',
+      'SETUP',
+      'RUNNING',
+      'OPTIMIZING',
+      'PAUSED',
+    ]);
+    if (!allowedStatuses.has(status as GrowthCampaignStatus)) {
+      res.status(400).json({ error: 'Invalid status' });
+      return;
+    }
+
+    const updated = await prisma.growthCampaign.upsert({
+      where: { companyId_type: { companyId, type } },
+      update: { status: status as GrowthCampaignStatus, notes: notes || null, updatedById: userId || null },
+      create: { companyId, type, status: status as GrowthCampaignStatus, notes: notes || null, updatedById: userId || null },
+    });
+
+    res.json({ campaign: updated });
+  } catch (error) {
+    console.error('Error upserting campaign:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };

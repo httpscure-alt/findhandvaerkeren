@@ -4,6 +4,8 @@ import { ModalState, Language, Company } from '../types';
 import { translations } from '../translations';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { useToast } from '../hooks/useToast';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,6 +23,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, type, onClose, lang, onSu
   const [userRole, setUserRole] = useState<'CONSUMER' | 'PARTNER'>('CONSUMER');
   const { login, register } = useAuth();
   const t = translations[lang].auth;
+  const toast = useToast();
+  const isDa = lang === 'da';
+
+  const startOAuth = async (provider: 'google' | 'apple') => {
+    if (!supabase || !isSupabaseConfigured) {
+      toast.error(isDa ? 'Supabase er ikke konfigureret (mangler env vars)' : 'Supabase is not configured (missing env vars)');
+      return;
+    }
+    const redirectTo = `${window.location.origin}/auth/supabase/callback?role=${userRole}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo },
+    });
+    if (error) toast.error(error.message);
+  };
 
   if (!isOpen || type === ModalState.CLOSED) return null;
 
@@ -298,6 +315,47 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, type, onClose, lang, onSu
                   </>
                 )}
               </button>
+
+              {(type === ModalState.LOGIN || type === ModalState.REGISTER_FREE) && (
+                <div className="mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">
+                        {lang === 'da' ? 'eller' : 'or'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => startOAuth('google')}
+                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-semibold text-sm text-[#1D1D1F]"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.66 32.657 29.215 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.043 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+                        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 16.108 19.008 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.043 6.053 29.268 4 24 4c-7.682 0-14.35 4.337-17.694 10.691z"/>
+                        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.197l-6.19-5.238C29.179 35.091 26.715 36 24 36c-5.192 0-9.62-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.01 12.01 0 0 1-4.084 5.565l.002-.001 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+                      </svg>
+                      <span>{isDa ? 'Fortsæt med Google' : 'Continue with Google'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => startOAuth('apple')}
+                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-semibold text-sm text-[#1D1D1F]"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                        <path d="M16.365 1.43c0 1.14-.41 2.21-1.23 3.2-.99 1.18-2.19 1.87-3.49 1.76-.16-1.1.45-2.26 1.38-3.31.51-.59 1.17-1.09 1.91-1.44.73-.35 1.44-.54 2.07-.58.23.12.36.25.36.37ZM21.75 17.26c-.28.66-.62 1.26-1.02 1.8-.55.77-1 1.3-1.35 1.61-.55.51-1.14.77-1.78.78-.46 0-1.01-.13-1.66-.39-.66-.26-1.27-.39-1.82-.39-.58 0-1.21.13-1.9.39-.69.26-1.25.4-1.68.41-.61.03-1.22-.24-1.82-.81-.39-.34-.86-.9-1.42-1.68-.6-.82-1.09-1.78-1.49-2.87-.43-1.18-.65-2.32-.65-3.43 0-1.27.27-2.36.82-3.28.43-.73 1.01-1.3 1.73-1.72.72-.42 1.49-.64 2.32-.66.46 0 1.06.14 1.81.42.74.28 1.22.42 1.43.42.16 0 .68-.16 1.56-.48.83-.3 1.53-.43 2.11-.39 1.56.13 2.73.74 3.52 1.84-1.39.84-2.08 2.01-2.07 3.52.01 1.17.44 2.14 1.28 2.92.38.36.81.64 1.28.83-.1.29-.2.56-.32.8Z"/>
+                      </svg>
+                      <span>{isDa ? 'Fortsæt med Apple' : 'Continue with Apple'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <p className="text-[10px] text-center text-gray-400 px-4">
                 {t.terms}

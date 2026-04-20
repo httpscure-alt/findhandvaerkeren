@@ -29,6 +29,58 @@ export const getCompanyTestimonials = async (req: Request, res: Response): Promi
   }
 };
 
+// Reply to a testimonial (company owner)
+export const replyToTestimonial = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { companyId, testimonialId } = req.params;
+    const userId = req.userId!;
+    const userRole = req.userRole!;
+    const { reply } = req.body as { reply?: string };
+
+    if (!reply || !reply.trim()) {
+      res.status(400).json({ error: 'Reply is required' });
+      return;
+    }
+
+    const companyRecord = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { id: true, ownerId: true },
+    });
+
+    if (!companyRecord) {
+      res.status(404).json({ error: 'Company not found' });
+      return;
+    }
+
+    if (companyRecord.ownerId !== userId && userRole !== 'ADMIN') {
+      res.status(403).json({ error: 'Not authorized' });
+      return;
+    }
+
+    const existing = await prisma.testimonial.findFirst({
+      where: { id: testimonialId, companyId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      res.status(404).json({ error: 'Testimonial not found' });
+      return;
+    }
+
+    const updated = await prisma.testimonial.update({
+      where: { id: testimonialId },
+      data: {
+        partnerReply: reply.trim(),
+        partnerReplyAt: new Date(),
+      },
+    });
+
+    res.json({ testimonial: updated });
+  } catch (error) {
+    throw new AppError('Failed to reply to testimonial', 500);
+  }
+};
+
 // Create a testimonial for a company
 export const createTestimonial = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

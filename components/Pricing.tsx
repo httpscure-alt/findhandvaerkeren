@@ -9,11 +9,12 @@ interface PricingProps {
   user?: any;
   onSelectPlan?: (plan: SelectedPlan) => void;
   isEmbedded?: boolean;
+  selectedPlan?: SelectedPlan | null;
 }
 
 type PricingMode = 'monthly' | 'annual';
 
-const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = false }) => {
+const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = false, selectedPlan = null }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const t = translations[lang];
   const planFeatures = getPartnerPlanFeatures(lang);
@@ -57,6 +58,9 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
     }
   ];
 
+  const isSelected = (tierId: string) =>
+    !!selectedPlan && selectedPlan.id === tierId;
+
   return (
     <div className={`bg-white ${isEmbedded ? '' : 'min-h-screen'}`}>
       {/* Hero Header */}
@@ -88,16 +92,24 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
               const priceInfo = getPriceInfo(tier.monthlyPrice);
               const isGold = tier.id === 'Gold';
               const Icon = tier.icon;
+              const selected = isSelected(tier.id);
 
               return (
                 <div
                   key={tier.id}
                   className={`relative rounded-[2.5rem] p-10 md:p-12 flex flex-col transition-all duration-500 border
-                    ${isGold
-                      ? 'bg-white border-[#1D1D1F]/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] scale-105 z-10'
-                      : 'bg-white text-[#1D1D1F] shadow-xl border-gray-100'
+                    ${selected
+                      ? 'border-[#1D1D1F] ring-4 ring-[#1D1D1F]/10'
+                      : (isGold
+                        ? 'bg-white border-[#1D1D1F]/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] scale-105 z-10'
+                        : 'bg-white text-[#1D1D1F] shadow-xl border-gray-100')
                     }`}
                 >
+                  {selected && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#1D1D1F] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-xl">
+                      {lang === 'da' ? 'VALGT' : 'SELECTED'}
+                    </div>
+                  )}
                   {isGold && (
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#1D1D1F] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-xl">
                       {lang === 'da' ? 'ANBEFALET' : 'RECOMMENDED'}
@@ -148,12 +160,14 @@ const Pricing: React.FC<PricingProps> = ({ lang, onSelectPlan, isEmbedded = fals
                   <button
                     onClick={() => handlePlanSelect(tier.id, tier.monthlyPrice)}
                     className={`w-full py-5 rounded-2xl font-black text-sm transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] shadow-lg
-                      ${isGold
+                      ${selected
                         ? 'bg-[#1D1D1F] text-white hover:bg-black hover:shadow-2xl'
-                        : 'bg-transparent border-2 border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#F5F5F7]'
-                      }`}
+                        : (isGold
+                          ? 'bg-[#1D1D1F] text-white hover:bg-black hover:shadow-2xl'
+                          : 'bg-transparent border-2 border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#F5F5F7]')}
+                      `}
                   >
-                    {tier.cta}
+                    {selected ? (lang === 'da' ? 'Valgt' : 'Selected') : tier.cta}
                   </button>
                 </div>
               );

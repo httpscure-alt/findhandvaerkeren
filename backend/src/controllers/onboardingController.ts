@@ -10,37 +10,41 @@ export const saveBasicInfo = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.userId!;
     const { name, category, location, contactEmail, website, phone } = req.body;
 
-    // Check if company already exists
-    const existingCompany = await prisma.company.findUnique({
+    // Idempotent: upsert company by ownerId.
+    // NOTE: slug is only generated on create (we keep existing slug stable on updates).
+    let createdSlug: string | null = null;
+    const existing = await prisma.company.findUnique({ where: { ownerId: userId } });
+    if (!existing) {
+      let baseSlug = name.toLowerCase().trim().replace(/[\s\W-]+/g, '-');
+      if (!baseSlug) baseSlug = 'company';
+      let slug = baseSlug;
+      let counter = 1;
+      while (await prisma.company.findUnique({ where: { slug } })) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+      createdSlug = slug;
+    }
+
+    const company = await prisma.company.upsert({
       where: { ownerId: userId },
-    });
-
-    if (existingCompany) {
-      res.status(400).json({ error: 'Company already exists for this user' });
-      return;
-    }
-
-    // Generate unique SEO friendly slug
-    let baseSlug = name.toLowerCase().trim().replace(/[\s\W-]+/g, '-');
-    if (!baseSlug) baseSlug = 'company';
-    let slug = baseSlug;
-    let counter = 1;
-    
-    // Ensure slug is totally unique across the platform
-    while (await prisma.company.findUnique({ where: { slug } })) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
-
-    // Create company with basic info
-    const company = await prisma.company.create({
-      data: {
+      update: {
         name,
-        slug,
         category,
         location,
         contactEmail,
         website,
+        phone,
+        companyCreated: true,
+      },
+      create: {
+        name,
+        slug: createdSlug || 'company',
+        category,
+        location,
+        contactEmail,
+        website,
+        phone,
         shortDescription: '',
         description: '',
         ownerId: userId,

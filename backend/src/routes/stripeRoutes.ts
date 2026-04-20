@@ -12,8 +12,8 @@ router.post('/webhook', asyncHandler(handleWebhook));
 router.get('/session-details', asyncHandler(getSessionDetails));
 
 // Create billing portal session - requires authentication and PARTNER role
-router.get('/portal', authenticate, requireRole('PARTNER'), asyncHandler(createPortalSession));
-router.post('/create-portal-session', authenticate, requireRole('PARTNER'), asyncHandler(createPortalSession));
+router.get('/portal', authenticate, asyncHandler(createPortalSession));
+router.post('/create-portal-session', authenticate, asyncHandler(createPortalSession));
 
 // Subscription management
 router.post('/subscription/cancel', authenticate, requireRole('PARTNER'), asyncHandler(cancelSubscription));
@@ -29,7 +29,6 @@ router.get('/verify-config', authenticate, requireAdmin, asyncHandler(verifyStri
 router.post(
   '/create-checkout-session',
   authenticate,
-  requireRole('PARTNER'),
   asyncHandler(createCheckoutSession)
 );
 

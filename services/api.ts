@@ -15,6 +15,18 @@ interface RequestOptions {
   requiresAuth?: boolean;
 }
 
+export class ApiError extends Error {
+  status: number;
+  data: any;
+
+  constructor(message: string, status: number, data: any = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 class ApiService {
   private getToken(): string | null {
     const token = localStorage.getItem('token');
@@ -145,10 +157,10 @@ class ApiService {
 
         // For Stripe errors, don't treat as API_NOT_AVAILABLE - show the actual error
         if (errorMessage.includes('Stripe') || errorMessage.includes('stripe')) {
-          throw new Error(errorMessage);
+          throw new ApiError(errorMessage, response.status, error);
         }
 
-        throw new Error(errorMessage);
+        throw new ApiError(errorMessage, response.status, error);
       }
 
       return await response.json();
@@ -326,6 +338,13 @@ class ApiService {
     }
   }
 
+  async createBillingCompany(data: { name: string; contactEmail?: string }) {
+    return await this.request<{ company: any }>('/companies/billing', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
   async updateCompany(id: string, data: any) {
     try {
       return await this.request<{ company: any }>(`/companies/${id}`, {
@@ -474,7 +493,7 @@ class ApiService {
 
   async getPartnerLeads() {
     try {
-      return await this.request<{ leads: any[] }>('/jobs/partner/leads');
+      return await this.request<{ leads: any[] }>('/jobs/leads');
     } catch (error: any) {
       if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
         return mockApi.getPartnerLeads();
@@ -485,7 +504,7 @@ class ApiService {
 
   async submitQuote(matchId: string, data: { price: number; message: string }) {
     try {
-      return await this.request<{ message: string; quote: any }>(`/jobs/quotes/${matchId}`, {
+      return await this.request<{ message: string; quote: any }>(`/jobs/leads/${matchId}/quote`, {
         method: 'POST',
         body: data,
       });
@@ -1491,6 +1510,20 @@ class ApiService {
     }
   }
 
+  async replyToTestimonial(companyId: string, testimonialId: string, reply: string) {
+    try {
+      return await this.request<{ testimonial: any }>(`/companies/${companyId}/testimonials/${testimonialId}/reply`, {
+        method: 'POST',
+        body: { reply },
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { testimonial: { id: testimonialId, partnerReply: reply, partnerReplyAt: new Date().toISOString() } };
+      }
+      throw error;
+    }
+  }
+
   // Contact Form
   async submitContactForm(data: { name: string; email: string; phone?: string; subject: string; message: string; files?: string[] }) {
     try {
@@ -1718,7 +1751,7 @@ class ApiService {
 
   async getPerformanceMetrics(companyId: string) {
     try {
-      return await this.request<{ metrics: any }>(`/companies/${companyId}/performance`, {
+      return await this.request<{ hasAccess?: boolean; metrics: any }>(`/companies/${companyId}/performance`, {
         method: 'GET',
       });
     } catch (error: any) {
@@ -1755,6 +1788,89 @@ class ApiService {
       }
       throw error;
     }
+  }
+
+  async getWeeklyPerformanceMetrics(companyId: string, params?: { type?: 'SEO' | 'ADS'; weeks?: number }) {
+    try {
+      const query = new URLSearchParams();
+      if (params?.type) query.set('type', params.type);
+      if (params?.weeks) query.set('weeks', String(params.weeks));
+      const qs = query.toString();
+      return await this.request<{ hasAccess: boolean; weekly: any[] }>(
+        `/companies/${companyId}/performance/weekly${qs ? `?${qs}` : ''}`,
+        { method: 'GET' }
+      );
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { hasAccess: false, weekly: [] };
+      }
+      throw error;
+    }
+  }
+
+  async upsertWeeklyPerformanceMetrics(
+    companyId: string,
+    payload: { type: 'SEO' | 'ADS'; weekStart: string; impressions?: number; clicks?: number; conversions?: number; spend?: number | null }
+  ) {
+    try {
+      return await this.request<{ success: boolean }>(`/companies/${companyId}/performance/weekly`, {
+        method: 'PUT',
+        body: payload,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { success: true };
+      }
+      throw error;
+    }
+  }
+
+  async getGrowthDashboard(companyId: string) {
+    try {
+      return await this.request<{ hasAccess: boolean; campaigns?: any[]; metrics?: any[]; logs?: any[] }>(`/growth/dashboard/${companyId}`, {
+        method: 'GET',
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { hasAccess: false, campaigns: [], metrics: [], logs: [] };
+      }
+      throw error;
+    }
+  }
+
+  async updateCampaignStatus(companyId: string, payload: { type: 'SEO' | 'ADS'; status: string; notes?: string }) {
+    try {
+      return await this.request<{ campaign: any }>(`/growth/campaigns/${companyId}`, {
+        method: 'PUT',
+        body: payload,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { campaign: { ...payload, companyId } };
+      }
+      throw error;
+    }
+  }
+
+  async loginWithSupabase(accessToken: string, roleHint?: 'CONSUMER' | 'PARTNER') {
+    return await this.request<{ user: any; token: string }>('/auth/supabase', {
+      method: 'POST',
+      body: { accessToken, roleHint },
+    });
+  }
+
+  async forgotPassword(email: string) {
+    return await this.request<{ success: boolean }>('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    });
+  }
+
+  async resetPassword(payload: { email: string; token: string; newPassword: string }) {
+    return await this.request<{ success: boolean }>('/auth/reset-password', {
+      method: 'POST',
+      body: payload,
+    });
   }
 
   // Notifications

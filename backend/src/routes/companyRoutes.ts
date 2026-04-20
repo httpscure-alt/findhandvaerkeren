@@ -3,12 +3,15 @@ import {
   getCompanies,
   getCompany,
   createCompany,
+  createBillingCompany,
   updateCompany,
   deleteCompany,
   verifyCompany,
   getPerformanceMetrics,
   updatePerformanceMetrics,
   addOptimizationLog,
+  getWeeklyPerformanceMetrics,
+  upsertWeeklyPerformanceMetrics,
 } from '../controllers/companyController';
 import {
   getCompanyServices,
@@ -27,6 +30,7 @@ import {
   createTestimonial,
   updateTestimonial,
   deleteTestimonial,
+  replyToTestimonial,
 } from '../controllers/testimonialController';
 import { authenticate, requireRole } from '../middleware/auth';
 import { validate, companyValidation } from '../utils/validation';
@@ -36,6 +40,7 @@ const router = Router();
 router.get('/', getCompanies);
 router.get('/:id', getCompany);
 router.post('/', authenticate, requireRole('PARTNER'), validate(companyValidation), createCompany);
+router.post('/billing', authenticate, createBillingCompany);
 router.put('/:id', authenticate, validate(companyValidation), updateCompany);
 router.delete('/:id', authenticate, deleteCompany);
 router.patch('/:id/verify', authenticate, requireRole('ADMIN'), verifyCompany);
@@ -44,6 +49,8 @@ router.patch('/:id/verify', authenticate, requireRole('ADMIN'), verifyCompany);
 router.get('/:companyId/performance', authenticate, getPerformanceMetrics);
 router.put('/:companyId/performance', authenticate, requireRole('ADMIN'), updatePerformanceMetrics);
 router.post('/:companyId/optimization-logs', authenticate, requireRole('ADMIN'), addOptimizationLog);
+router.get('/:companyId/performance/weekly', authenticate, getWeeklyPerformanceMetrics);
+router.put('/:companyId/performance/weekly', authenticate, requireRole('ADMIN'), upsertWeeklyPerformanceMetrics);
 
 // Services routes
 router.get('/:companyId/services', getCompanyServices);
@@ -62,5 +69,6 @@ router.get('/:companyId/testimonials', getCompanyTestimonials);
 router.post('/:companyId/testimonials', authenticate, createTestimonial);
 router.put('/:companyId/testimonials/:testimonialId', authenticate, updateTestimonial);
 router.delete('/:companyId/testimonials/:testimonialId', authenticate, deleteTestimonial);
+router.post('/:companyId/testimonials/:testimonialId/reply', authenticate, requireRole('PARTNER'), replyToTestimonial);
 
 export default router;
