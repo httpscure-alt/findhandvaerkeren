@@ -42,6 +42,7 @@ export interface Inquiry {
 
 export interface Company {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   shortDescription: string;

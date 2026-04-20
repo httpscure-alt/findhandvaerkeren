@@ -17,33 +17,26 @@ interface ProfileViewProps {
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal, lang, isOwner, onEdit }) => {
-  if (!company) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <LoadingSkeleton variant="card" className="h-96 w-full mb-8" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <LoadingSkeleton variant="card" className="col-span-2 h-64" />
-          <LoadingSkeleton variant="card" className="col-span-1 h-64" />
-        </div>
-      </div>
-    );
-  }
-
   const t = translations[lang].profile;
   // Map English tab names to translated tab names if necessary, or just use keys
   const tabs = [t.about, t.services, t.portfolio, t.testimonials];
   const [activeTab, setActiveTab] = useState(tabs[0]);
-  const [services, setServices] = useState(company.services || []);
-  const [portfolio, setPortfolio] = useState(company.portfolio || []);
-  const [testimonials, setTestimonials] = useState(company.testimonials || []);
-  const [isLoadingServices, setIsLoadingServices] = useState(!company.services || company.services.length === 0);
-  const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(!company.portfolio || company.portfolio.length === 0);
-  const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(!company.testimonials || company.testimonials.length === 0);
+  const [services, setServices] = useState(company?.services || []);
+  const [portfolio, setPortfolio] = useState(company?.portfolio || []);
+  const [testimonials, setTestimonials] = useState(company?.testimonials || []);
+  const [isLoadingServices, setIsLoadingServices] = useState(!company?.services || company.services.length === 0);
+  const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(!company?.portfolio || company.portfolio.length === 0);
+  const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(!company?.testimonials || company.testimonials.length === 0);
 
   // Fetch services, portfolio, and testimonials if not included in company object
   useEffect(() => {
     const fetchData = async () => {
-      if (!company.id) return;
+      if (!company?.id) return;
+
+      // Reset states if company changes
+      setServices(company.services || []);
+      setPortfolio(company.portfolio || []);
+      setTestimonials(company.testimonials || []);
 
       // Fetch services if not present
       if (!company.services || company.services.length === 0) {
@@ -86,7 +79,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal,
     };
 
     fetchData();
-  }, [company.id]);
+  }, [company?.id]);
+
+  if (!company) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <LoadingSkeleton variant="card" className="h-96 w-full mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <LoadingSkeleton variant="card" className="col-span-2 h-64" />
+          <LoadingSkeleton variant="card" className="col-span-1 h-64" />
+        </div>
+      </div>
+    );
+  }
+
+  // The t variable is already defined above the if(!company) check for hook ordering stability
 
   const renderServices = () => {
     if (isLoadingServices) {
