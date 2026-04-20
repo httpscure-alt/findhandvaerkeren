@@ -17,6 +17,18 @@ interface ProfileViewProps {
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({ company, onBack, onOpenModal, lang, isOwner, onEdit }) => {
+  if (!company) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <LoadingSkeleton variant="card" className="h-96 w-full mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <LoadingSkeleton variant="card" className="col-span-2 h-64" />
+          <LoadingSkeleton variant="card" className="col-span-1 h-64" />
+        </div>
+      </div>
+    );
+  }
+
   const t = translations[lang].profile;
   // Map English tab names to translated tab names if necessary, or just use keys
   const tabs = [t.about, t.services, t.portfolio, t.testimonials];

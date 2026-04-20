@@ -275,7 +275,7 @@ const App: React.FC = () => {
             <Route path="/dashboard/inquiries" element={userRole === 'PARTNER' ? <PartnerLeadDashboard /> : <MyInquiriesPage lang={lang} onBack={() => navigate('/dashboard')} />} />
             <Route path="/dashboard/settings" element={userRole === 'PARTNER' ? <PartnerAccountSettings company={getCurrentCompany()!} lang={lang} onBack={() => navigate('/dashboard')} onSave={async () => { }} /> : <ConsumerAccountSettings user={user as any} lang={lang} onBack={() => navigate('/dashboard')} onSave={async () => { }} />} />
 
-            <Route path="/dashboard/profile" element={<PartnerProfileEditor company={getCurrentCompany()!} lang={lang} onSave={() => navigate('/dashboard')} onCancel={() => navigate('/dashboard')} />} />
+            <Route path="/dashboard/profile" element={<PartnerProfileEditor company={getCurrentCompany()!} lang={lang} onSave={() => { refreshUser(); navigate('/dashboard'); }} onCancel={() => navigate('/dashboard')} />} />
             <Route path="/dashboard/services" element={<ServicesManagement services={getCurrentCompany()?.services || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
             <Route path="/dashboard/portfolio" element={<PortfolioManagement portfolio={getCurrentCompany()?.portfolio || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
             <Route path="/dashboard/testimonials" element={<TestimonialsManagement testimonials={getCurrentCompany()?.testimonials || []} companyId={getCurrentCompany()?.id || ''} lang={lang} onSave={refreshUser} onBack={() => navigate('/dashboard')} />} />
