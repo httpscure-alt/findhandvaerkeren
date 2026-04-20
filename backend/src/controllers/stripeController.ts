@@ -348,7 +348,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       success_url: `${clientUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/billing/cancel`,
       subscription_data: {
-        trial_period_days: isMarketingService ? 0 : 90, // No trial for marketing services
+        ...(isMarketingService ? {} : { trial_period_days: 90 }),
         default_tax_rates: process.env.STRIPE_TAX_RATE_ID ? [process.env.STRIPE_TAX_RATE_ID] : [],
         metadata: {
           userId: userId || 'test-user',

@@ -4,6 +4,7 @@ import { PortfolioItem, Language } from '../../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { api } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
+import { FileUpload } from '../../common/FileUpload';
 
 interface PortfolioManagementProps {
   portfolio: PortfolioItem[];
@@ -116,19 +117,20 @@ const PortfolioManagement: React.FC<PortfolioManagementProps> = ({ portfolio, co
                   <ImageIcon size={48} className="mb-2 opacity-20" />
                   <span className="text-sm">{lang === 'da' ? 'Ingen billede' : 'No image'}</span>
                 </div>
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <button
                   onClick={() => handleEdit(index)}
-                  className="p-2 bg-white rounded-full text-nexus-accent hover:scale-110 transition-transform"
+                  className="p-3 bg-white rounded-full text-nexus-accent hover:scale-110 transition-transform shadow-lg"
+                  title={lang === 'da' ? 'Rediger' : 'Edit'}
                 >
-                  <Edit2 size={20} />
+                  <Edit2 size={24} />
                 </button>
                 <button
                   onClick={() => handleDelete(index)}
-                  className="p-2 bg-white rounded-full text-red-500 hover:scale-110 transition-transform"
+                  className="p-3 bg-white rounded-full text-red-500 hover:scale-110 transition-transform shadow-lg"
+                  title={lang === 'da' ? 'Slet' : 'Delete'}
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={24} />
                 </button>
               </div>
             </div>
@@ -136,19 +138,24 @@ const PortfolioManagement: React.FC<PortfolioManagementProps> = ({ portfolio, co
             <div className="p-4">
               {editingId === String(index) || editingId === item.id ? (
                 <div className="space-y-4">
+                  <FileUpload
+                    label={lang === 'da' ? 'Projektbillede' : 'Project Image'}
+                    lang={lang}
+                    currentUrl={item.imageUrl}
+                    onUpload={async (file) => {
+                      const result = await api.uploadLogo(file);
+                      handleUpdate(index, 'imageUrl', result.logoUrl);
+                      return result.logoUrl;
+                    }}
+                    accept="image/*"
+                    maxSize={5}
+                  />
                   <input
                     type="text"
                     value={item.title}
                     onChange={(e) => handleUpdate(index, 'title', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-nexus-accent"
                     placeholder={lang === 'da' ? 'Projekt titel' : 'Project title'}
-                  />
-                  <input
-                    type="text"
-                    value={item.imageUrl}
-                    onChange={(e) => handleUpdate(index, 'imageUrl', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-nexus-accent"
-                    placeholder={lang === 'da' ? 'Billede URL' : 'Image URL'}
                   />
                   <textarea
                     value={item.description || ''}
@@ -160,7 +167,7 @@ const PortfolioManagement: React.FC<PortfolioManagementProps> = ({ portfolio, co
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setEditingId(null)}
-                      className="px-3 py-1 text-xs font-medium text-gray-500 hover:text-gray-700"
+                      className="px-4 py-2 bg-nexus-accent text-white rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors"
                     >
                       {lang === 'da' ? 'Færdig' : 'Done'}
                     </button>
