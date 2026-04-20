@@ -79,7 +79,7 @@ import BillingSuccessPage from './components/pages/billing/BillingSuccessPage';
 import BillingCancelPage from './components/pages/billing/BillingCancelPage';
 
 const App: React.FC = () => {
-  const { user, logout, isAuthenticated, refreshUser, showAuthModal, setShowAuthModal } = useAuth();
+  const { user, logout, isAuthenticated, refreshUser, upgradeAccount, showAuthModal, setShowAuthModal } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
@@ -163,15 +163,22 @@ const App: React.FC = () => {
               <Pricing
                 lang={lang}
                 user={user}
-                onSelectPlan={(plan) => {
+                onSelectPlan={async (plan) => {
                   // If user is already logged in as PARTNER, go directly to billing
                   if (user && userRole === 'PARTNER') {
                     navigate(`/dashboard/billing?plan=${plan.id}&period=${plan.billingPeriod}`);
                   } else if (user && userRole === 'CONSUMER') {
-                    // Consumer users should not access partner subscriptions
-                    toast.error(lang === 'da'
-                      ? 'Denne tjeneste er kun for erhvervskunder. Opret en partnerkonto for at fortsætte.'
-                      : 'This service is for business customers only. Create a partner account to continue.');
+                    try {
+                      toast.success(lang === 'da'
+                        ? 'Opgraderer din konto til Erhverv...'
+                        : 'Upgrading your account to Business...');
+                      await upgradeAccount();
+                      // We don't save growth services because this is standard platform pricing
+                      // So we just take them to onboarding
+                      navigate('/dashboard/onboarding');
+                    } catch (error: any) {
+                      toast.error(lang === 'da' ? 'Kunne ikke opgradere konto: ' + error.message : 'Could not upgrade account: ' + error.message);
+                    }
                   } else {
                     // Not logged in, go to signup flow
                     navigate('/signup-select');

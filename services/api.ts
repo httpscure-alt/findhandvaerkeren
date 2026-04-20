@@ -815,6 +815,17 @@ class ApiService {
     }
   }
 
+  async upgradeToPartner() {
+    try {
+      return await this.request<{ token: string, user: any }>('/user/upgrade-to-partner', {
+        method: 'POST'
+      });
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+
   async changePassword(data: { currentPassword: string; newPassword: string }) {
     try {
       return await this.request<{ message: string }>('/user/change-password', {
@@ -1106,7 +1117,12 @@ class ApiService {
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        let errMsg = 'Upload failed';
+        try {
+          const errData = await response.json();
+          errMsg = errData.error || errMsg;
+        } catch (e) { }
+        throw new Error(errMsg);
       }
 
       return await response.json();

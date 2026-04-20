@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Language } from '../../../types';
 import Pricing from '../../Pricing';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../hooks/useToast';
 
 interface ForBusinessesPageProps {
     lang: Language;
@@ -20,6 +22,8 @@ interface ForBusinessesPageProps {
 
 const ForBusinessesPage: React.FC<ForBusinessesPageProps> = ({ lang }) => {
     const navigate = useNavigate();
+    const { user, isAuthenticated, upgradeAccount } = useAuth();
+    const toast = useToast();
     const isDa = lang === 'da';
 
     return (
@@ -114,7 +118,25 @@ const ForBusinessesPage: React.FC<ForBusinessesPageProps> = ({ lang }) => {
                                 : 'Simple pricing. No commitment. Everything you need to get more customers.'}
                         </p>
                     </div>
-                    <Pricing lang={lang} isEmbedded={true} onSelectPlan={(plan) => navigate(`/signup?role=PARTNER&plan=${plan.id}`)} />
+                    <Pricing lang={lang} isEmbedded={true} onSelectPlan={async (plan) => {
+                        if (isAuthenticated) {
+                            if (user?.role === 'PARTNER') {
+                                navigate(`/dashboard/billing?plan=${plan.id}&period=${plan.billingPeriod}`);
+                            } else {
+                                try {
+                                    toast.success(lang === 'da'
+                                        ? 'Opgraderer din konto til Erhverv...'
+                                        : 'Upgrading your account to Business...');
+                                    await upgradeAccount();
+                                    navigate('/dashboard/onboarding');
+                                } catch (error: any) {
+                                    toast.error(lang === 'da' ? 'Kunne ikke opgradere: ' + error.message : 'Could not upgrade: ' + error.message);
+                                }
+                            }
+                        } else {
+                            navigate(`/signup?role=PARTNER&plan=${plan.id}`);
+                        }
+                    }} />
                 </div>
             </section>
 

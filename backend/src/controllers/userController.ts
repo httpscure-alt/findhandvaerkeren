@@ -3,6 +3,7 @@ import { prisma } from '../prisma/client';
 import { hashPassword } from '../utils/password';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import { generateToken } from '../utils/jwt';
 
 
 // Get consumer profile
@@ -124,6 +125,71 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {
     throw new AppError('Failed to delete account', 500);
+  }
+};
+
+// Upgrade to Partner
+export const upgradeToPartner = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId!;
+
+    // Make sure they don't already have an active company to avoid unique constraint errors
+    const existingCompany = await prisma.company.findUnique({
+      where: { ownerId: userId },
+    });
+
+    if (existingCompany) {
+      // Just upgrade the role and return it if company already exists
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { role: 'PARTNER' }
+      });
+      const token = generateToken(user.id, 'PARTNER');
+      res.json({
+        message: 'Account upgraded successfully',
+        token,
+        user: { ...user, role: 'PARTNER' }
+      });
+      return;
+    }
+
+    // Get user to use their data as defaults
+    const currentUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!currentUser) throw new AppError('User not found', 404);
+
+    // Update role
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { role: 'PARTNER' },
+    });
+
+    // Create a scaffold basic company
+    await prisma.company.create({
+      data: {
+        ownerId: userId,
+        name: updatedUser.name || 'Min Virksomhed', // Default dummy name if none provided
+        description: '',
+        shortDescription: '',
+        category: 'other', // Default category
+        location: updatedUser.location || '',
+        contactEmail: updatedUser.email,
+        companyCreated: true, // We created the scaffolding
+        profileCompleted: false, // Let them fix it in onboarding
+        onboardingCompleted: false
+      }
+    });
+
+    // Generate new token reflecting PARTNER role
+    const token = generateToken(updatedUser.id, 'PARTNER');
+
+    res.json({
+      message: 'Account upgraded successfully',
+      token,
+      user: { ...updatedUser, role: 'PARTNER' }
+    });
+  } catch (error) {
+    console.error('Upgrade error:', error);
+    throw new AppError('Failed to upgrade account', 500);
   }
 };
 

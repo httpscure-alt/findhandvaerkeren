@@ -49,6 +49,7 @@ model Company {
   pricingTier           PricingTier        @default(Basic)
   contactEmail          String
   website               String?
+  phone                 String?
   ownerId               String             @unique
   companyCreated        Boolean            @default(false)
   profileCompleted      Boolean            @default(false)

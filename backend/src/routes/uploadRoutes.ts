@@ -14,6 +14,15 @@ const router = Router();
 // All upload routes require authentication
 router.use(authenticate);
 
+// Cloudinary safety check
+router.use((req, res, next) => {
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+    res.status(500).json({ error: 'Cloudinary API keys are missing from the server environment. Please configure them to enable file uploads.' });
+    return;
+  }
+  next();
+});
+
 // Logo upload (partner only)
 router.post('/logo', requireRole('PARTNER'), logoUpload.single('file'), uploadLogo);
 

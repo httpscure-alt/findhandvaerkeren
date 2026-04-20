@@ -29,7 +29,7 @@ interface MarketingPageProps {
 
 const MarketingPage: React.FC<MarketingPageProps> = ({ lang }) => {
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, upgradeAccount } = useAuth();
     const toast = useToast();
     const isDa = lang === 'da';
 
@@ -78,11 +78,26 @@ const MarketingPage: React.FC<MarketingPageProps> = ({ lang }) => {
                     setIsProcessing(null);
                 }
             } else {
-                // Consumer users should not access partner services
-                toast.error(lang === 'da'
-                    ? 'Denne tjeneste er kun for erhvervskunder. Opret en partnerkonto for at fortsætte.'
-                    : 'This service is for business customers only. Create a partner account to continue.');
-                navigate('/pricing'); // Redirect to partner pricing/signup
+                // Consumer tries to pick a package: Upgrade them and send them to Onboarding
+                try {
+                    setIsProcessing(tierId);
+                    toast.success(lang === 'da'
+                        ? 'Opgraderer din konto til Erhverv...'
+                        : 'Upgrading your account to Business...');
+                    
+                    await upgradeAccount();
+                    
+                    // Save the intended package so Onboarding Wizard picks it up afterwards
+                    localStorage.setItem('selectedGrowthServices', JSON.stringify([{
+                        serviceId: tierId,
+                        budget: 0
+                    }]));
+                    
+                    navigate('/dashboard/onboarding');
+                } catch (error: any) {
+                    toast.error(lang === 'da' ? 'Kunne ikke opgradere konto: ' + error.message : 'Could not upgrade account: ' + error.message);
+                    setIsProcessing(null);
+                }
             }
         } else {
             navigate(`/signup?service=${activeTab}&tier=${tierId}`);

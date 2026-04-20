@@ -22,6 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   refreshUser: () => Promise<void>;
+  upgradeAccount: () => Promise<void>;
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
 }
@@ -131,6 +132,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const upgradeAccount = async () => {
+    try {
+      const { token: newToken, user: upgradedUser } = await api.upgradeToPartner();
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(upgradedUser));
+      setToken(newToken);
+      setUser(upgradedUser);
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
   // Don't block rendering while loading - show app immediately
   return (
     <AuthContext.Provider
@@ -141,6 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         register,
         logout,
         refreshUser,
+        upgradeAccount,
         showAuthModal,
         setShowAuthModal,
         isLoading: false, // Always false to prevent blocking
