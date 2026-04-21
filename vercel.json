@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:path((?!mockups(?:/|$))(?!client-preview(?:/|$))(?!brand(?:/|$))(?!sitemap\\.xml$)(?!robots\\.txt$)(?!favicon\\.ico$).+)",
+      "destination": "/index.html"
+    }
   ]
 }

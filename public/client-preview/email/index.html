@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Email mockups — Findhåndværkeren</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 0 20px; line-height: 1.5; color: #222; }
+    code { background: #f4f4f5; padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
+    a { color: #111; }
+    .box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+    ul { padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Email mockups</h1>
+  <p>Åbn <strong>ikke</strong> filerne med stien <code>public/…</code> i browserens adresselinje — det er en mappe på din computer, ikke en web-adresse.</p>
+
+  <div class="box">
+    <strong>Lokalt (anbefalet)</strong>
+    <p>Kør <code>npm run dev</code> (port <strong>3000</strong> i dette projekt) og åbn:</p>
+    <ul>
+      <li><a href="./partner-welcome.html">Partner welcome</a> — <code>http://localhost:3000/client-preview/email/partner-welcome.html</code></li>
+      <li><a href="./consumer-welcome.html">Kunde welcome</a> — <code>http://localhost:3000/client-preview/email/consumer-welcome.html</code></li>
+      <li><a href="./email-verification.html">Email verification</a> — <code>http://localhost:3000/client-preview/email/email-verification.html</code></li>
+      <li><a href="./forgot-password.html">Forgot password</a> — <code>http://localhost:3000/client-preview/email/forgot-password.html</code></li>
+      <li><a href="./password-changed.html">Password changed confirmation</a> — <code>http://localhost:3000/client-preview/email/password-changed.html</code></li>
+      <li><a href="./stripe-invoice.html">Stripe invoice</a> — <code>http://localhost:3000/client-preview/email/stripe-invoice.html</code></li>
+    </ul>
+  </div>
+
+  <div class="box">
+    <strong>Åbn fil direkte fra Finder</strong>
+    <p>Dobbeltklik på HTML-filen i <code>public/client-preview/email/</code>. Logoet skulle virke (samme mappe som <code>logo-wordmark.png</code>).</p>
+  </div>
+
+  <div class="box">
+    <strong>Produktion (Vercel)</strong>
+    <p>Efter deploy: <code>https://dit-domæne.dk/client-preview/email/partner-welcome.html</code> (samme sti under roden <code>/client-preview/email/</code>).</p>
+  </div>
+</body>
+</html>
