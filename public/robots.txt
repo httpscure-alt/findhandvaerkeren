@@ -1,6 +1,10 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://xn--findhndvrkeren-pibt.dk/sitemap.xml
+User-agent: *
+Allow: /
+
 # Block private/auth/dashboard routes from indexing
 Disallow: /dashboard
 Disallow: /dashboard/
