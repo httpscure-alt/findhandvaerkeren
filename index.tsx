@@ -7,6 +7,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { MarketplaceProvider } from './contexts/MarketplaceContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import TagManager from './components/analytics/TagManager';
+import { Analytics } from '@vercel/analytics/react';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -36,6 +37,7 @@ root.render(
             <MarketplaceProvider>
               <TagManager />
               <App />
+              <Analytics />
             </MarketplaceProvider>
           </ToastProvider>
         </AuthProvider>
