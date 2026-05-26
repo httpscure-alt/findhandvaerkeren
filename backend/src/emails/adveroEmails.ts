@@ -290,6 +290,33 @@ export function renderAdveroWelcomeEmail(opts: { name?: string | null; email: st
   };
 }
 
+export function renderAdveroPostPaymentWelcomeEmail(opts: {
+  name?: string | null;
+  email: string;
+  resetUrl: string;
+}) {
+  const first = displayName(opts.name, opts.email);
+  const content = `
+    ${label('Velkommen')}
+    ${h1('Tak for din betaling')}
+    ${greet(first)}
+    ${para('Dit Advero-abonnement er aktiveret. Vælg en adgangskode for at logge ind på dashboardet og fortsætte opsætningen.', '20px')}
+    ${cta('Vælg adgangskode', opts.resetUrl)}
+    ${divider()}
+    ${para('<span style="font-size:14px;">Linket udløber om 7 dage. Har du allerede en adgangskode, kan du <a href="' + adveroSiteUrl() + '/advero/login" style="color:#334155;font-weight:600;">logge ind her</a>.</span>', '0')}
+    ${linkBox(opts.resetUrl)}
+  `;
+  return {
+    subject: 'Velkommen til Advero — vælg din adgangskode',
+    html: shell(
+      'Velkommen til Advero',
+      'Aktivér din konto efter betaling.',
+      content,
+      'Du modtager denne e-mail, fordi du har gennemført betaling hos Advero.'
+    ),
+  };
+}
+
 export function renderAdveroPasswordResetEmail(opts: { name?: string | null; email: string; resetUrl: string }) {
   const first = displayName(opts.name, opts.email);
   const content = `

@@ -76,13 +76,8 @@ const AdveroAuditResultsPage: React.FC = () => {
     return gs.includes('step=') ? gs : `${gs}${gs.includes('?') ? '&' : '?'}step=2`;
   }, [rec]);
 
-  const signupNext = useMemo(
-    () => `/advero/signup?next=${encodeURIComponent(getStartedPath.replace(/step=\d+/, 'step=3'))}`,
-    [getStartedPath]
-  );
-
   const loginNext = useMemo(
-    () => `/advero/login?next=${encodeURIComponent(getStartedPath.replace(/step=\d+/, 'step=3'))}`,
+    () => `/advero/login?next=${encodeURIComponent(getStartedPath)}`,
     [getStartedPath]
   );
 
@@ -255,10 +250,6 @@ const AdveroAuditResultsPage: React.FC = () => {
                   {isDa ? 'Har du allerede en konto?' : 'Already have an account?'}{' '}
                   <Link to={loginNext} className="font-semibold text-sky-700 underline">
                     {isDa ? 'Log ind' : 'Log in'}
-                  </Link>
-                  {' · '}
-                  <Link to={signupNext} className="font-semibold text-sky-700 underline">
-                    {isDa ? 'Opret konto' : 'Create account'}
                   </Link>
                 </p>
               </div>

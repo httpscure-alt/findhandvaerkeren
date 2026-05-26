@@ -105,12 +105,12 @@ export function getStartedIntroCopy(isDa: boolean, hasAudit: boolean): { title: 
       ? {
           title: 'Vælg jeres plan',
           subtitle:
-            'Her ser I hvad analysen anbefaler, hvorfor det giver mening, og hvad I køber. Derefter konto og betaling.',
+            'Bekræft den anbefalede plan og betal sikkert. Vi sender en e-mail til at vælge adgangskode til dashboardet.',
         }
       : {
           title: 'Choose your plan',
           subtitle:
-            'See what your analysis recommends, why it makes sense, and what you are buying. Then account and payment.',
+            'Confirm your recommended plan and pay securely. We will email you a link to set your password for the dashboard.',
         };
   }
   return isDa

@@ -65,7 +65,7 @@ function BillingCancelRoute() {
     <BillingCancelPage
       lang={lang}
       onBack={() => { window.location.href = '/'; }}
-      onRetry={() => { window.location.href = '/advero/get-started?step=4'; }}
+      onRetry={() => { window.location.href = '/advero/get-started?step=3'; }}
     />
   );
 }

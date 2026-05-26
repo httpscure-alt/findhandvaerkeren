@@ -6,6 +6,7 @@ import { logger } from '../config/logger';
 import {
   renderAdveroOtpEmail,
   renderAdveroWelcomeEmail,
+  renderAdveroPostPaymentWelcomeEmail,
   renderAdveroPasswordResetEmail,
   renderAdveroPasswordResetSuccessEmail,
   renderAdveroPaymentReceiptEmail,
@@ -130,6 +131,25 @@ class EmailService {
       logger.info(`Welcome email sent to ${to}`);
     } catch (error) {
       logger.error('Failed to send welcome email:', error);
+    }
+  }
+
+  async sendAdveroPostPaymentWelcomeEmail(
+    to: string,
+    resetUrl: string,
+    options: EmailSendOptions = {}
+  ): Promise<void> {
+    try {
+      const { subject, html } = renderAdveroPostPaymentWelcomeEmail({
+        name: options.name,
+        email: to,
+        resetUrl,
+      });
+      await this.dispatch(to, subject, html);
+      logger.info(`Advero post-payment welcome email sent to ${to}`);
+    } catch (error) {
+      logger.error('Failed to send post-payment welcome email:', error);
+      throw error;
     }
   }
 

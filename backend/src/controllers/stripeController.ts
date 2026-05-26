@@ -55,7 +55,8 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     logger.info('✅ Stripe is configured');
 
     const userId = req.userId;
-    const { billingCycle, tier, serviceType, checkoutContext, returnQuery } = req.body;
+    const { billingCycle, tier, serviceType, checkoutContext, returnQuery, contactEmail, billingName, companyName } =
+      req.body;
 
     const planTierRaw = typeof tier === 'string' ? tier : '';
     const isGrowthBundle =
@@ -63,6 +64,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
 
     // Determine if this is a marketing service or partner plan
     const isMarketingService = serviceType === 'ads' || serviceType === 'seo' || isGrowthBundle;
+    const isAdveroMarketing = checkoutContext === 'advero' && isMarketingService;
     const userRole = req.userRole;
 
     // Only Partners can purchase partner listing plans (marketing can be purchased by any authenticated user)
@@ -130,8 +132,39 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
       logger.info('Using test mode for Stripe checkout (no real user/company)');
     }
 
-    // In development/test mode, allow checkout without company
-    if (!company && !isDevelopment) {
+    const auditId = String(req.body?.auditId || '').trim();
+    let resolvedContactEmail = typeof contactEmail === 'string' ? contactEmail.trim() : '';
+    let resolvedCompanyName =
+      (typeof billingName === 'string' ? billingName.trim() : '') ||
+      (typeof companyName === 'string' ? companyName.trim() : '');
+
+    if (auditId) {
+      try {
+        const { isAdveroPrismaReady, prisma: adveroPrisma } = await import('../prisma/client');
+        if (isAdveroPrismaReady()) {
+          const auditRow = await adveroPrisma.adveroAudit.findUnique({ where: { id: auditId } });
+          if (auditRow) {
+            if (!resolvedContactEmail) resolvedContactEmail = auditRow.contactEmail || '';
+            if (!resolvedCompanyName) resolvedCompanyName = auditRow.companyName;
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (isAdveroMarketing) {
+      if (!resolvedContactEmail || !resolvedContactEmail.includes('@')) {
+        res.status(400).json({
+          error: 'contactEmail is required for Advero checkout (from audit or request body).',
+        });
+        return;
+      }
+      customerEmail = resolvedContactEmail;
+    }
+
+    // Partner / legacy checkout still requires company in production
+    if (!company && !isDevelopment && !isAdveroMarketing) {
       res.status(404).json({ error: 'Company not found. Please complete onboarding first.' });
       return;
     }
@@ -236,9 +269,9 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     if (checkoutContext === 'advero' && isMarketingService) {
       const paidParam = encodeURIComponent(planTier);
       successUrl = appendReturnQs(
-        `${clientUrl}/advero/get-started?step=5&session_id={CHECKOUT_SESSION_ID}&paid=${paidParam}`
+        `${clientUrl}/advero/get-started?step=4&session_id={CHECKOUT_SESSION_ID}&paid=${paidParam}`
       );
-      cancelUrl = appendReturnQs(`${clientUrl}/advero/get-started?step=4`);
+      cancelUrl = appendReturnQs(`${clientUrl}/advero/get-started?step=3`);
     }
 
     // Create checkout session
@@ -265,9 +298,12 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
         serviceType: serviceType || 'partner',
         planTier: planTier,
         billingCycle: billingCycle || 'monthly',
-        testMode: (!company).toString(),
+        testMode: (!company && !isAdveroMarketing).toString(),
         checkoutContext: checkoutContext || '',
-        auditId: String(req.body?.auditId || '').trim(),
+        auditId,
+        contactEmail: resolvedContactEmail,
+        companyName: resolvedCompanyName,
+        guestCheckout: (!userId || userId === 'test-user-id').toString(),
       },
       success_url: successUrl,
       cancel_url: cancelUrl,
@@ -438,26 +474,59 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     logger.info(`✅ Marketing subscription created: ${marketingSubscription.id}`);
 
-    if (metadata.checkoutContext === 'advero' && metadata.userId && metadata.userId !== 'test-user') {
+    if (metadata.checkoutContext === 'advero') {
       try {
         const { initializeWorkspaceAfterPayment } = await import('../services/advero/adveroWorkspaceService');
-        const user = await prisma.user.findUnique({ where: { id: metadata.userId } });
-        const tierId = metadata.planTier || 'seo_standard';
-        const serviceLine = (metadata.serviceType as string) || 'seo';
-        await initializeWorkspaceAfterPayment({
-          userId: metadata.userId,
-          companyName: user?.name || session.customer_details?.name || 'Advero workspace',
-          contactEmail: user?.email || session.customer_email || undefined,
-          tierId,
-          serviceLine,
-          stripeCustomerId: customerId,
-          stripeSubscriptionId: subscriptionId,
-          stripePriceId: priceId,
-          billingCycle: metadata.billingCycle,
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-          auditId: metadata.auditId || undefined,
-        });
-        logger.info('Advero workspace initialized after Stripe checkout', { userId: metadata.userId });
+        const { provisionAdveroAccountAfterPayment } = await import(
+          '../services/advero/adveroPostPaymentAccountService'
+        );
+
+        let adveroUserId = metadata.userId;
+        const payerEmail =
+          session.customer_details?.email ||
+          session.customer_email ||
+          metadata.contactEmail ||
+          '';
+
+        if (!adveroUserId || adveroUserId === 'test-user' || adveroUserId === 'test-user-id') {
+          if (!payerEmail || !String(payerEmail).includes('@')) {
+            logger.error('Advero checkout missing payer email for provisioning');
+          } else {
+            const provisioned = await provisionAdveroAccountAfterPayment({
+              email: String(payerEmail),
+              companyName:
+                metadata.companyName ||
+                session.customer_details?.name ||
+                'Advero kunde',
+              auditId: metadata.auditId || undefined,
+            });
+            adveroUserId = provisioned.userId;
+          }
+        }
+
+        if (adveroUserId && adveroUserId !== 'test-user' && adveroUserId !== 'test-user-id') {
+          const user = await prisma.user.findUnique({ where: { id: adveroUserId } });
+          const tierId = metadata.planTier || 'seo_standard';
+          const serviceLine = (metadata.serviceType as string) || 'seo';
+          await initializeWorkspaceAfterPayment({
+            userId: adveroUserId,
+            companyName:
+              metadata.companyName ||
+              user?.name ||
+              session.customer_details?.name ||
+              'Advero workspace',
+            contactEmail: user?.email || payerEmail || undefined,
+            tierId,
+            serviceLine,
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscriptionId,
+            stripePriceId: priceId,
+            billingCycle: metadata.billingCycle,
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            auditId: metadata.auditId || undefined,
+          });
+          logger.info('Advero workspace initialized after Stripe checkout', { userId: adveroUserId });
+        }
       } catch (adveroErr) {
         logger.error('Advero workspace init failed', adveroErr);
       }

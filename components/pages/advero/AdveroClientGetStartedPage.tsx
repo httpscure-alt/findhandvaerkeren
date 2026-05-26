@@ -7,11 +7,9 @@ import {
   CreditCard,
   ExternalLink,
   Globe,
-  LogIn,
   Minimize2,
   Sparkles,
   Target,
-  UserPlus,
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAdveroLang } from '../../../lib/adveroLocale';
@@ -43,7 +41,7 @@ import './advero-ds.css';
 
 const STORAGE_KEY = 'advero.clientGetStarted.v1';
 
-type StepId = 1 | 2 | 3 | 4 | 5;
+type StepId = 1 | 2 | 3 | 4;
 
 interface WizardPersist {
   step: StepId;
@@ -81,9 +79,13 @@ function loadPersist(): WizardPersist {
   }
 }
 
+/** Map legacy step URLs (5-step wizard) onto 4-step pay-first flow. */
 function clampStep(s: unknown): StepId {
   const n = Number(s);
-  if (n === 2 || n === 3 || n === 4 || n === 5) return n as StepId;
+  if (n >= 5) return 4;
+  if (n >= 4) return 3;
+  if (n === 3) return 3;
+  if (n === 2) return 2;
   return 1;
 }
 
@@ -181,9 +183,8 @@ const AdveroClientGetStartedPage: React.FC = () => {
       contact: isDa ? 'Kontakt' : 'Contact',
       step1: isDa ? 'Ydelser' : 'Services',
       step2: isDa ? 'Planer' : 'Plans',
-      step3: isDa ? 'Konto' : 'Account',
-      step4: isDa ? 'Betaling' : 'Payment',
-      step5: isDa ? 'Næste skridt' : 'Next steps',
+      step3: isDa ? 'Betaling' : 'Payment',
+      step4: isDa ? 'Næste skridt' : 'Next steps',
       ads: isDa ? 'Google Ads' : 'Google Ads',
       seo: isDa ? 'SEO' : 'SEO',
       perMonth: isDa ? 'DKK / md.' : 'DKK / mo.',
@@ -191,9 +192,9 @@ const AdveroClientGetStartedPage: React.FC = () => {
       continue: isDa ? 'Fortsæt' : 'Continue',
       login: isDa ? 'Log ind' : 'Log in',
       signup: isDa ? 'Opret konto' : 'Create account',
-      accountBlurb: isDa
-        ? 'Du skal være logget ind for at gå til sikker betaling hos Stripe.'
-        : 'You need to be signed in to continue to secure payment with Stripe.',
+      payEmailNote: isDa
+        ? 'Vi bruger e-mailen fra jeres audit til Stripe og til at sende link til adgangskode efter betaling.'
+        : 'We use your audit email for Stripe and to send a set-password link after payment.',
       billingLabel: isDa ? 'Navn til faktura' : 'Name on invoice',
       billingHint: isDa
         ? 'Bruges til fakturering. Opretter en privat faktureringsprofil hvis du ikke allerede har en.'
@@ -206,8 +207,8 @@ const AdveroClientGetStartedPage: React.FC = () => {
       redirecting: isDa ? 'Sender dig til betaling…' : 'Redirecting to checkout…',
       postTitle: isDa ? 'Efter betaling' : 'After payment',
       postBody: isDa
-        ? 'Når Stripe er færdig, lander du på en bekræftelsesside. Derefter forbinder vi annoncekonto og søgekonsol i et roligt forløb (vi guider dig).'
-        : 'When Stripe finishes, you land on a confirmation page. Then we connect ad accounts and Search Console in a calm flow (we guide you).',
+        ? 'Tjek din e-mail for at vælge adgangskode og logge ind på dashboardet. Derefter guider vi jer videre med opsætning.'
+        : 'Check your email to set your password and log in to the dashboard. Then we guide you through setup.',
       connectAds: isDa ? 'Forbind Google Ads i dashboard' : 'Connect Google Ads in dashboard',
       connectGsc: isDa ? 'Forbind Search Console (kommer)' : 'Connect Search Console (coming)',
       mockToast: isDa ? 'Backend og OAuth tilkobling kommer i næste iteration.' : 'Backend and OAuth wiring comes next.',
@@ -252,11 +253,6 @@ const AdveroClientGetStartedPage: React.FC = () => {
   const [paidTiers, setPaidTiers] = useState<Set<string>>(() => getPaidTiers());
   const journeyQuery = useMemo(() => buildGetStartedQueryString(searchParams), [searchParams]);
   const journeyPath = useMemo(() => getStartedPathWithQuery(journeyQuery), [journeyQuery]);
-  const authNextPath = useMemo(
-    () => getStartedPathWithQuery(journeyQuery, 3),
-    [journeyQuery]
-  );
-
   const pendingPaymentTiers = useMemo(() => {
     const pending: string[] = [];
     if (persist.wantAds && persist.adsTier && !paidTiers.has(persist.adsTier)) pending.push(persist.adsTier);
@@ -401,9 +397,9 @@ const AdveroClientGetStartedPage: React.FC = () => {
       });
     }
 
-    if (searchParams.get('step') === '5' && paidTier) {
+    if ((searchParams.get('step') === '5' || searchParams.get('step') === '4') && paidTier) {
       setPersist((p) => {
-        const next = { ...p, step: 5 as StepId };
+        const next = { ...p, step: 4 as StepId };
         savePersist(next);
         return next;
       });
@@ -470,17 +466,26 @@ const AdveroClientGetStartedPage: React.FC = () => {
       return;
     }
 
+    const checkoutEmail = (user?.email || auditContext?.contactEmail || '').trim();
+    if (!checkoutEmail.includes('@')) {
+      toast.error(isDa ? 'Mangler e-mail fra audit. Kør analysen igen.' : 'Missing audit email. Run the analysis again.');
+      return;
+    }
+
     setCheckoutLoading(tierId);
     try {
       toast.info(t.redirecting);
-      await api.createBillingCompany({ name, contactEmail: user?.email });
-      await api.submitGrowthRequest({
-        services: isGrowthBundle ? ['seo', 'ads'] : [serviceType],
-        details: {
-          tier: tierId,
-          source: 'advero_get_started',
-        },
-      });
+      if (isAuthenticated) {
+        try {
+          await api.createBillingCompany({ name, contactEmail: checkoutEmail });
+          await api.submitGrowthRequest({
+            services: isGrowthBundle ? ['seo', 'ads'] : [serviceType],
+            details: { tier: tierId, source: 'advero_get_started' },
+          });
+        } catch {
+          /* optional legacy hooks for logged-in users */
+        }
+      }
       const checkoutAuditId =
         persist.auditId || resolveGetStartedAuditId(searchParams.get('auditId')) || undefined;
       const { url } = await api.createCheckoutSession({
@@ -490,6 +495,9 @@ const AdveroClientGetStartedPage: React.FC = () => {
         checkoutContext: 'advero',
         returnQuery: journeyQuery,
         auditId: checkoutAuditId,
+        contactEmail: checkoutEmail,
+        billingName: name,
+        companyName: auditContext?.companyName || name,
       });
       if (url) window.location.href = url;
       else toast.error(isDa ? 'Ingen betalings-URL.' : 'No checkout URL.');
@@ -521,17 +529,6 @@ const AdveroClientGetStartedPage: React.FC = () => {
       setStep(3);
       return;
     }
-    if (persist.step === 3) {
-      if (!isAuthenticated && !flowUngated) {
-        toast.error(isDa ? 'Log ind eller opret konto først.' : 'Sign in or create an account first.');
-        return;
-      }
-      setStep(4);
-      return;
-    }
-    if (persist.step === 4) {
-      setStep(5);
-    }
   };
 
   const onChecklistStepClick = (id: StepId) => {
@@ -547,7 +544,6 @@ const AdveroClientGetStartedPage: React.FC = () => {
     { id: 2, label: t.step2 },
     { id: 3, label: t.step3 },
     { id: 4, label: t.step4 },
-    { id: 5, label: t.step5 },
   ];
 
   return (
@@ -621,7 +617,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
           <Sparkles className="h-4 w-4 shrink-0 text-sky-500" aria-hidden />
           <span className="min-w-0 flex-1">
             <div className="advero-setup-floating-pill-title">{t.cardTitle}</div>
-            <div className="advero-setup-floating-pill-sub">{t.progressStep(persist.step, 5)}</div>
+            <div className="advero-setup-floating-pill-sub">{t.progressStep(persist.step, 4)}</div>
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
         </button>
@@ -636,7 +632,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                 <div className="min-w-0 flex-1 pr-2">
                   <h2 className="advero-setup-card-title">{t.title}</h2>
                   <p className="advero-setup-card-sub">{t.subtitle}</p>
-                  <div className="advero-setup-progress-pill">{t.progressStep(persist.step, 5)}</div>
+                  <div className="advero-setup-progress-pill">{t.progressStep(persist.step, 4)}</div>
                 </div>
                 <button
                   type="button"
@@ -695,7 +691,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                   </p>
                 ) : null}
 
-                {auditContext && auditRec && persist.step <= 4 ? (
+                {auditContext && auditRec && persist.step <= 3 ? (
                   <GetStartedRecommendationPanel
                     audit={auditContext}
                     recommendation={auditRec}
@@ -868,40 +864,6 @@ const AdveroClientGetStartedPage: React.FC = () => {
                 )}
 
                 {persist.step === 3 && (
-                  <div>
-                    {auditRec ? (
-                      <p className="mb-4 text-sm leading-relaxed text-slate-700">
-                        {isDa
-                          ? 'Opret konto for at betale for den anbefalede plan fra jeres audit.'
-                          : 'Create an account to pay for the plan recommended from your audit.'}
-                      </p>
-                    ) : null}
-                    <p className="text-sm leading-relaxed text-slate-600">{t.accountBlurb}</p>
-                    <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                      <Link
-                        to={`/advero/login?next=${encodeURIComponent(authNextPath)}`}
-                        className="advero-btn-ghost-on-light inline-flex flex-1 items-center justify-center gap-2"
-                      >
-                        <LogIn className="h-4 w-4" aria-hidden />
-                        {t.login}
-                      </Link>
-                      <Link
-                        to={`/advero/signup?next=${encodeURIComponent(authNextPath)}`}
-                        className="advero-btn-slate-solid inline-flex flex-1 items-center justify-center gap-2 rounded-full px-[1.75rem] py-[0.8125rem] text-[13px] font-semibold uppercase tracking-[0.14em] sm:text-[14px]"
-                      >
-                        <UserPlus className="h-4 w-4" aria-hidden />
-                        {t.signup}
-                      </Link>
-                    </div>
-                    {isAuthenticated ? (
-                      <p className="mt-4 text-sm text-slate-700">
-                        {t.signedIn} <span className="font-medium text-slate-900">{user?.email ?? '—'}</span>
-                      </p>
-                    ) : null}
-                  </div>
-                )}
-
-                {persist.step === 4 && (
                   <div className="space-y-5">
                     <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
                       <p className="mono-label text-[10px] text-slate-500">{isDa ? 'Opsummering' : 'Summary'}</p>
@@ -930,6 +892,12 @@ const AdveroClientGetStartedPage: React.FC = () => {
                         autoComplete="organization"
                       />
                       <p className="mt-2 text-xs text-slate-500">{t.billingHint}</p>
+                      {auditContext?.contactEmail ? (
+                        <p className="mt-2 text-xs text-slate-600">
+                          {t.payEmailNote}{' '}
+                          <span className="font-medium text-slate-800">{auditContext.contactEmail}</span>
+                        </p>
+                      ) : null}
                     </div>
                     <p className="text-xs text-slate-500">{t.payBothHint}</p>
                     <div className="flex flex-col gap-3">
@@ -968,7 +936,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                       {pendingPaymentTiers.length === 0 ? (
                         <button
                           type="button"
-                          onClick={() => setStep(5)}
+                          onClick={() => setStep(4)}
                           className="advero-btn-slate-solid inline-flex items-center justify-center gap-2 rounded-full px-[1.75rem] py-[0.8125rem] text-[13px] font-semibold uppercase tracking-[0.14em]"
                         >
                           {t.continue}
@@ -979,7 +947,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                   </div>
                 )}
 
-                {persist.step === 5 && (
+                {persist.step === 4 && (
                   <div>
                     {searchParams.get('session_id') || paidTiers.size > 0 ? (
                       <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
@@ -998,7 +966,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                         </p>
                         <button
                           type="button"
-                          onClick={() => setStep(4)}
+                          onClick={() => setStep(3)}
                           className="advero-btn-slate-solid mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em]"
                         >
                           {t.payRemaining}
@@ -1050,7 +1018,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                   >
                     {t.reset}
                   </button>
-                  {persist.step < 5 ? (
+                  {persist.step < 3 ? (
                     <button
                       type="button"
                       onClick={goNext}

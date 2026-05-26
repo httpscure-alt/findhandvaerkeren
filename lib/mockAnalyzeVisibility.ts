@@ -14,6 +14,7 @@ export interface VisibilityAuditInput {
 export interface VisibilityAuditResult {
   id: string;
   companyName: string;
+  contactEmail?: string;
   websiteUrl?: string;
   serviceArea?: string;
   industry: IndustryCategory;
@@ -86,6 +87,7 @@ export function mockAnalyzeVisibility(input: VisibilityAuditInput, id?: string):
   return {
     id: auditId,
     companyName: input.companyName.trim(),
+    contactEmail: input.contactEmail?.trim() || undefined,
     websiteUrl: normalizeUrl(input.websiteUrl) || undefined,
     serviceArea: input.serviceArea?.trim() || undefined,
     industry,

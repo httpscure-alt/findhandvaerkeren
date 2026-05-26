@@ -1,6 +1,6 @@
 import express from 'express';
 import { createCheckoutSession, handleWebhook, getSessionDetails, createPortalSession, getTransactions, cancelSubscription, updateSubscription, verifyStripeConfig } from '../controllers/stripeController';
-import { authenticate, requireRole, requireAdmin } from '../middleware/auth';
+import { authenticate, optionalAuthenticate, requireRole, requireAdmin } from '../middleware/auth';
 import { asyncHandler } from '../middleware/asyncHandler';
 
 const router = express.Router();
@@ -28,7 +28,7 @@ router.get('/verify-config', authenticate, requireAdmin, asyncHandler(verifyStri
 // Checkout session creation - requires authentication and PARTNER role
 router.post(
   '/create-checkout-session',
-  authenticate,
+  optionalAuthenticate,
   asyncHandler(createCheckoutSession)
 );
 
