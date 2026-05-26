@@ -867,21 +867,21 @@
   max-width: calc(100% - 2.25rem);
 }
 
-.advero-dash-wordmark {
-  display: block;
-  height: 2.5rem;
-  width: auto;
-  max-width: none;
-  object-fit: contain;
-  object-position: left center;
-  transform: scale(2.15);
-  transform-origin: left center;
+.advero-ds .advero-dash-wordmark {
+  display: block !important;
+  height: 2.5rem !important;
+  width: auto !important;
+  max-width: none !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  transform: scale(2.15) !important;
+  transform-origin: left center !important;
 }
 
 @media (min-width: 768px) {
-  .advero-dash-wordmark {
-    height: 2.75rem;
-    transform: scale(2.35);
+  .advero-ds .advero-dash-wordmark {
+    height: 2.75rem !important;
+    transform: scale(2.35) !important;
   }
 }
 

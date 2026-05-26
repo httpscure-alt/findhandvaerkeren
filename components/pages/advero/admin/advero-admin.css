@@ -10,6 +10,15 @@
   position: sticky;
   top: 0;
   z-index: 40;
+  overflow: visible;
+}
+
+.advero-admin-header > div {
+  overflow: visible;
+}
+
+.advero-admin-header .advero-site-header-brand {
+  margin-inline-end: 0.75rem;
 }
 
 .advero-admin-badge {

@@ -146,7 +146,7 @@ const AdveroDashboardSidebar: React.FC<AdveroDashboardSidebarProps> = ({
                 width={800}
                 height={168}
                 decoding="async"
-                className="advero-dash-wordmark"
+                className="advero-logo-wordmark-light advero-dash-wordmark"
               />
             ) : (
               <span className="advero-dash-logo-mark" aria-hidden>
