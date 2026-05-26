@@ -49,8 +49,43 @@
   border-bottom: 1px solid rgb(255 255 255 / 0.1);
 }
 
-.advero-ds .advero-site-header > div {
+.advero-ds .advero-site-header > div,
+.advero-ds .advero-marketing-header-inner {
   overflow: visible;
+}
+
+.advero-ds .advero-marketing-header {
+  overflow: visible;
+}
+
+.advero-ds .advero-marketing-login {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  background: rgb(255 255 255 / 0.05);
+  padding: 0.625rem 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.9);
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.advero-ds .advero-marketing-login:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.advero-ds .advero-marketing-cta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.625rem 1.25rem;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 /* Header wordmark: same treatment as homepage `#brand-home-link` (preview-advero-v3-design-system.html) */
@@ -65,34 +100,39 @@
   margin-inline-end: clamp(1rem, 6vw, 4rem);
 }
 
+/* !important: Tailwind CDN on app.html sets img { height: auto; max-width: 100% } */
+.advero-ds #brand-home-link .advero-logo-wordmark-light,
 .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
-  height: 3rem;
-  width: auto;
-  max-width: none;
-  transform: scale(2.28);
-  transform-origin: left center;
-  object-fit: contain;
-  object-position: left center;
+  height: 3rem !important;
+  width: auto !important;
+  max-width: none !important;
+  transform: scale(2.28) !important;
+  transform-origin: left center !important;
+  object-fit: contain !important;
+  object-position: left center !important;
 }
 
 @media (min-width: 640px) {
+  .advero-ds #brand-home-link .advero-logo-wordmark-light,
   .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
-    height: 3.25rem;
-    transform: scale(2.22);
+    height: 3.25rem !important;
+    transform: scale(2.22) !important;
   }
 }
 
 @media (min-width: 768px) {
+  .advero-ds #brand-home-link .advero-logo-wordmark-light,
   .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
-    height: 3.375rem;
-    transform: scale(2.16);
+    height: 3.375rem !important;
+    transform: scale(2.16) !important;
   }
 }
 
 @media (min-width: 1024px) {
+  .advero-ds #brand-home-link .advero-logo-wordmark-light,
   .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
-    height: 3.625rem;
-    transform: scale(2.3);
+    height: 3.625rem !important;
+    transform: scale(2.3) !important;
   }
 }
 
@@ -2059,7 +2099,94 @@
   }
 }
 
-/* —— Audit journey: analyzing + results —— */
+/* Customer journey strip (audit → dashboard) */
+.advero-journey-strip {
+  margin: 0 auto 1.25rem;
+  max-width: 42rem;
+}
+
+.advero-journey-strip-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.advero-journey-strip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.04);
+  padding: 0.25rem 0.55rem 0.25rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-journey-strip--light .advero-journey-strip-item {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.advero-journey-strip-item--done {
+  border-color: rgb(52 211 153 / 0.35);
+  color: rgb(167 243 208 / 0.95);
+}
+
+.advero-journey-strip--light .advero-journey-strip-item--done {
+  border-color: #86efac;
+  color: #15803d;
+}
+
+.advero-journey-strip-item--active {
+  border-color: rgb(56 189 248 / 0.45);
+  background: rgb(56 189 248 / 0.12);
+  color: #fff;
+}
+
+.advero-journey-strip--light .advero-journey-strip-item--active {
+  border-color: #0ea5e9;
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+.advero-journey-strip-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.5625rem;
+}
+
+.advero-journey-strip--light .advero-journey-strip-num {
+  background: #e2e8f0;
+}
+
+.advero-journey-strip-summary {
+  margin-top: 0.65rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-journey-strip--light .advero-journey-strip-summary {
+  color: #64748b;
+}
+
+/* Audit journey: analyzing + results */
 .advero-audit-step {
   display: flex;
   align-items: center;

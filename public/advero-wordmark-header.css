@@ -1,0 +1,65 @@
+/**
+ * Header wordmark sizing — matches homepage #brand-home-link.
+ * Loaded after Tailwind CDN on /app.html routes so img preflight does not shrink the logo.
+ */
+.advero-logo-wordmark-light {
+  display: block;
+  mix-blend-mode: screen;
+}
+
+#brand-home-link,
+.advero-site-header-brand {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  line-height: 0;
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  flex-shrink: 0;
+  margin-inline-end: clamp(1rem, 6vw, 4rem);
+}
+
+#brand-home-link .advero-logo-wordmark-light,
+.advero-site-header-brand .advero-logo-wordmark-light {
+  height: 3rem !important;
+  width: auto !important;
+  max-width: none !important;
+  transform: scale(2.28) !important;
+  transform-origin: left center !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+}
+
+@media (min-width: 640px) {
+  #brand-home-link .advero-logo-wordmark-light,
+  .advero-site-header-brand .advero-logo-wordmark-light {
+    height: 3.25rem !important;
+    transform: scale(2.22) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  #brand-home-link .advero-logo-wordmark-light,
+  .advero-site-header-brand .advero-logo-wordmark-light {
+    height: 3.375rem !important;
+    transform: scale(2.16) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  #brand-home-link .advero-logo-wordmark-light,
+  .advero-site-header-brand .advero-logo-wordmark-light {
+    height: 3.625rem !important;
+    transform: scale(2.3) !important;
+  }
+}
+
+.advero-site-header > div,
+.advero-blog-header > .advero-blog-header-inner {
+  overflow: visible;
+}
+
+.advero-blog-header {
+  overflow: visible;
+}
