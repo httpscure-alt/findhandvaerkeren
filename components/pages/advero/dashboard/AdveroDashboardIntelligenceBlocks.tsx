@@ -148,7 +148,9 @@ export const AdveroDashboardVisibilityHistory: React.FC<BlocksProps> = ({ intel,
     </div>
     {!intel.hasAudit ? (
       <p className="advero-dash-history-hint">
-        {isDa ? 'Kør audit for historik baseret på jeres data.' : 'Run an audit for history based on your data.'}
+        {isDa
+          ? 'Historik vises når jeres workspace har synlighedsdata.'
+          : 'History appears once your workspace has visibility data.'}
       </p>
     ) : null}
   </section>

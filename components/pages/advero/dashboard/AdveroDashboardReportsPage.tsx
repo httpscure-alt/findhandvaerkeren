@@ -56,11 +56,14 @@ const AdveroDashboardReportsPage: React.FC = () => {
           <section className="advero-dash-cta-card">
             <p className="advero-dash-cta-text">
               {isDa
-                ? 'Kør en audit for at få en rapport med fremskridt og forbedringer.'
-                : 'Run an audit to get a report with progress and improvements.'}
+                ? 'Månedsrapporten bygger på jeres forbundne data og seneste synlighedsanalyse.'
+                : 'Monthly reporting builds on your connected data and latest visibility analysis.'}
             </p>
-            <Link to="/advero/audit" className="advero-dash-btn-primary inline-flex items-center gap-2 !mt-0">
-              {isDa ? 'Få gratis analyse' : 'Get free analysis'}
+            <Link
+              to="/advero/dashboard/integrations"
+              className="advero-dash-btn-primary inline-flex items-center gap-2 !mt-0"
+            >
+              {isDa ? 'Forbind datakilder' : 'Connect data sources'}
               <ArrowRight size={16} />
             </Link>
           </section>

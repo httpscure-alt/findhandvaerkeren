@@ -93,7 +93,7 @@ function intelToLegacyDashboard(
   apiPayload?: AdveroDashboardApiPayload | null
 ): DashboardIntelligence {
   const isDa = lang === 'da';
-  const setupItems = getSetupChecklist();
+  const setupItems = getSetupChecklist().filter((item) => item.id !== 'audit');
   const setupCounts = setupProgressCounts(setupItems);
   const rec = intel.recommendation;
 
@@ -228,7 +228,7 @@ export function buildDashboardIntelligence(
   }
 
   const audit = getLastDashboardAudit();
-  const intel = buildVisibilityIntelligence({ lang, audit, searchConsole: null });
+  const intel = buildVisibilityIntelligence({ lang, audit, searchConsole: null, context: 'client' });
   return intelToLegacyDashboard(intel, lang, apiPayload);
 }
 

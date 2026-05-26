@@ -30,6 +30,7 @@ export async function buildCanonicalIntelligence(
     lang,
     audit: toAuditInput(audit),
     searchConsole: gsc,
+    context: 'client',
   });
   return { intelligence, searchConsole: gsc };
 }

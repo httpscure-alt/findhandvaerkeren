@@ -16,9 +16,13 @@ const AdveroDashboardVisibilityPage: React.FC = () => {
       <AdveroDashboardPageHeader title={isDa ? 'Synlighedsanalyse' : 'Visibility audit'} />
       <div className="advero-dash-page-body space-y-6">
         <p className="advero-dash-lead">
-          {isDa
-            ? 'Gratis TopRank-analyse — resultaterne driver anbefalinger, kampagner og rapporter i dashboardet.'
-            : 'Free TopRank analysis — results drive recommendations, campaigns, and reports in your dashboard.'}
+          {intel.hasAudit
+            ? isDa
+              ? 'Jeres TopRank-analyse driver anbefalinger, kampagner og rapporter her i dashboardet.'
+              : 'Your TopRank analysis drives recommendations, campaigns, and reports in this dashboard.'
+            : isDa
+              ? 'Forbind Search Console og Google Ads under Integrationer for at aktivere fuld synlighedsovervågning.'
+              : 'Connect Search Console and Google Ads under Integrations to enable full visibility monitoring.'}
         </p>
 
         {intel.hasAudit ? (
@@ -40,12 +44,22 @@ const AdveroDashboardVisibilityPage: React.FC = () => {
 
         <AdveroDashboardConnectedFlow intel={intel} isDa={isDa} />
 
-        <section className="advero-dash-cta-card">
-          <Link to="/advero/audit" className="advero-dash-btn-primary inline-flex items-center gap-2 !mt-0">
-            {isDa ? 'Få gratis synlighedsaudit' : 'Get free visibility audit'}
-            <ArrowRight size={16} />
-          </Link>
-        </section>
+        {!intel.hasAudit ? (
+          <section className="advero-dash-cta-card">
+            <p className="advero-dash-cta-text">
+              {isDa
+                ? 'Som kunde ser I jeres analyse og anbefalinger her, når datakilder er forbundet.'
+                : 'As a customer, your analysis and recommendations appear here once data sources are connected.'}
+            </p>
+            <Link
+              to="/advero/dashboard/integrations"
+              className="advero-dash-btn-primary inline-flex items-center gap-2 !mt-0"
+            >
+              {isDa ? 'Gå til integrationer' : 'Go to integrations'}
+              <ArrowRight size={16} />
+            </Link>
+          </section>
+        ) : null}
       </div>
     </>
   );

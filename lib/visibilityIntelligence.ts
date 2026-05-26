@@ -92,6 +92,8 @@ export type BuildIntelligenceInput = {
   lang: Language;
   audit: VisibilityAuditResult | null;
   searchConsole?: SearchConsoleSnapshot | null;
+  /** `client` = paid dashboard (no free-audit CTAs). `marketing` = pre-sale flows. */
+  context?: 'client' | 'marketing';
 };
 
 function weakestChannel(scores: AuditScores): keyof AuditScores {
@@ -122,9 +124,13 @@ function priorityFromWeakest(
   w: keyof AuditScores,
   isDa: boolean,
   rec: PlanRecommendation,
-  auditId?: string
+  auditId?: string,
+  context: 'client' | 'marketing' = 'client'
 ): PriorityRecommendation {
   const gs = rec.ctaPath.replace(/step=\d+/, 'step=1');
+  const clientCtaHref = auditId
+    ? `/advero/audit/results?id=${encodeURIComponent(auditId)}`
+    : '/advero/dashboard/integrations';
   const map: Record<
     keyof AuditScores,
     { titleDa: string; titleEn: string; bodyDa: string; bodyEn: string; impactDa: string; impactEn: string }
@@ -168,14 +174,29 @@ function priorityFromWeakest(
     body: isDa ? m.bodyDa : m.bodyEn,
     priority: isDa ? 'Høj prioritet' : 'High priority',
     priorityKey: 'high',
-    cta: isDa ? 'Se anbefalet plan' : 'View recommended plan',
-    ctaHref: `${gs}${auditId ? (gs.includes('?') ? '&' : '?') + `auditId=${auditId}` : ''}`,
+    cta:
+      context === 'client'
+        ? auditId
+          ? isDa
+            ? 'Se analyse'
+            : 'View analysis'
+          : isDa
+            ? 'Forbind datakilder'
+            : 'Connect data sources'
+        : isDa
+          ? 'Se anbefalet plan'
+          : 'View recommended plan',
+    ctaHref:
+      context === 'client'
+        ? clientCtaHref
+        : `${gs}${auditId ? (gs.includes('?') ? '&' : '?') + `auditId=${auditId}` : ''}`,
     businessImpact: isDa ? m.impactDa : m.impactEn,
   };
 }
 
 export function buildVisibilityIntelligence(input: BuildIntelligenceInput): VisibilityIntelligence {
   const isDa = input.lang === 'da';
+  const context = input.context ?? 'client';
   const audit = input.audit;
   const hasAudit = Boolean(audit?.scores && audit.status === 'complete');
 
@@ -223,16 +244,20 @@ export function buildVisibilityIntelligence(input: BuildIntelligenceInput): Visi
       delta: audit?.delta ?? (isDa ? '+12 denne måned' : '+12 this month'),
     },
     weakestChannel: w,
-    priority: priorityFromWeakest(w, isDa, rec, audit?.id),
+    priority: priorityFromWeakest(w, isDa, rec, audit?.id, context),
     interpretation: interp,
     recommendation: rec,
     reportNarrative: hasAudit
       ? isDa
         ? `Baseret på jeres audit (${overall}/100) er ${channelLabel(w)} det største løft. ${rec.headlineDa}`
         : `Based on your audit (${overall}/100), ${channelLabel(w)} is the biggest lift. ${rec.headlineEn}`
-      : isDa
-        ? 'Kør en gratis synlighedsaudit for personlige anbefalinger.'
-        : 'Run a free visibility audit for personalized recommendations.',
+      : context === 'client'
+        ? isDa
+          ? 'Forbind Search Console og Google Ads under Integrationer for at se jeres data her.'
+          : 'Connect Search Console and Google Ads under Integrations to see your data here.'
+        : isDa
+          ? 'Kør en gratis synlighedsaudit for personlige anbefalinger.'
+          : 'Run a free visibility audit for personalized recommendations.',
     opportunities,
     history,
     leads: {
@@ -267,7 +292,17 @@ export function buildVisibilityIntelligence(input: BuildIntelligenceInput): Visi
     workspaceHealth: [
       {
         label: isDa ? 'Synlighedsovervågning' : 'Visibility monitoring',
-        status: hasAudit ? (isDa ? 'Aktiv' : 'Active') : isDa ? 'Afventer audit' : 'Awaiting audit',
+        status: hasAudit
+          ? isDa
+            ? 'Aktiv'
+            : 'Active'
+          : context === 'client'
+            ? isDa
+              ? 'Afventer data'
+              : 'Awaiting data'
+            : isDa
+              ? 'Afventer audit'
+              : 'Awaiting audit',
         tone: hasAudit ? 'active' : 'neutral',
       },
       {
@@ -290,8 +325,20 @@ export function buildVisibilityIntelligence(input: BuildIntelligenceInput): Visi
       {
         key: 'audit',
         label: isDa ? 'Synlighedsaudit' : 'Visibility audit',
-        detail: audit?.companyName ?? (isDa ? 'Kør gratis audit' : 'Run free audit'),
-        href: audit?.id ? `/advero/audit/results?id=${audit.id}` : '/advero/audit',
+        detail:
+          audit?.companyName ??
+          (context === 'client'
+            ? isDa
+              ? 'Forbind datakilder'
+              : 'Connect data sources'
+            : isDa
+              ? 'Kør gratis audit'
+              : 'Run free audit'),
+        href: audit?.id
+          ? `/advero/audit/results?id=${audit.id}`
+          : context === 'client'
+            ? '/advero/dashboard/integrations'
+            : '/advero/audit',
       },
       {
         key: 'finding',
