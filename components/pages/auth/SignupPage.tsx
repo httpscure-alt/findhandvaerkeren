@@ -138,7 +138,14 @@ const SignupPage: React.FC<SignupPageProps> = ({
         if (response && response.requiresVerification) {
           if (isAdvero) localStorage.setItem('advero.emailBrand', 'advero');
           toast.info(lang === 'da' ? 'Tjek din e-mail for en bekræftelseskode' : 'Please check your email for a verification code');
-          window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+          const nextParam = searchParams.get('next');
+          const verifyQs = new URLSearchParams({ email });
+          if (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
+            verifyQs.set('next', nextParam);
+          }
+          window.location.href = isAdvero
+            ? `/advero/verify-email?${verifyQs.toString()}`
+            : `/verify-email?${verifyQs.toString()}`;
           return;
         }
       } else {
@@ -154,7 +161,14 @@ const SignupPage: React.FC<SignupPageProps> = ({
         if (response && response.requiresVerification) {
           if (isAdvero) localStorage.setItem('advero.emailBrand', 'advero');
           toast.info(lang === 'da' ? 'Tjek din e-mail for en bekræftelseskode' : 'Please check your email for a verification code');
-          window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+          const nextParam = searchParams.get('next');
+          const verifyQs = new URLSearchParams({ email });
+          if (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
+            verifyQs.set('next', nextParam);
+          }
+          window.location.href = isAdvero
+            ? `/advero/verify-email?${verifyQs.toString()}`
+            : `/verify-email?${verifyQs.toString()}`;
           return;
         }
       }

@@ -14,6 +14,7 @@ import AdveroAuditResultsPage from './components/pages/advero/AdveroAuditResults
 import AdveroReportPreviewPage from './components/pages/advero/AdveroReportPreviewPage';
 import AdveroClientLoginPage from './components/pages/advero/AdveroClientLoginPage';
 import AdveroClientSignupPage from './components/pages/advero/AdveroClientSignupPage';
+import AdveroVerifyEmailPage from './components/pages/advero/AdveroVerifyEmailPage';
 import AdveroDashboardRoute from './components/pages/advero/dashboard/AdveroDashboardRoute';
 import AdveroDashboardHomePage from './components/pages/advero/dashboard/AdveroDashboardHomePage';
 import AdveroDashboardReportsPage from './components/pages/advero/dashboard/AdveroDashboardReportsPage';
@@ -111,6 +112,11 @@ const App: React.FC = () => {
         <Route path="/advero/reports/preview" element={<AdveroReportPreviewPage />} />
         <Route path="/advero/login" element={<AdveroClientLoginPage />} />
         <Route path="/advero/signup" element={<AdveroClientSignupPage />} />
+        <Route path="/advero/verify-email" element={<AdveroVerifyEmailPage />} />
+        <Route
+          path="/verify-email"
+          element={<Navigate to={`/advero/verify-email${location.search}`} replace />}
+        />
         <Route path="/advero/dashboard" element={<AdveroDashboardRoute />}>
           <Route index element={<AdveroDashboardHomePage />} />
           <Route path="visibility" element={<AdveroDashboardVisibilityPage />} />

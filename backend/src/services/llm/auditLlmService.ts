@@ -34,7 +34,8 @@ type LlmAuditPayload = {
 
 const SYSTEM_PROMPT = `You are Advero's visibility strategist for Danish SMBs.
 You receive structured audit scores and a pre-selected subscription plan (already chosen by rules — do not change plan IDs or tiers).
-Write clear, professional copy in Danish and English. No em dashes. No hype. No markdown.
+Write clear, professional copy. No em dashes. No hype. No markdown.
+CRITICAL: Fields ending in "Da" must be entirely in Danish. Fields ending in "En" must be entirely in English. Never mix languages inside one field.
 Respond with ONLY valid JSON matching the schema given.`;
 
 function buildUserPrompt(ctx: AuditLlmContext): string {

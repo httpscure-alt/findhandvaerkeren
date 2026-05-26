@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
-import { useMarketplace } from '../../../contexts/MarketplaceContext';
+import { useAdveroLang } from '../../../lib/adveroLocale';
 import { api } from '../../../services/api';
 import { buildAuditInterpretation } from '../../../lib/auditInterpretation';
 import { buildPackageCards } from '../../../lib/auditPackages';
@@ -16,8 +16,7 @@ import './advero-ds.css';
 
 const AdveroAuditResultsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { lang } = useMarketplace();
-  const isDa = lang === 'da';
+  const { isDa } = useAdveroLang();
   const auditId = searchParams.get('id');
 
   const [audit, setAudit] = useState<VisibilityAuditResult | null>(null);
@@ -68,17 +67,21 @@ const AdveroAuditResultsPage: React.FC = () => {
 
   const packages = useMemo(() => (rec && audit ? buildPackageCards(rec, audit.id) : []), [rec, audit]);
 
-  const signupNext = useMemo(() => {
-    if (!rec) return '/advero/signup';
+  const getStartedPath = useMemo(() => {
+    if (!rec) return '/advero/get-started?step=2';
     const gs = rec.ctaPath.replace(/step=\d+/, 'step=2');
-    const gsWithPlan = gs.includes('step=') ? gs : `${gs}${gs.includes('?') ? '&' : '?'}step=2`;
-    return `/advero/signup?next=${encodeURIComponent(gsWithPlan)}`;
+    return gs.includes('step=') ? gs : `${gs}${gs.includes('?') ? '&' : '?'}step=2`;
   }, [rec]);
 
-  const loginNext = useMemo(() => {
-    if (!rec) return '/advero/login';
-    return `/advero/login?next=${encodeURIComponent(rec.ctaPath.replace(/step=\d+/, 'step=2'))}`;
-  }, [rec]);
+  const signupNext = useMemo(
+    () => `/advero/signup?next=${encodeURIComponent(getStartedPath.replace(/step=\d+/, 'step=3'))}`,
+    [getStartedPath]
+  );
+
+  const loginNext = useMemo(
+    () => `/advero/login?next=${encodeURIComponent(getStartedPath.replace(/step=\d+/, 'step=3'))}`,
+    [getStartedPath]
+  );
 
   const shellHeader = (
     <header className="advero-site-header">
@@ -239,16 +242,20 @@ const AdveroAuditResultsPage: React.FC = () => {
               <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-5 text-center">
                 <p className="text-sm text-slate-600">{resultsNextCopy(isDa)}</p>
                 <Link
-                  to={signupNext}
+                  to={getStartedPath}
                   className="advero-btn-slate-solid mt-4 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em]"
                 >
-                  {isDa ? 'Vælg plan og opret konto' : 'Choose plan and create account'}
+                  {isDa ? 'Se anbefalet plan' : 'View recommended plan'}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
                 <p className="mt-3 text-xs text-slate-500">
                   {isDa ? 'Har du allerede en konto?' : 'Already have an account?'}{' '}
                   <Link to={loginNext} className="font-semibold text-sky-700 underline">
                     {isDa ? 'Log ind' : 'Log in'}
+                  </Link>
+                  {' · '}
+                  <Link to={signupNext} className="font-semibold text-sky-700 underline">
+                    {isDa ? 'Opret konto' : 'Create account'}
                   </Link>
                 </p>
               </div>

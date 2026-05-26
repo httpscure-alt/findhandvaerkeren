@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Building2, Globe, Loader2, Mail, MapPin, Sparkles, Tag } from 'lucide-react';
-import { useMarketplace } from '../../../contexts/MarketplaceContext';
+import { useAdveroLang } from '../../../lib/adveroLocale';
 import { useToast } from '../../../hooks/useToast';
 import { api } from '../../../services/api';
 import type { GrowthGoal, IndustryCategory } from '../../../lib/recommendPlan';
@@ -10,8 +10,7 @@ import { getJourneyStoryCopy } from '../../../lib/adveroJourneyStory';
 import './advero-ds.css';
 
 const AdveroAuditIntakePage: React.FC = () => {
-  const { lang } = useMarketplace();
-  const isDa = lang === 'da';
+  const { isDa } = useAdveroLang();
   const navigate = useNavigate();
   const toast = useToast();
 

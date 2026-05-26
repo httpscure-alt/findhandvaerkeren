@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
-import { useMarketplace } from '../../../contexts/MarketplaceContext';
+import { useAdveroLang } from '../../../lib/adveroLocale';
 import { api } from '../../../services/api';
 import { persistAuditSnapshot } from '../../../lib/adveroDashboardIntelligence';
 import { markSetupComplete } from '../../../lib/adveroSetupProgress';
@@ -14,8 +14,7 @@ const MIN_MS = 4800;
 type StepId = 'visibility' | 'local' | 'ai' | 'interpret' | 'package';
 
 const AdveroAuditAnalyzingPage: React.FC = () => {
-  const { lang } = useMarketplace();
-  const isDa = lang === 'da';
+  const { isDa } = useAdveroLang();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const auditId = searchParams.get('id');

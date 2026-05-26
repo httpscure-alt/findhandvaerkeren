@@ -14,7 +14,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useMarketplace } from '../../../contexts/MarketplaceContext';
+import { useAdveroLang } from '../../../lib/adveroLocale';
 import { api } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 import type { GrowthGoal, IndustryCategory } from '../../../lib/recommendPlan';
@@ -156,13 +156,11 @@ function isAdveroGetStartedUngated(searchParams: URLSearchParams): boolean {
 }
 
 const AdveroClientGetStartedPage: React.FC = () => {
-  const { lang, setLang } = useMarketplace();
+  const { isDa, lang, setLang } = useAdveroLang();
   const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const flowUngated = isAdveroGetStartedUngated(searchParams);
-
-  const isDa = lang === 'da';
 
   const [persist, setPersist] = useState<WizardPersist>(() => loadPersist());
   const [auditContext, setAuditContext] = useState<VisibilityAuditResult | null>(null);
