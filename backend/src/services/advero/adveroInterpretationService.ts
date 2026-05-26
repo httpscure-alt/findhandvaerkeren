@@ -1,29 +1,59 @@
 import { buildAuditInterpretation, type AuditInterpretation } from '../../lib/auditInterpretation';
-import type { AuditScores } from '../../lib/recommendPlan';
+import type { AuditScores, PlanRecommendation } from '../../lib/recommendPlan';
 import type { AuditEngine } from '../visibilityAuditService';
 import { logger } from '../../config/logger';
+import { generateAuditLlmCopy, type AuditLlmContext } from '../llm/auditLlmService';
+import { llmInterpretationEnabled } from '../llm/moonshotKimiClient';
+
+export type InterpretationInput = {
+  scores: AuditScores;
+  engine: AuditEngine;
+  companyName: string;
+  websiteUrl?: string;
+  serviceArea?: string;
+  industry?: string;
+  growthGoal?: string;
+  overallScore: number;
+  recommendation: PlanRecommendation;
+  topRecommendation?: string;
+};
+
+export type InterpretationResult = {
+  interpretation: AuditInterpretation;
+  recommendation: PlanRecommendation;
+};
 
 /**
- * P1: optional LLM layer on structured findings.
- * Today: deterministic interpretation; set OPENAI_API_KEY + ADVERO_LLM_INTERPRETATION=true to extend.
+ * Template interpretation + optional Kimi K2.6 narrative (plan tiers stay rule-based).
  */
 export async function buildInterpretationLayer(
-  scores: AuditScores,
-  engine: AuditEngine,
-  companyName: string
-): Promise<AuditInterpretation> {
-  const base = buildAuditInterpretation(scores, engine);
+  input: InterpretationInput
+): Promise<InterpretationResult> {
+  const base = buildAuditInterpretation(input.scores, input.engine);
 
-  if (process.env.ADVERO_LLM_INTERPRETATION !== 'true' || !process.env.OPENAI_API_KEY) {
-    return base;
+  if (!llmInterpretationEnabled()) {
+    return { interpretation: base, recommendation: input.recommendation };
   }
 
   try {
-    // Placeholder for OpenAI/Claude — keep tier selection rule-based elsewhere
-    logger.info('LLM interpretation requested; using template layer until prompt wired', { companyName });
-    return base;
+    const ctx: AuditLlmContext = {
+      companyName: input.companyName,
+      websiteUrl: input.websiteUrl,
+      serviceArea: input.serviceArea,
+      industry: input.industry,
+      growthGoal: input.growthGoal,
+      scores: input.scores,
+      engine: input.engine,
+      overallScore: input.overallScore,
+      recommendation: input.recommendation,
+      topRecommendation: input.topRecommendation,
+    };
+
+    const llm = await generateAuditLlmCopy(ctx, base);
+    if (llm) return llm;
   } catch (err) {
     logger.warn('LLM interpretation failed, using template', err);
-    return base;
   }
+
+  return { interpretation: base, recommendation: input.recommendation };
 }

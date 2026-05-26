@@ -68,6 +68,14 @@ services:
       - key: ADVERO_SITE_URL
         sync: false
 
+      # Kimi K2.6 — personalized audit report copy (MOONSHOT_API_KEY from platform.moonshot.ai)
+      - key: MOONSHOT_API_KEY
+        sync: false
+      - key: MOONSHOT_MODEL
+        value: kimi-k2.6
+      - key: ADVERO_LLM_INTERPRETATION
+        value: "true"
+
       # Google (Search Console + Ads OAuth)
       - key: GOOGLE_CLIENT_ID
         sync: false

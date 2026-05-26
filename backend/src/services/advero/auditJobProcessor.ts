@@ -91,11 +91,23 @@ export async function processAuditJob(auditId: string): Promise<void> {
     const scores = topRank?.scores ?? mockScores(payload);
     const industry = payload.industry || 'unknown';
     const growthGoal = payload.growthGoal || 'both';
-    const recommendation = recommendPlan({ scores, goal: growthGoal, industry, auditId });
+    let recommendation = recommendPlan({ scores, goal: growthGoal, industry, auditId });
     const overall = topRank?.overallScore ?? recommendation.overallScore;
     const delta =
       topRank?.delta ?? `+${Math.max(5, Math.min(18, 20 - Math.floor(overall / 6)))}`;
-    const interpretation = await buildInterpretationLayer(scores, engine, payload.companyName);
+    const { interpretation, recommendation: enrichedRec } = await buildInterpretationLayer({
+      scores,
+      engine,
+      companyName: payload.companyName,
+      websiteUrl: payload.websiteUrl,
+      serviceArea: payload.serviceArea,
+      industry,
+      growthGoal,
+      overallScore: overall,
+      recommendation,
+      topRecommendation: weakestInsight(scores, topRank?.topRecommendation),
+    });
+    recommendation = enrichedRec;
 
     await prisma.adveroAuditFinding.deleteMany({ where: { auditId } });
     await prisma.adveroAuditFinding.createMany({
