@@ -41,16 +41,18 @@ const AdveroAdminLayout: React.FC = () => {
       <header className="advero-admin-header">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="advero-admin-brand-row">
-            <a href="/" className="advero-site-header-brand" aria-label="Advero">
-              <img
-                src="/brand/advero-logo-light.png"
-                alt=""
-                width={800}
-                height={168}
-                decoding="async"
-                className="advero-logo-wordmark-light object-contain object-left"
-              />
-            </a>
+            <div className="advero-admin-logo-slot">
+              <a href="/" className="advero-admin-brand-link" aria-label="Advero">
+                <img
+                  src="/brand/advero-logo-light.png"
+                  alt=""
+                  width={800}
+                  height={168}
+                  decoding="async"
+                  className="advero-logo-wordmark-light advero-admin-wordmark"
+                />
+              </a>
+            </div>
             <span className="advero-admin-badge">{isDa ? 'Internt' : 'Internal'}</span>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
