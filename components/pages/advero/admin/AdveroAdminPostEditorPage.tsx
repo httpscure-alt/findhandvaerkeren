@@ -118,7 +118,7 @@ const AdveroAdminPostEditorPage: React.FC = () => {
     return (
       <p className="text-red-300">
         {error}{' '}
-        <Link to="/advero/admin" className="underline">
+        <Link to="/advero/admin/content" className="underline">
           {isDa ? 'Tilbage' : 'Back'}
         </Link>
       </p>
@@ -128,7 +128,7 @@ const AdveroAdminPostEditorPage: React.FC = () => {
   return (
     <div>
       <Link
-        to="/advero/admin"
+        to="/advero/admin/content"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-white/65 hover:text-white"
       >
         <ArrowLeft size={16} aria-hidden />

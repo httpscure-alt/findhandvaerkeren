@@ -22,6 +22,11 @@ import AdveroDashboardPlaceholderPage from './components/pages/advero/dashboard/
 import AdveroGoogleAdsPerformancePage from './components/pages/advero/dashboard/AdveroGoogleAdsPerformancePage';
 import AdveroDashboardIntegrationsPage from './components/pages/advero/dashboard/AdveroDashboardIntegrationsPage';
 import AdveroAdminRoute from './components/pages/advero/admin/AdveroAdminRoute';
+import AdveroAdminOverviewPage from './components/pages/advero/admin/AdveroAdminOverviewPage';
+import AdveroAdminWorkspacesPage from './components/pages/advero/admin/AdveroAdminWorkspacesPage';
+import AdveroAdminAuditsPage from './components/pages/advero/admin/AdveroAdminAuditsPage';
+import AdveroAdminSubscriptionsPage from './components/pages/advero/admin/AdveroAdminSubscriptionsPage';
+import AdveroAdminUsersPage from './components/pages/advero/admin/AdveroAdminUsersPage';
 import AdveroAdminPostsPage from './components/pages/advero/admin/AdveroAdminPostsPage';
 import AdveroAdminPostEditorPage from './components/pages/advero/admin/AdveroAdminPostEditorPage';
 import AdveroAdminSeoPage from './components/pages/advero/admin/AdveroAdminSeoPage';
@@ -139,7 +144,12 @@ const App: React.FC = () => {
         </Route>
 
         <Route path="/advero/admin" element={<AdveroAdminRoute />}>
-          <Route index element={<AdveroAdminPostsPage />} />
+          <Route index element={<AdveroAdminOverviewPage />} />
+          <Route path="workspaces" element={<AdveroAdminWorkspacesPage />} />
+          <Route path="audits" element={<AdveroAdminAuditsPage />} />
+          <Route path="subscriptions" element={<AdveroAdminSubscriptionsPage />} />
+          <Route path="users" element={<AdveroAdminUsersPage />} />
+          <Route path="content" element={<AdveroAdminPostsPage />} />
           <Route path="posts/new" element={<AdveroAdminPostEditorPage />} />
           <Route path="posts/:id" element={<AdveroAdminPostEditorPage />} />
           <Route path="seo" element={<AdveroAdminSeoPage />} />

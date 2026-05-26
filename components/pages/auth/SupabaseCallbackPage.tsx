@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '../../../services/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../hooks/useToast';
 import { Language } from '../../../types';
+import { resolveAdveroPostLoginPath, safeAdveroNext } from '../../../lib/adveroSession';
 
 export default function SupabaseCallbackPage({ lang }: { lang: Language }) {
   const navigate = useNavigate();
@@ -41,10 +42,11 @@ export default function SupabaseCallbackPage({ lang }: { lang: Language }) {
         await loginWithSupabase(accessToken, roleHint);
         toast.success(isDa ? 'Logget ind' : 'Signed in');
         const nextRaw = qs.get('next');
-        const next =
-          nextRaw && nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : null;
+        const next = safeAdveroNext(nextRaw);
         const fallback =
-          nextRaw && nextRaw.includes('/advero') ? '/advero/dashboard' : '/';
+          nextRaw && nextRaw.includes('/advero')
+            ? resolveAdveroPostLoginPath(null)
+            : '/';
         navigate(next ?? fallback, { replace: true });
       } catch (e: any) {
         toast.error(e?.message || (isDa ? 'Login fejlede' : 'Login failed'));

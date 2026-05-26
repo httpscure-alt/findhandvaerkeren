@@ -7,33 +7,33 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../hooks/useToast';
 import { supabase, isSupabaseConfigured } from '../../../services/supabase';
 import AdveroClientAuthLayout from './AdveroClientAuthLayout';
-import { ADVERO_DASHBOARD_PATH, hasStoredAdveroSession } from '../../../lib/adveroSession';
+import {
+  ADVERO_DASHBOARD_PATH,
+  hasStoredAdveroSession,
+  resolveAdveroPostLoginPath,
+  safeAdveroNext,
+} from '../../../lib/adveroSession';
 import { api } from '../../../services/api';
 import './advero-ds.css';
 
-/** Where login lands when no `?next=` — checkout flow passes its own `next`. */
+/** Where login lands when no `?next=` — admins go to CMS, clients to dashboard. */
 const LOGIN_DEFAULT = ADVERO_DASHBOARD_PATH;
-
-function safeNext(raw: string | null): string | null {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null;
-  return raw;
-}
 
 const AdveroClientLoginPage: React.FC = () => {
   const { lang } = useMarketplace();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
 
-  const next = safeNext(searchParams.get('next'));
-  const afterLogin = next ?? LOGIN_DEFAULT;
+  const next = safeAdveroNext(searchParams.get('next'));
+  const afterLogin = resolveAdveroPostLoginPath(next, user?.role);
 
   useEffect(() => {
     if (isAuthenticated || hasStoredAdveroSession()) {
       navigate(afterLogin, { replace: true });
     }
-  }, [isAuthenticated, afterLogin, navigate]);
+  }, [isAuthenticated, afterLogin, navigate, user?.role]);
   const backHref = next ?? LOGIN_DEFAULT;
   const signupTo = `/advero/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`;
 
@@ -95,7 +95,8 @@ const AdveroClientLoginPage: React.FC = () => {
   };
 
   const goAfterLogin = () => {
-    window.location.assign(afterLogin);
+    const dest = resolveAdveroPostLoginPath(next);
+    window.location.assign(dest);
   };
 
   const handleLogin = async (e: React.FormEvent) => {

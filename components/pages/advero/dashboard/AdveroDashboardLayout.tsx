@@ -32,7 +32,7 @@ const AdveroDashboardLayout: React.FC<AdveroDashboardLayoutProps> = ({ getCompan
   const handleLogout = () => {
     logout();
     toast.info(isDa ? 'Du er nu logget ud' : 'Logged out');
-    navigate('/advero/login?next=/advero/dashboard');
+    navigate('/advero/login');
   };
 
   return (

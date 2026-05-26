@@ -22,6 +22,12 @@ import {
   getAdminJobRequests,
   createManualBusiness,
 } from '../controllers/adminController';
+import {
+  getAdveroAdminOverview,
+  listAdveroWorkspaces,
+  listAdveroAudits,
+  listAdveroSubscriptions,
+} from '../controllers/adveroAdminController';
 
 const router = express.Router();
 
@@ -52,6 +58,12 @@ router.post('/verification-queue/:id/reject', rejectVerification);
 
 // Admin stats
 router.get('/stats', getAdminStats);
+
+// Advero platform (workspaces, audits, billing)
+router.get('/advero/overview', getAdveroAdminOverview);
+router.get('/advero/workspaces', listAdveroWorkspaces);
+router.get('/advero/audits', listAdveroAudits);
+router.get('/advero/subscriptions', listAdveroSubscriptions);
 
 // Users management
 router.get('/users', getAdminUsers);

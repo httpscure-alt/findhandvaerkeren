@@ -1017,6 +1017,118 @@ class ApiService {
     }
   }
 
+  async getAdveroAdminOverview() {
+    try {
+      return await this.request<{
+        workspaces: number;
+        workspacesWithUser: number;
+        audits: number;
+        auditsPending: number;
+        auditsProcessing: number;
+        auditsComplete: number;
+        auditsFailed: number;
+        activeSubscriptions: number;
+        totalUsers: number;
+        adminUsers: number;
+        recentAudits: Array<{
+          id: string;
+          companyName: string;
+          status: string;
+          overallScore: number | null;
+          contactEmail: string | null;
+          createdAt: string;
+        }>;
+        recentWorkspaces: Array<{
+          id: string;
+          companyName: string;
+          contactEmail: string | null;
+          initializedAt: string | null;
+          createdAt: string;
+          user: { email: string } | null;
+          _count: { audits: number; subscriptions: number };
+        }>;
+      }>('/admin/advero/overview');
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return {
+          workspaces: 0,
+          workspacesWithUser: 0,
+          audits: 0,
+          auditsPending: 0,
+          auditsProcessing: 0,
+          auditsComplete: 0,
+          auditsFailed: 0,
+          activeSubscriptions: 0,
+          totalUsers: 0,
+          adminUsers: 0,
+          recentAudits: [],
+          recentWorkspaces: [],
+        };
+      }
+      throw error;
+    }
+  }
+
+  async getAdveroAdminWorkspaces(params?: { page?: number; limit?: number; search?: string }) {
+    try {
+      const q = new URLSearchParams();
+      if (params?.page) q.set('page', String(params.page));
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.search) q.set('search', params.search);
+      const query = q.toString();
+      return await this.request<{ workspaces: any[]; pagination: any }>(
+        `/admin/advero/workspaces${query ? `?${query}` : ''}`
+      );
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { workspaces: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 0 } };
+      }
+      throw error;
+    }
+  }
+
+  async getAdveroAdminAudits(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }) {
+    try {
+      const q = new URLSearchParams();
+      if (params?.page) q.set('page', String(params.page));
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.search) q.set('search', params.search);
+      if (params?.status) q.set('status', params.status);
+      const query = q.toString();
+      return await this.request<{ audits: any[]; pagination: any }>(
+        `/admin/advero/audits${query ? `?${query}` : ''}`
+      );
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { audits: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 0 } };
+      }
+      throw error;
+    }
+  }
+
+  async getAdveroAdminSubscriptions(params?: { page?: number; limit?: number; status?: string }) {
+    try {
+      const q = new URLSearchParams();
+      if (params?.page) q.set('page', String(params.page));
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.status) q.set('status', params.status);
+      const query = q.toString();
+      return await this.request<{ subscriptions: any[]; pagination: any }>(
+        `/admin/advero/subscriptions${query ? `?${query}` : ''}`
+      );
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { subscriptions: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 0 } };
+      }
+      throw error;
+    }
+  }
+
   async getAdminUsers(params?: { role?: string; page?: number; limit?: number; search?: string }) {
     try {
       const queryParams = new URLSearchParams();
