@@ -20,6 +20,7 @@ import AdveroHomeSparkline from './AdveroHomeSparkline';
 import {
   AdveroDashboardConnectedFlow,
   AdveroDashboardGrowthUpsell,
+  AdveroDashboardManualFulfillmentBanner,
   AdveroDashboardPriorityBlock,
   AdveroDashboardSetupChecklist,
   AdveroDashboardVisibilityHistory,
@@ -79,6 +80,13 @@ const AdveroDashboardHomePage: React.FC = () => {
               : `Overview for ${intel.companyName} — translated into business value, not SEO jargon.`
             : c.lead}
         </p>
+
+        {apiPayload?.manualFulfillment ? (
+          <AdveroDashboardManualFulfillmentBanner
+            manual={apiPayload.manualFulfillment}
+            isDa={isDa}
+          />
+        ) : null}
 
         <AdveroDashboardSetupChecklist intel={intel} isDa={isDa} />
         <AdveroDashboardPriorityBlock intel={intel} isDa={isDa} />

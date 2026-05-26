@@ -40,7 +40,7 @@ const AdveroAdminLayout: React.FC = () => {
       <div className="advero-dot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden />
       <header className="advero-admin-header">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-4">
+          <div className="advero-admin-brand-row">
             <a href="/" className="advero-site-header-brand" aria-label="Advero">
               <img
                 src="/brand/advero-logo-light.png"

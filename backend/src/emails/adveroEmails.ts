@@ -517,3 +517,82 @@ export function renderAdveroSubscriptionActivatedEmail(opts: {
     html: shell('Abonnement aktiveret — Advero', 'Dit abonnement er aktivt.', content, 'Transaktionel e-mail fra Advero.'),
   };
 }
+
+export type OpsFulfillmentEmailData = {
+  companyName: string;
+  serviceLabel: string;
+  tierId: string;
+  contactEmail: string;
+  userEmail?: string | null;
+  websiteUrl?: string | null;
+  overallScore?: number | null;
+  weakestChannel?: string | null;
+  planHeadline?: string | null;
+  adminUrl: string;
+  auditUrl?: string | null;
+  fulfillmentId: string;
+  deliveryMode?: 'manual';
+  manualTasks?: string[];
+};
+
+export function renderAdveroOpsFulfillmentEmail(data: OpsFulfillmentEmailData) {
+  const rows = [
+    ['Virksomhed', data.companyName],
+    ['Ydelse', data.serviceLabel],
+    ['Plan', data.tierId],
+    ['Kontakt', data.contactEmail],
+    ...(data.userEmail ? [['Bruger', data.userEmail] as const] : []),
+    ...(data.websiteUrl ? [['Website', data.websiteUrl] as const] : []),
+    ...(data.overallScore != null ? [['Audit score', `${data.overallScore}/100`] as const] : []),
+    ...(data.weakestChannel ? [['Svageste kanal', data.weakestChannel] as const] : []),
+    ...(data.planHeadline ? [['Anbefaling', data.planHeadline] as const] : []),
+  ];
+  const table = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 20px;border-collapse:collapse;">
+      ${rows
+        .map(
+          ([k, v]) => `
+        <tr>
+          <td style="padding:8px 0;font-size:13px;color:${muted};vertical-align:top;width:38%;">${escapeHtml(k)}</td>
+          <td style="padding:8px 0;font-size:14px;color:${ink};font-weight:600;">${escapeHtml(String(v))}</td>
+        </tr>`
+        )
+        .join('')}
+    </table>
+  `;
+  const manualBlock =
+    data.manualTasks && data.manualTasks.length
+      ? `
+    <p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${muted};">
+      Manuel opsætning (indtil autonom motor)
+    </p>
+    <ul style="margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.55;color:${slate};">
+      ${data.manualTasks.map((t) => `<li style="margin-bottom:6px;">${escapeHtml(t)}</li>`).join('')}
+    </ul>`
+      : '';
+
+  const content = `
+    ${label('Ny ordre')}
+    ${h1('Nyt betalt abonnement — handling kræves')}
+    ${para(
+      data.deliveryMode === 'manual'
+        ? 'En kunde har betalt. Ydelsen leveres manuelt af Advero-teamet indtil den fulde autonome motor er klar.'
+        : 'En kunde har gennemført betaling. Gennemfør opsætning i henhold til planen.',
+      '20px'
+    )}
+    ${table}
+    ${manualBlock}
+    ${ctaBlock('Åbn fulfillment-kø', data.adminUrl, '12px')}
+    ${data.auditUrl ? ctaBlock('Se audit-resultat', data.auditUrl, '0') : ''}
+    ${para(`<span style="font-family:${mono};font-size:11px;color:${muted};">ID: ${escapeHtml(data.fulfillmentId)}</span>`, '8px')}
+  `;
+  return {
+    subject: `[Advero Ops] Ny ${data.serviceLabel} — ${data.companyName}`,
+    html: shell(
+      'Ny kundeordre — Advero',
+      `${data.companyName} har købt ${data.serviceLabel}.`,
+      content,
+      'Intern besked til Advero-teamet.'
+    ),
+  };
+}

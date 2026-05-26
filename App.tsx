@@ -26,6 +26,7 @@ import AdveroAdminOverviewPage from './components/pages/advero/admin/AdveroAdmin
 import AdveroAdminWorkspacesPage from './components/pages/advero/admin/AdveroAdminWorkspacesPage';
 import AdveroAdminAuditsPage from './components/pages/advero/admin/AdveroAdminAuditsPage';
 import AdveroAdminSubscriptionsPage from './components/pages/advero/admin/AdveroAdminSubscriptionsPage';
+import AdveroAdminFulfillmentPage from './components/pages/advero/admin/AdveroAdminFulfillmentPage';
 import AdveroAdminUsersPage from './components/pages/advero/admin/AdveroAdminUsersPage';
 import AdveroAdminPostsPage from './components/pages/advero/admin/AdveroAdminPostsPage';
 import AdveroAdminPostEditorPage from './components/pages/advero/admin/AdveroAdminPostEditorPage';
@@ -148,6 +149,7 @@ const App: React.FC = () => {
           <Route path="workspaces" element={<AdveroAdminWorkspacesPage />} />
           <Route path="audits" element={<AdveroAdminAuditsPage />} />
           <Route path="subscriptions" element={<AdveroAdminSubscriptionsPage />} />
+          <Route path="fulfillment" element={<AdveroAdminFulfillmentPage />} />
           <Route path="users" element={<AdveroAdminUsersPage />} />
           <Route path="content" element={<AdveroAdminPostsPage />} />
           <Route path="posts/new" element={<AdveroAdminPostEditorPage />} />

@@ -660,6 +660,13 @@ enum AdveroAuditStatus {
   FAILED
 }
 
+enum AdveroFulfillmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model AdveroWorkspace {
   id             String   @id @default(cuid())
   userId         String?  @unique
@@ -673,6 +680,7 @@ model AdveroWorkspace {
   audits         AdveroAudit[]
   subscriptions  AdveroSubscription[]
   activityEvents AdveroActivityEvent[]
+  fulfillments   AdveroFulfillment[]
 
   @@index([contactEmail])
 }
@@ -742,9 +750,39 @@ model AdveroSubscription {
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   workspace            AdveroWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  fulfillment          AdveroFulfillment?
 
   @@index([workspaceId])
   @@index([status])
+}
+
+model AdveroFulfillment {
+  id                   String                 @id @default(cuid())
+  workspaceId          String
+  subscriptionId       String?                @unique
+  auditId              String?
+  serviceLine          String
+  tierId               String
+  status               AdveroFulfillmentStatus @default(PENDING)
+  companyName          String
+  contactEmail         String?
+  userEmail            String?
+  websiteUrl           String?
+  overallScore         Int?
+  weakestChannel       String?
+  planHeadline         String?
+  notes                String?
+  stripeSubscriptionId String?                @unique
+  stripeCustomerId     String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  workspace            AdveroWorkspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  subscription         AdveroSubscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([serviceLine])
+  @@index([createdAt])
 }
 
 model AdveroActivityEvent {

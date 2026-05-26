@@ -1028,6 +1028,8 @@ class ApiService {
         auditsComplete: number;
         auditsFailed: number;
         activeSubscriptions: number;
+        pendingFulfillment: number;
+        fulfillmentsInProgress: number;
         totalUsers: number;
         adminUsers: number;
         recentAudits: Array<{
@@ -1059,6 +1061,8 @@ class ApiService {
           auditsComplete: 0,
           auditsFailed: 0,
           activeSubscriptions: 0,
+          pendingFulfillment: 0,
+          fulfillmentsInProgress: 0,
           totalUsers: 0,
           adminUsers: 0,
           recentAudits: [],
@@ -1127,6 +1131,37 @@ class ApiService {
       }
       throw error;
     }
+  }
+
+  async getAdveroAdminFulfillment(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    serviceLine?: string;
+  }) {
+    try {
+      const q = new URLSearchParams();
+      if (params?.page) q.set('page', String(params.page));
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.status) q.set('status', params.status);
+      if (params?.serviceLine) q.set('serviceLine', params.serviceLine);
+      const query = q.toString();
+      return await this.request<{ fulfillments: any[]; pagination: any }>(
+        `/admin/advero/fulfillment${query ? `?${query}` : ''}`
+      );
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return { fulfillments: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 0 } };
+      }
+      throw error;
+    }
+  }
+
+  async patchAdveroAdminFulfillment(id: string, body: { status?: string; notes?: string }) {
+    return await this.request<{ fulfillment: { id: string; status: string; notes: string | null } }>(
+      `/admin/advero/fulfillment/${encodeURIComponent(id)}`,
+      { method: 'PATCH', body: JSON.stringify(body) }
+    );
   }
 
   async getAdminUsers(params?: { role?: string; page?: number; limit?: number; search?: string }) {

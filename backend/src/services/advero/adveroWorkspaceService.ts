@@ -25,6 +25,15 @@ export interface AdveroDashboardPayload {
     serviceLine: string;
     status: string;
   } | null;
+  /** Post-checkout onboarding status shown in the client dashboard. */
+  manualFulfillment: {
+    status: string;
+    serviceLine: string;
+    titleDa: string;
+    titleEn: string;
+    bodyDa: string;
+    bodyEn: string;
+  } | null;
 }
 
 export async function getOrCreateWorkspaceForUser(
@@ -72,7 +81,7 @@ export async function initializeWorkspaceAfterPayment(opts: {
     opts.contactEmail
   );
 
-  await prisma.adveroSubscription.upsert({
+  const subscription = await prisma.adveroSubscription.upsert({
     where: { stripeSubscriptionId: opts.stripeSubscriptionId },
     create: {
       workspaceId: workspace.id,
@@ -123,6 +132,17 @@ export async function initializeWorkspaceAfterPayment(opts: {
     },
   });
 
+  const { recordFulfillmentAfterPayment } = await import('./adveroFulfillmentService');
+  await recordFulfillmentAfterPayment({
+    workspaceId: workspace.id,
+    subscriptionId: subscription.id,
+    tierId: opts.tierId,
+    serviceLine: opts.serviceLine,
+    stripeSubscriptionId: opts.stripeSubscriptionId,
+    stripeCustomerId: opts.stripeCustomerId,
+    auditId: opts.auditId,
+  });
+
   return workspace.id;
 }
 
@@ -142,6 +162,7 @@ export async function buildDashboardPayload(
       googleAds: { connected: false, source: 'unavailable' },
       activity: [],
       subscription: null,
+      manualFulfillment: null,
     };
   }
 
@@ -177,6 +198,48 @@ export async function buildDashboardPayload(
   }
 
   const sub = workspace?.subscriptions[0];
+  let manualFulfillment: AdveroDashboardPayload['manualFulfillment'] = null;
+
+  if (sub && workspace) {
+    const line = sub.serviceLine.toLowerCase();
+    if (['seo', 'ads', 'growth'].includes(line) && sub.status === 'active') {
+      const fulfillment = await prisma.adveroFulfillment.findFirst({
+        where: {
+          workspaceId: workspace.id,
+          subscriptionId: sub.id,
+          status: { in: ['PENDING', 'IN_PROGRESS'] },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (fulfillment) {
+        const serviceName =
+          line === 'seo'
+            ? { da: 'SEO', en: 'SEO' }
+            : line === 'ads'
+              ? { da: 'Google Ads', en: 'Google Ads' }
+              : { da: 'Growth+ (SEO + Ads)', en: 'Growth+ (SEO + Ads)' };
+        manualFulfillment = {
+          status: fulfillment.status,
+          serviceLine: line,
+          titleDa: `Vi starter jeres ${serviceName.da}`,
+          titleEn: `We're getting your ${serviceName.en} started`,
+          bodyDa:
+            line === 'seo'
+              ? 'Tak for jeres abonnement. Vi gennemgår jeres audit og sætter SEO-arbejdet i gang. I kan følge status her i dashboardet.'
+              : line === 'ads'
+                ? 'Tak for jeres abonnement. Vi opsætter jeres Google Ads-konto og kampagner. I får besked her, når I kan forbinde kontoen i dashboardet.'
+                : 'Tak for jeres abonnement. Vi sætter SEO og Google Ads i gang for jer. Status opdateres løbende her i dashboardet.',
+          bodyEn:
+            line === 'seo'
+              ? 'Thank you for subscribing. We are reviewing your audit and starting your SEO work. You can follow progress here in your dashboard.'
+              : line === 'ads'
+                ? 'Thank you for subscribing. We are setting up your Google Ads account and campaigns. We will notify you here when you can connect your account in the dashboard.'
+                : 'Thank you for subscribing. We are getting your SEO and Google Ads underway. Status updates will appear here in your dashboard.',
+        };
+      }
+    }
+  }
+
   const { intelligence, searchConsole } = await buildCanonicalIntelligence(
     lang,
     latestAudit,
@@ -209,5 +272,6 @@ export async function buildDashboardPayload(
     subscription: sub
       ? { tierId: sub.tierId, serviceLine: sub.serviceLine, status: sub.status }
       : null,
+    manualFulfillment,
   };
 }

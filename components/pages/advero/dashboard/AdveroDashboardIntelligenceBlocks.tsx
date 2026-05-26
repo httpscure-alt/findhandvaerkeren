@@ -1,12 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Circle, Sparkles } from 'lucide-react';
+import type { AdveroDashboardApiPayload } from '../../../../lib/adveroDashboardApi';
 import type { DashboardIntelligence } from '../../../../lib/adveroDashboardIntelligence';
 
 type BlocksProps = {
   intel: DashboardIntelligence;
   isDa: boolean;
 };
+
+export const AdveroDashboardManualFulfillmentBanner: React.FC<{
+  manual: NonNullable<AdveroDashboardApiPayload['manualFulfillment']>;
+  isDa: boolean;
+}> = ({ manual, isDa }) => (
+  <section className="advero-home-enter mb-6 rounded-xl border border-sky-400/25 bg-sky-500/10 px-5 py-4">
+    <p className="mono-label mb-1 text-[10px] text-sky-200/80">
+      {isDa ? 'Opsætning i gang' : 'Setup in progress'}
+    </p>
+    <h2 className="text-base font-semibold text-white">
+      {isDa ? manual.titleDa : manual.titleEn}
+    </h2>
+    <p className="mt-2 text-sm leading-relaxed text-white/75">
+      {isDa ? manual.bodyDa : manual.bodyEn}
+    </p>
+  </section>
+);
 
 export const AdveroDashboardSetupChecklist: React.FC<BlocksProps> = ({ intel, isDa }) => {
   if (!intel.setup.showChecklist) return null;

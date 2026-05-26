@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
+  ClipboardList,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -46,6 +47,13 @@ export const ADVERO_ADMIN_NAV: AdveroAdminNavItem[] = [
     icon: CreditCard,
     labelDa: 'Abonnementer',
     labelEn: 'Subscriptions',
+    section: 'business',
+  },
+  {
+    to: '/advero/admin/fulfillment',
+    icon: ClipboardList,
+    labelDa: 'Nye ordrer',
+    labelEn: 'New orders',
     section: 'business',
   },
   {

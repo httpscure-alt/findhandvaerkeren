@@ -27,6 +27,8 @@ import {
   listAdveroWorkspaces,
   listAdveroAudits,
   listAdveroSubscriptions,
+  listAdveroFulfillment,
+  updateAdveroFulfillment,
 } from '../controllers/adveroAdminController';
 
 const router = express.Router();
@@ -64,6 +66,8 @@ router.get('/advero/overview', getAdveroAdminOverview);
 router.get('/advero/workspaces', listAdveroWorkspaces);
 router.get('/advero/audits', listAdveroAudits);
 router.get('/advero/subscriptions', listAdveroSubscriptions);
+router.get('/advero/fulfillment', listAdveroFulfillment);
+router.patch('/advero/fulfillment/:id', updateAdveroFulfillment);
 
 // Users management
 router.get('/users', getAdminUsers);

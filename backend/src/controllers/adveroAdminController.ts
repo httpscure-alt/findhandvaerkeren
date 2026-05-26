@@ -20,6 +20,8 @@ export const getAdveroAdminOverview = async (_req: AuthRequest, res: Response): 
       auditsComplete,
       auditsFailed,
       activeSubscriptions,
+      pendingFulfillment,
+      fulfillmentsInProgress,
       totalUsers,
       adminUsers,
       recentAudits,
@@ -33,6 +35,8 @@ export const getAdveroAdminOverview = async (_req: AuthRequest, res: Response): 
       prisma.adveroAudit.count({ where: { status: 'COMPLETE' } }),
       prisma.adveroAudit.count({ where: { status: 'FAILED' } }),
       prisma.adveroSubscription.count({ where: { status: 'active' } }),
+      prisma.adveroFulfillment.count({ where: { status: 'PENDING' } }),
+      prisma.adveroFulfillment.count({ where: { status: 'IN_PROGRESS' } }),
       prisma.user.count(),
       prisma.user.count({ where: { role: 'ADMIN' } }),
       prisma.adveroAudit.findMany({
@@ -71,6 +75,8 @@ export const getAdveroAdminOverview = async (_req: AuthRequest, res: Response): 
       auditsComplete,
       auditsFailed,
       activeSubscriptions,
+      pendingFulfillment,
+      fulfillmentsInProgress,
       totalUsers,
       adminUsers,
       recentAudits,
@@ -217,5 +223,96 @@ export const listAdveroSubscriptions = async (req: AuthRequest, res: Response): 
     });
   } catch {
     throw new AppError('Failed to list subscriptions', 500);
+  }
+};
+
+export const listAdveroFulfillment = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { page, limit, skip } = parsePage(req.query as Record<string, unknown>);
+    const status = String(req.query.status ?? '').trim();
+    const serviceLine = String(req.query.serviceLine ?? '').trim();
+
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (serviceLine) where.serviceLine = serviceLine;
+
+    const [items, total] = await Promise.all([
+      prisma.adveroFulfillment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          status: true,
+          serviceLine: true,
+          tierId: true,
+          companyName: true,
+          contactEmail: true,
+          userEmail: true,
+          websiteUrl: true,
+          overallScore: true,
+          weakestChannel: true,
+          planHeadline: true,
+          notes: true,
+          auditId: true,
+          workspaceId: true,
+          stripeSubscriptionId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.adveroFulfillment.count({ where }),
+    ]);
+
+    res.json({
+      fulfillments: items,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
+  } catch {
+    throw new AppError('Failed to list fulfillment queue', 500);
+  }
+};
+
+export const updateAdveroFulfillment = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = String(req.params.id ?? '').trim();
+    if (!id) {
+      throw new AppError('Missing fulfillment id', 400);
+    }
+
+    const { status, notes } = req.body as { status?: string; notes?: string };
+    const data: { status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'; notes?: string | null } = {};
+
+    if (status !== undefined) {
+      const allowed = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+      if (!allowed.includes(status)) {
+        throw new AppError('Invalid status', 400);
+      }
+      data.status = status as typeof data.status;
+    }
+    if (notes !== undefined) {
+      data.notes = notes === '' ? null : String(notes);
+    }
+
+    if (!Object.keys(data).length) {
+      throw new AppError('No fields to update', 400);
+    }
+
+    const updated = await prisma.adveroFulfillment.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        status: true,
+        notes: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({ fulfillment: updated });
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError('Failed to update fulfillment', 500);
   }
 };

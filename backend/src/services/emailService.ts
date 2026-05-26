@@ -13,7 +13,9 @@ import {
   renderAdveroSubscriptionActivatedEmail,
   renderAdveroAuditReportPreviewEmail,
   renderAdveroAuditReportFullEmail,
+  renderAdveroOpsFulfillmentEmail,
   type AuditReportEmailData,
+  type OpsFulfillmentEmailData,
 } from '../emails/adveroEmails';
 import { enrichPreviewEmailWithRecommendation } from './auditRecommendation';
 
@@ -265,6 +267,20 @@ class EmailService {
       logger.info(`Subscription activated email sent to ${to}`);
     } catch (error) {
       logger.error('Failed to send subscription activated email:', error);
+    }
+  }
+
+  async sendOpsFulfillmentEmail(to: string | string[], data: OpsFulfillmentEmailData): Promise<void> {
+    const recipients = Array.isArray(to) ? to : [to];
+    if (!recipients.length) return;
+    try {
+      const { subject, html } = renderAdveroOpsFulfillmentEmail(data);
+      for (const email of recipients) {
+        await this.dispatch(email, subject, html);
+      }
+      logger.info(`Ops fulfillment email sent to ${recipients.join(', ')}`);
+    } catch (error) {
+      logger.error('Failed to send ops fulfillment email:', error);
     }
   }
 }

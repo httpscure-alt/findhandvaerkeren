@@ -17,11 +17,34 @@
   overflow: visible;
 }
 
+/* Admin header: compact wordmark — global advero-ds uses scale(2.28) which overlaps the Internal badge */
+.advero-admin-header .advero-admin-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
 .advero-admin-header .advero-site-header-brand {
-  margin-inline-end: 0.75rem;
+  margin-inline-end: 0;
+  flex-shrink: 0;
+  max-width: 7.5rem;
+  overflow: hidden;
+}
+
+.advero-admin-header .advero-site-header-brand .advero-logo-wordmark-light {
+  height: 1.75rem !important;
+  width: auto !important;
+  max-width: 7.5rem !important;
+  transform: none !important;
+  object-fit: contain !important;
+  object-position: left center !important;
 }
 
 .advero-admin-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.65rem;
   letter-spacing: 0.14em;

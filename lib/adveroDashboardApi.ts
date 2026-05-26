@@ -15,6 +15,14 @@ export interface AdveroDashboardApiPayload {
   googleAds: GoogleAdsSnapshot;
   activity: { type: string; titleDa: string; titleEn: string; createdAt: string }[];
   subscription: { tierId: string; serviceLine: string; status: string } | null;
+  manualFulfillment: {
+    status: string;
+    serviceLine: string;
+    titleDa: string;
+    titleEn: string;
+    bodyDa: string;
+    bodyEn: string;
+  } | null;
 }
 
 export interface AdveroIntegrationsPayload {

@@ -392,7 +392,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const priceId = subscription.items.data[0]?.price?.id || '';
 
   // Check if this is a marketing service
-  const isMarketingService = metadata.serviceType === 'ads' || metadata.serviceType === 'seo';
+  const isMarketingService =
+    metadata.serviceType === 'ads' ||
+    metadata.serviceType === 'seo' ||
+    metadata.serviceType === 'growth' ||
+    metadata.serviceType === 'growth_bundle' ||
+    metadata.planTier === 'growth_bundle';
 
   if (isMarketingService) {
     // Handle marketing subscription

@@ -40,6 +40,14 @@ const AdveroAdminOverviewPage: React.FC = () => {
         { label: isDa ? 'Med login' : 'With login', value: data.workspacesWithUser },
         { label: isDa ? 'Synlighedsaudits' : 'Visibility audits', value: data.audits },
         { label: isDa ? 'Aktive abonnementer' : 'Active subscriptions', value: data.activeSubscriptions },
+        {
+          label: isDa ? 'Fulfillment afventer' : 'Fulfillment pending',
+          value: data.pendingFulfillment ?? 0,
+        },
+        {
+          label: isDa ? 'Fulfillment i gang' : 'Fulfillment in progress',
+          value: data.fulfillmentsInProgress ?? 0,
+        },
         { label: isDa ? 'Brugere i alt' : 'Total users', value: data.totalUsers },
         { label: isDa ? 'Audits i kø' : 'Audits queued', value: data.auditsPending + data.auditsProcessing },
         { label: isDa ? 'Audits fejlet' : 'Audits failed', value: data.auditsFailed },
@@ -60,6 +68,17 @@ const AdveroAdminOverviewPage: React.FC = () => {
 
       {loading ? <p className="text-white/60">{isDa ? 'Henter…' : 'Loading…'}</p> : null}
       {error ? <p className="text-red-300">{error}</p> : null}
+
+      {data && (data.pendingFulfillment ?? 0) > 0 ? (
+        <div className="mb-6 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          {isDa
+            ? `${data.pendingFulfillment} ny(e) ordre afventer opsætning.`
+            : `${data.pendingFulfillment} new order(s) awaiting setup.`}{' '}
+          <Link to="/advero/admin/fulfillment" className="font-semibold text-white underline">
+            {isDa ? 'Åbn nye ordrer →' : 'Open new orders →'}
+          </Link>
+        </div>
+      ) : null}
 
       {data ? (
         <>
