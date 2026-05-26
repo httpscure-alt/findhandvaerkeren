@@ -499,6 +499,125 @@
   height: 0.9rem;
 }
 
+.advero-getstarted-rec {
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  border: 1px solid #bae6fd;
+  background: linear-gradient(165deg, #f0f9ff 0%, #fff 55%);
+  padding: 1rem 1.1rem;
+}
+
+.advero-getstarted-rec--compact {
+  padding: 0.85rem 1rem;
+}
+
+.advero-getstarted-rec-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.advero-getstarted-rec-kicker {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0369a1;
+}
+
+.advero-getstarted-rec-company {
+  margin-top: 0.15rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.advero-getstarted-rec-score {
+  text-align: right;
+  line-height: 1;
+}
+
+.advero-getstarted-rec-score-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.advero-getstarted-rec-score-max {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.advero-getstarted-rec-headline {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.advero-getstarted-rec-reason {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.advero-getstarted-rec-top {
+  margin-top: 0.65rem;
+  font-size: 0.8125rem;
+  color: #334155;
+}
+
+.advero-getstarted-rec-channels {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.advero-getstarted-rec-channel {
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 0.4rem 0.35rem;
+  text-align: center;
+}
+
+.advero-getstarted-rec-channel-label {
+  display: block;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.advero-getstarted-rec-channel-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.advero-getstarted-rec-foot {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.advero-pick-tile-badge-rec {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  border-radius: 999px;
+  background: #0ea5e9;
+  color: #fff;
+  padding: 0.15rem 0.45rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .advero-setup-floating-pill {
   position: fixed;
   bottom: 1.25rem;

@@ -1370,8 +1370,9 @@ class ApiService {
     serviceType?: string;
     checkoutContext?: 'advero';
     returnQuery?: string;
+    auditId?: string;
   }) {
-    const { billingCycle = 'monthly', tier, serviceType, checkoutContext, returnQuery } = data;
+    const { billingCycle = 'monthly', tier, serviceType, checkoutContext, returnQuery, auditId } = data;
     if (IS_DEV) console.log('Creating Stripe checkout session...', data);
 
     if (!API_BASE_URL) {
@@ -1387,6 +1388,7 @@ class ApiService {
           serviceType,
           checkoutContext,
           returnQuery,
+          auditId: auditId?.trim() || undefined,
         },
       });
 

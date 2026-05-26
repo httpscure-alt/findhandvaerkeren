@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   Check,
@@ -24,7 +24,15 @@ import {
   getStartedPathWithQuery,
   markTierPaid,
 } from '../../../lib/adveroJourney';
-import { loadAuditFromSession } from '../../../lib/mockAnalyzeVisibility';
+import type { VisibilityAuditResult } from '../../../lib/mockAnalyzeVisibility';
+import type { PlanRecommendation } from '../../../lib/recommendPlan';
+import {
+  fetchAuditForGetStarted,
+  recommendationForAudit,
+  resolveGetStartedAuditId,
+  wizardPatchFromAudit,
+} from '../../../lib/getStartedAudit';
+import GetStartedRecommendationPanel from './GetStartedRecommendationPanel';
 import {
   MARKETING_PRICING,
   MARKETING_TIER_LEVEL_NAMES,
@@ -46,6 +54,7 @@ interface WizardPersist {
   growthGoal: GrowthGoal;
   industry: IndustryCategory;
   fromReport: boolean;
+  auditId?: string;
 }
 
 const defaultPersist: WizardPersist = {
@@ -210,6 +219,12 @@ const AdveroClientGetStartedPage: React.FC = () => {
       futureStep: isDa ? 'Fuldfør de forrige trin først.' : 'Complete the previous steps first.',
       minimize: isDa ? 'Minimer' : 'Minimize',
       fromReport: isDa ? 'Forslag fra jeres preview-rapport er forudvalgt.' : 'Suggestions from your preview report are pre-selected.',
+      recFromAudit: isDa ? 'Anbefalet fra audit' : 'Recommended from audit',
+      noAuditYet: isDa
+        ? 'Kør en gratis synlighedsanalyse først for en personlig plan og forklaring.'
+        : 'Run a free visibility audit first for a personalized plan and explanation.',
+      runAudit: isDa ? 'Start gratis audit' : 'Start free audit',
+      whyBuying: isDa ? 'Hvorfor denne plan?' : 'Why this plan?',
       growthGoalLabel: isDa ? 'Primært mål' : 'Primary goal',
       goalLeads: isDa ? 'Flere henvendelser nu' : 'More leads now',
       goalLong: isDa ? 'Langsigtet synlighed' : 'Long-term visibility',
@@ -226,6 +241,9 @@ const AdveroClientGetStartedPage: React.FC = () => {
   );
 
   const [persist, setPersist] = useState<WizardPersist>(() => loadPersist());
+  const [auditContext, setAuditContext] = useState<VisibilityAuditResult | null>(null);
+  const [auditRec, setAuditRec] = useState<PlanRecommendation | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [paidTiers, setPaidTiers] = useState<Set<string>>(() => getPaidTiers());
   const journeyQuery = useMemo(() => buildGetStartedQueryString(searchParams), [searchParams]);
@@ -249,6 +267,81 @@ const AdveroClientGetStartedPage: React.FC = () => {
       return false;
     }
   });
+
+  const isTierRecommended = useCallback(
+    (tierId: string) =>
+      Boolean(
+        auditRec &&
+          (tierId === auditRec.primaryTierId || tierId === auditRec.secondaryTierId)
+      ),
+    [auditRec]
+  );
+
+  const urlAuditId = searchParams.get('auditId');
+  const resolvedAuditId = useMemo(
+    () => resolveGetStartedAuditId(urlAuditId),
+    [urlAuditId]
+  );
+  const appliedAuditIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!resolvedAuditId) {
+      setAuditContext(null);
+      setAuditRec(null);
+      appliedAuditIdRef.current = null;
+      return;
+    }
+
+    setAuditLoading(true);
+    (async () => {
+      const audit = await fetchAuditForGetStarted(resolvedAuditId, (aid) =>
+        api.getVisibilityAudit(aid)
+      );
+      if (cancelled) return;
+      if (!audit) {
+        setAuditContext(null);
+        setAuditRec(null);
+        setAuditLoading(false);
+        return;
+      }
+      const rec = recommendationForAudit(audit);
+      setAuditContext(audit);
+      setAuditRec(rec);
+
+      if (appliedAuditIdRef.current !== audit.id) {
+        appliedAuditIdRef.current = audit.id;
+        setPersist((p) => {
+          const patch = wizardPatchFromAudit(audit, rec);
+          const next: WizardPersist = {
+            ...p,
+            ...patch,
+            billingName: patch.billingName || p.billingName,
+          };
+          savePersist(next);
+          return next;
+        });
+      }
+
+      setAuditLoading(false);
+
+      if (!urlAuditId) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set('auditId', audit.id);
+            next.set('from', 'report');
+            return next;
+          },
+          { replace: true }
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedAuditId, urlAuditId, setSearchParams]);
 
   useEffect(() => {
     const stepParam = searchParams.get('step');
@@ -296,10 +389,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
           next.step = 1;
         }
         if (auditId) {
-          const audit = loadAuditFromSession(auditId);
-          if (audit?.companyName && !next.billingName) {
-            next.billingName = audit.companyName;
-          }
+          next.auditId = auditId;
         }
         savePersist(next);
         return next;
@@ -380,12 +470,15 @@ const AdveroClientGetStartedPage: React.FC = () => {
           source: 'advero_get_started',
         },
       });
+      const checkoutAuditId =
+        persist.auditId || resolveGetStartedAuditId(searchParams.get('auditId')) || undefined;
       const { url } = await api.createCheckoutSession({
         serviceType: isGrowthBundle ? 'growth' : serviceType,
         tier: tierId as MarketingTierId,
         billingCycle: 'monthly',
         checkoutContext: 'advero',
         returnQuery: journeyQuery,
+        auditId: checkoutAuditId,
       });
       if (url) window.location.href = url;
       else toast.error(isDa ? 'Ingen betalings-URL.' : 'No checkout URL.');
@@ -587,9 +680,27 @@ const AdveroClientGetStartedPage: React.FC = () => {
 
             <div className="advero-setup-body">
               <div className="advero-setup-body-inner">
-                {persist.fromReport ? (
-                  <p className="mb-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-                    {t.fromReport}
+                {auditLoading ? (
+                  <p className="mb-4 text-sm text-slate-500">
+                    {isDa ? 'Henter jeres audit-anbefaling…' : 'Loading your audit recommendation…'}
+                  </p>
+                ) : null}
+
+                {auditContext && auditRec && persist.step <= 4 ? (
+                  <GetStartedRecommendationPanel
+                    audit={auditContext}
+                    recommendation={auditRec}
+                    isDa={isDa}
+                    compact={persist.step === 4}
+                  />
+                ) : null}
+
+                {!auditContext && !auditLoading && persist.step <= 2 ? (
+                  <p className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    {t.noAuditYet}{' '}
+                    <Link to="/advero/audit" className="font-semibold text-sky-700 underline">
+                      {t.runAudit}
+                    </Link>
                   </p>
                 ) : null}
 
@@ -683,7 +794,9 @@ const AdveroClientGetStartedPage: React.FC = () => {
                                 persist.adsTier === row.id ? 'advero-pick-tile--on' : ''
                               }`}
                             >
-                              {row.popular ? (
+                              {isTierRecommended(row.id) ? (
+                                <span className="advero-pick-tile-badge-rec">{t.recFromAudit}</span>
+                              ) : row.popular ? (
                                 <span className="mono-label mb-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[9px] text-slate-600">
                                   {t.popular}
                                 </span>
@@ -711,7 +824,9 @@ const AdveroClientGetStartedPage: React.FC = () => {
                                 persist.seoTier === row.id ? 'advero-pick-tile--on' : ''
                               }`}
                             >
-                              {row.popular ? (
+                              {isTierRecommended(row.id) ? (
+                                <span className="advero-pick-tile-badge-rec">{t.recFromAudit}</span>
+                              ) : row.popular ? (
                                 <span className="mono-label mb-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[9px] text-slate-600">
                                   {t.popular}
                                 </span>
@@ -731,6 +846,13 @@ const AdveroClientGetStartedPage: React.FC = () => {
 
                 {persist.step === 3 && (
                   <div>
+                    {auditRec ? (
+                      <p className="mb-4 text-sm leading-relaxed text-slate-700">
+                        {isDa
+                          ? 'Opret konto for at betale for den anbefalede plan fra jeres audit.'
+                          : 'Create an account to pay for the plan recommended from your audit.'}
+                      </p>
+                    ) : null}
                     <p className="text-sm leading-relaxed text-slate-600">{t.accountBlurb}</p>
                     <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                       <Link

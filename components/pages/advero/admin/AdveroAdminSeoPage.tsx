@@ -4,8 +4,8 @@ import { useMarketplace } from '../../../../contexts/MarketplaceContext';
 import { api } from '../../../../services/api';
 import type { BlogPost } from '../../../../lib/blogTypes';
 
-const API_BASE = ((import.meta as any).env.VITE_API_URL || '').replace(/\/$/, '');
 const SITE = 'https://advero.dk';
+const BLOG_SITEMAP_URL = `${SITE}/blog/sitemap.xml`;
 
 const AdveroAdminSeoPage: React.FC = () => {
   const { lang } = useMarketplace();
@@ -17,10 +17,6 @@ const AdveroAdminSeoPage: React.FC = () => {
       setPublished(posts as BlogPost[]);
     }).catch(() => setPublished([]));
   }, []);
-
-  const blogSitemapUrl = API_BASE
-    ? `${API_BASE}/blog/sitemap.xml`
-    : `${SITE}/api/blog/sitemap.xml`;
 
   return (
     <div>
@@ -42,16 +38,16 @@ const AdveroAdminSeoPage: React.FC = () => {
               — {isDa ? 'statiske sider' : 'static pages'}
             </li>
             <li>
-              <a href={blogSitemapUrl} className="underline" target="_blank" rel="noreferrer">
-                {blogSitemapUrl}
+              <a href={BLOG_SITEMAP_URL} className="underline" target="_blank" rel="noreferrer">
+                {BLOG_SITEMAP_URL}
               </a>{' '}
               — {isDa ? 'blogartikler (dynamisk)' : 'blog posts (dynamic)'}
             </li>
           </ul>
           <p className="mt-3 text-white/55">
             {isDa
-              ? 'Tilføj blog-sitemap i Google Search Console som separat feed, eller sammenflet i en sitemap-index.'
-              : 'Submit the blog sitemap in Google Search Console as a separate feed, or merge via a sitemap index.'}
+              ? 'Brug advero.dk-URL’en i Search Console — ikke Render/API-domænet. Indholdet peger allerede på advero.dk/blog/…'
+              : 'Use the advero.dk URL in Search Console — not the Render/API hostname. Entries already point to advero.dk/blog/…'}
           </p>
         </section>
 

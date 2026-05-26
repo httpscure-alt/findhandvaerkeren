@@ -114,6 +114,10 @@
       "destination": "/site/contact.html"
     },
     {
+      "source": "/blog/sitemap.xml",
+      "destination": "https://findhandvaerkeren.onrender.com/api/blog/sitemap.xml"
+    },
+    {
       "source": "/blog/:path*",
       "destination": "/app.html"
     },
