@@ -19,6 +19,8 @@ import gdprRoutes from './routes/gdprRoutes';
 import recentSearchRoutes from './routes/recentSearchRoutes';
 import jobRoutes from './routes/jobRoutes';
 import growthRoutes from './routes/growthRoutes';
+import adveroRoutes from './routes/adveroRoutes';
+import { startAdveroAuditWorker, stopAdveroAuditWorker } from './workers/adveroAuditWorker';
 import notificationRoutes from './routes/notificationRoutes';
 import blogRoutes from './routes/blogRoutes';
 import { errorHandler } from './middleware/errorHandler';
@@ -83,7 +85,7 @@ app.get('/health', (req, res) => {
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
-  : ['http://localhost:3000', 'http://localhost:5173'];
+  : ['http://localhost:5174', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:3000'];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -188,6 +190,7 @@ app.use('/api/gdpr', gdprRoutes);
 app.use('/api/recent-searches', recentSearchRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/growth', growthRoutes);
+app.use('/api/advero', adveroRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/blog', blogRoutes);
 
@@ -225,6 +228,7 @@ process.on('uncaughtException', (error: Error) => {
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   logger.info(`${signal} received. Starting graceful shutdown...`);
+  stopAdveroAuditWorker();
   await prisma.$disconnect();
   process.exit(0);
 };
@@ -235,4 +239,5 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 app.listen(Number(PORT), '0.0.0.0', () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  startAdveroAuditWorker();
 });

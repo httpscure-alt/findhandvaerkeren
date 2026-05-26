@@ -3,7 +3,7 @@ import { prisma } from '../prisma/client';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
 import { AppError } from '../middleware/errorHandler';
-import { emailService } from '../services/emailService';
+import { emailService, EmailBrand, EmailSendOptions } from '../services/emailService';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import crypto from 'crypto';
 
@@ -12,6 +12,19 @@ import crypto from 'crypto';
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
+
+function parseBrand(raw: unknown): EmailBrand | undefined {
+  if (raw === 'advero') return 'advero';
+  return undefined;
+}
+
+function emailOptsFromRequest(req: Request, name?: string | null): EmailSendOptions {
+  return { brand: parseBrand(req.body?.brand) ?? 'advero', name };
+}
+
+function frontendBaseUrl(): string {
+  return (process.env.ADVERO_SITE_URL || process.env.FRONTEND_URL || 'http://localhost:5174').replace(/\/$/, '');
+}
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -64,8 +77,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    // Send OTP email
-    await emailService.sendOtpEmail(email, otpCode);
+    await emailService.sendOtpEmail(email, otpCode, emailOptsFromRequest(req, displayName));
 
     res.status(201).json({
       message: 'Registration successful. Please verify your email.',
@@ -129,8 +141,14 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
       }
     });
 
-    // Generate token now that verified
     const token = generateToken(user.id, user.role);
+    const opts = emailOptsFromRequest(req, user.name);
+
+    try {
+      await emailService.sendWelcomeEmail(email, opts);
+    } catch (welcomeErr) {
+      console.error('Welcome email failed:', welcomeErr);
+    }
 
     res.status(200).json({
       message: 'Email verified successfully',
@@ -172,8 +190,7 @@ export const resendOtp = async (req: Request, res: Response): Promise<void> => {
       data: { otpCode, otpExpiresAt }
     });
 
-    // Use EmailService
-    await emailService.sendOtpEmail(email, otpCode);
+    await emailService.sendOtpEmail(email, otpCode, emailOptsFromRequest(req, user.name));
 
     res.status(200).json({ message: 'OTP resent successfully' });
   } catch (error) {
@@ -449,10 +466,10 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       },
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const resetUrl = `${frontendUrl}/auth/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
+    const brand = parseBrand(req.body?.brand);
+    const resetUrl = `${frontendBaseUrl()}/auth/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
 
-    await emailService.sendPasswordResetEmail(email, resetUrl);
+    await emailService.sendPasswordResetEmail(email, resetUrl, emailOptsFromRequest(req, user.name));
 
     res.json({ success: true });
   } catch (error: any) {
@@ -501,6 +518,12 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
         passwordResetExpiresAt: null,
       },
     });
+
+    try {
+      await emailService.sendPasswordResetSuccessEmail(email, emailOptsFromRequest(req, user.name));
+    } catch (mailErr) {
+      console.error('Password reset success email failed:', mailErr);
+    }
 
     res.json({ success: true });
   } catch (error: any) {

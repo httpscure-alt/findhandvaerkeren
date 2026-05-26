@@ -31,15 +31,18 @@ const PRICE_MAP: Record<string, PlanDetails> = {
  * Mapping of Stripe Price IDs to marketing service tiers
  */
 const MARKETING_PRICE_MAP: Record<string, MarketingPlanDetails> = {
-    // Google Ads tiers
+    // Google Ads — Starter / Growth / Pro
     [process.env.STRIPE_PRICE_ADS_BASIC || '']: { serviceType: 'ads', tier: 'basic' },
     [process.env.STRIPE_PRICE_ADS_STANDARD || '']: { serviceType: 'ads', tier: 'standard' },
     [process.env.STRIPE_PRICE_ADS_PRO || '']: { serviceType: 'ads', tier: 'pro' },
-    // SEO tiers
+    // SEO — Starter / Growth / Pro
     [process.env.STRIPE_PRICE_SEO_BASIC || '']: { serviceType: 'seo', tier: 'basic' },
     [process.env.STRIPE_PRICE_SEO_STANDARD || '']: { serviceType: 'seo', tier: 'standard' },
     [process.env.STRIPE_PRICE_SEO_PRO || '']: { serviceType: 'seo', tier: 'pro' },
 };
+
+/** Growth+ bundle (SEO Growth + Ads Growth + AI visibility) */
+const GROWTH_BUNDLE_PRICE_ID = process.env.STRIPE_PRICE_GROWTH_BUNDLE || '';
 
 /**
  * Get tier and billing cycle details from a Stripe Price ID
@@ -91,8 +94,16 @@ export function getMarketingPlanDetails(priceId: string): MarketingPlanDetails |
 /**
  * Check if a price ID is for a marketing service
  */
+export function isGrowthBundlePriceId(priceId: string): boolean {
+    return Boolean(GROWTH_BUNDLE_PRICE_ID) && priceId === GROWTH_BUNDLE_PRICE_ID;
+}
+
 export function isMarketingPriceId(priceId: string): boolean {
-    return getMarketingPlanDetails(priceId) !== null;
+    return getMarketingPlanDetails(priceId) !== null || isGrowthBundlePriceId(priceId);
+}
+
+export function getGrowthBundlePriceId(): string | null {
+    return GROWTH_BUNDLE_PRICE_ID || null;
 }
 
 /**

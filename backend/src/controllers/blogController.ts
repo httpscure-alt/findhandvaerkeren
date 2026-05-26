@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { logger } from '../config/logger';
 
 const prisma = new PrismaClient();
+const SITE_URL = (process.env.ADVERO_SITE_URL || process.env.FRONTEND_URL || 'https://advero.dk').replace(/\/$/, '');
+const DEFAULT_AUTHOR = 'Advero';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -126,7 +128,7 @@ export const createPost = async (req: Request, res: Response) => {
                 coverImageUrl, category: category || 'general',
                 tags: tags || [], status: status || 'draft',
                 lang: lang || 'da',
-                authorName: authorName || 'Findhåndværkeren',
+                authorName: authorName || DEFAULT_AUTHOR,
                 publishedAt: status === 'published' ? new Date() : null,
             },
         });
@@ -194,5 +196,45 @@ export const deletePost = async (req: Request, res: Response) => {
     } catch (error) {
         logger.error('Error deleting blog post:', error);
         res.status(500).json({ error: 'Failed to delete post' });
+    }
+};
+
+// GET /api/blog/sitemap.xml — published post URLs for crawlers
+export const getBlogSitemap = async (_req: Request, res: Response) => {
+    try {
+        const posts = await prisma.blogPost.findMany({
+            where: { status: 'published' },
+            orderBy: { publishedAt: 'desc' },
+            select: { slug: true, updatedAt: true, publishedAt: true },
+        });
+
+        const urls = [
+            `  <url>
+    <loc>${SITE_URL}/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>`,
+            ...posts.map((p) => {
+                const lastmod = (p.publishedAt || p.updatedAt).toISOString().slice(0, 10);
+                return `  <url>
+    <loc>${SITE_URL}/blog/${encodeURIComponent(p.slug)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>`;
+            }),
+        ];
+
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join('\n')}
+</urlset>`;
+
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.send(xml);
+    } catch (error) {
+        logger.error('Error generating blog sitemap:', error);
+        res.status(500).send('<?xml version="1.0"?><error/>');
     }
 };

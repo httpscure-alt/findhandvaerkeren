@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Nordic Search — SEO & Google Ads Copenhagen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      /* Hard stacking fixes (Safari/WebKit + GSAP transforms). */
+      .hero-floats { z-index: -1 !important; }
+      .hero-copy { position: relative !important; z-index: 10 !important; isolation: isolate; }
+      .js-float-1, .js-float-2, .js-float-3 { z-index: 0 !important; }
+    </style>
+</head>
+<body class="bg-white text-zinc-900 antialiased selection:bg-zinc-900 selection:text-white" style="font-family: 'Inter', sans-serif;">
+
+    <!-- Structural frame: keep below all page content (was z-50 and painted over text / cards in some browsers). -->
+    <div class="fixed inset-0 pointer-events-none z-0 flex justify-center">
+        <div class="w-full max-w-[1600px] h-full border-x border-zinc-200/60 relative">
+            <!-- Top Left -->
+            <div class="absolute top-8 -left-[2.5px] w-[4px] h-[4px] bg-zinc-300 border border-zinc-400"></div>
+            <!-- Top Right -->
+            <div class="absolute top-8 -right-[2.5px] w-[4px] h-[4px] bg-zinc-300 border border-zinc-400"></div>
+            <!-- Bottom Left -->
+            <div class="absolute bottom-8 -left-[2.5px] w-[4px] h-[4px] bg-zinc-300 border border-zinc-400"></div>
+            <!-- Bottom Right -->
+            <div class="absolute bottom-8 -right-[2.5px] w-[4px] h-[4px] bg-zinc-300 border border-zinc-400"></div>
+        </div>
+    </div>
+
+    <div class="min-h-screen flex flex-col md:flex-row relative z-10 max-w-[1600px] mx-auto bg-white">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="w-full md:w-[260px] shrink-0 border-b md:border-b-0 md:border-r border-zinc-200/60 flex flex-col justify-between md:sticky md:top-0 md:h-screen bg-white/80 backdrop-blur-xl z-20">
+            <div class="p-8 lg:p-10 border-b border-zinc-200/60">
+                <a href="#" class="text-lg tracking-tight font-medium flex items-center gap-2">
+                    NORDIC SEARCH
+                </a>
+            </div>
+
+            <nav class="flex-1 p-8 lg:p-10 space-y-12 overflow-y-auto">
+                <div>
+                    <div class="text-[12px] leading-4 uppercase tracking-[1.2px] text-slate-400 font-medium mb-4">Services</div>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm font-medium text-zinc-900 flex items-center justify-between group">Google SEO <iconify-icon icon="solar:arrow-right-linear" class="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-zinc-400"></iconify-icon></a></li>
+                        <li><a href="#" class="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors flex items-center justify-between group">Google Ads <iconify-icon icon="solar:arrow-right-linear" class="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-zinc-400"></iconify-icon></a></li>
+                        <li><a href="#" class="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors flex items-center justify-between group">Data Analytics <iconify-icon icon="solar:arrow-right-linear" class="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-zinc-400"></iconify-icon></a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div class="text-[12px] leading-4 uppercase tracking-[1.2px] text-slate-400 font-medium mb-4">Agency</div>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">Cases in DK</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">Methodology</a></li>
+                        <li><a href="/brand-v2/preview-nordic-pricing.html" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors">Pricing Structure</a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="p-8 lg:p-10 border-t border-zinc-200/60 flex flex-col gap-3">
+                <a href="tel:+4532104050" class="text-sm text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-2">
+                    <iconify-icon icon="solar:phone-linear" width="16"></iconify-icon> +45 32 10 40 50
+                </a>
+                <span class="text-sm text-zinc-500 flex items-center gap-2">
+                    <iconify-icon icon="solar:map-point-linear" width="16"></iconify-icon> Copenhagen, DK
+                </span>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 relative z-10 w-full min-w-0 overflow-x-hidden">
+            
+            <!-- Hero Section -->
+            <section class="relative min-h-screen flex items-center p-8 lg:p-16 xl:p-24 border-b border-zinc-200/60 overflow-x-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-50 via-white to-white">
+                <!-- 1) Decor first in DOM: GSAP transform layers stay underneath when copy is painted after. -->
+                <div class="hero-floats hidden md:block absolute left-[28%] top-0 w-[72%] h-full pointer-events-none z-0" aria-hidden="true">
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <!-- Big back card (sits behind the hero copy like your reference) -->
+                        <div class="absolute left-[10%] top-[14%] w-[520px] h-[620px] rounded-2xl overflow-hidden shadow-2xl p-px bg-white js-float-1 opacity-90" style="background: linear-gradient(135deg, rgba(0,0,0,0.10), transparent, rgba(0,0,0,0.05));">
+                            <div class="w-full h-full bg-zinc-100 rounded-[15px] overflow-hidden">
+                                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/7f78131e-65e9-49b2-aa1f-ccc33e28df9f_1600w.webp" alt="" class="w-full h-full object-cover opacity-85 saturate-50" decoding="async">
+                            </div>
+                        </div>
+
+                        <!-- Front gradient / data card -->
+                        <div class="absolute right-[12%] top-[46%] w-[340px] h-[440px] rounded-2xl overflow-hidden shadow-2xl p-px bg-white js-float-2">
+                            <div class="w-full h-full bg-zinc-100 rounded-[15px] overflow-hidden">
+                                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/e534354d-c5f2-4399-a1d9-2f50338e8c47_1600w.jpg" alt="" class="w-full h-full object-cover" decoding="async">
+                            </div>
+                        </div>
+
+                        <!-- Portrait detail -->
+                        <div class="absolute right-[36%] top-[18%] w-[180px] h-[220px] rounded-2xl overflow-hidden shadow-xl p-px bg-white js-float-3">
+                            <div class="w-full h-full bg-zinc-100 rounded-[15px] overflow-hidden">
+                                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/2f563338-39fa-47ea-9761-658d4f3f84db_1600w.jpg" alt="" class="w-full h-full object-cover grayscale" decoding="async">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 2) Copy after decor: default paint order keeps headline above floats; slab covers overlap on xl. -->
+                <div class="hero-copy relative w-full max-w-3xl py-2 md:py-0 md:max-w-[min(100%,36rem)] xl:pr-10" style="position: relative; z-index: 2; isolation: isolate">
+                    <!-- Keep copy readable while still showing the cards behind it -->
+                    <div class="hidden md:block pointer-events-none absolute -left-6 -right-10 top-0 bottom-0 rounded-2xl"
+                         style="background: linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.82) 52%, rgba(255,255,255,0.0) 100%)"
+                         aria-hidden="true"></div>
+                    <div class="relative z-[1]">
+                    <!-- removed: ENGINEERED FOR THE DANISH MARKET -->
+
+                    <h1 class="text-5xl md:text-6xl lg:text-[80px] lg:leading-[80px] lg:tracking-[-0.05em] tracking-tight font-medium leading-[1.05] text-zinc-900 mb-8 flex flex-col gap-1">
+                        <div style="overflow: hidden; padding-bottom: 0.1em;"><span class="js-word-reveal block" style="transform: translateY(110%);">Dominate the</span></div>
+                        <div style="overflow: hidden; padding-bottom: 0.1em;"><span class="js-word-reveal block text-zinc-800" style="transform: translateY(110%);">Search Ecosystem</span></div>
+                        <div style="overflow: hidden; padding-bottom: 0.1em;"><span class="js-word-reveal block" style="transform: translateY(110%);">in Denmark.</span></div>
+                    </h1>
+
+                    <p class="text-[16px] leading-[24px] text-slate-500 max-w-xl mb-12 font-normal js-fade-in opacity-0" style="transform: translateY(20px);">
+                        We construct data-driven Google SEO and Ads architectures that capture highly qualified traffic and convert Danish search intent into measurable revenue.
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-4 js-fade-in opacity-0" style="transform: translateY(20px);">
+                        <a href="/brand-v2/preview-nordic-pricing.html" class="bg-zinc-900 text-white px-6 py-3 rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-zinc-800 transition-colors shadow-sm">
+                            Request Audit <iconify-icon icon="solar:arrow-right-linear" width="16"></iconify-icon>
+                        </a>
+                        <button type="button" class="px-6 py-3 rounded-full text-sm font-medium text-zinc-900 flex items-center gap-2 hover:bg-zinc-50 transition-colors" style="background: linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(135deg, rgba(0,0,0,0.1), rgba(0,0,0,0.02), rgba(0,0,0,0.15)) border-box; border: 1px solid transparent;">
+                            View Case Studies
+                        </button>
+                    </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Capabilities Grid Section -->
+            <section class="relative" style="background-color:#F7F7F8">
+                <div class="flex items-center justify-between p-8 lg:p-12 border-b border-zinc-200/60">
+                    <h2 class="text-xs font-medium text-zinc-500 uppercase tracking-widest">Core Capabilities</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-200/60">
+                    
+                    <div class="p-8 lg:p-12 group hover:bg-white transition-colors cursor-pointer relative overflow-hidden flex flex-col h-full" style="background: linear-gradient(to bottom, transparent, transparent) padding-box, linear-gradient(to bottom, transparent, rgba(0,0,0,0.02)) border-box;">
+                        <div class="mb-12">
+                            <iconify-icon icon="solar:magnifer-linear" width="24" class="text-zinc-400 group-hover:text-zinc-900 transition-colors"></iconify-icon>
+                        </div>
+                        <div class="mt-auto">
+                            <h3 class="text-2xl tracking-tight font-medium mb-3 text-zinc-900">Organic SEO</h3>
+                            <p class="text-sm text-zinc-500 leading-relaxed mb-6">Technical foundation and semantic content mapping to secure top rankings on google.dk.</p>
+                            <a href="/brand-v2/nordic/methodology" class="flex items-center gap-2 text-xs font-medium text-zinc-400 group-hover:text-blue-600 transition-colors">
+                                Explore Methodology <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                            </a>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 to-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                    </div>
+
+                    <div class="p-8 lg:p-12 group hover:bg-white transition-colors cursor-pointer relative overflow-hidden flex flex-col h-full">
+                        <div class="mb-12">
+                            <iconify-icon icon="solar:mouse-circle-linear" width="24" class="text-zinc-400 group-hover:text-zinc-900 transition-colors"></iconify-icon>
+                        </div>
+                        <div class="mt-auto">
+                            <h3 class="text-2xl tracking-tight font-medium mb-3 text-zinc-900">Google Ads</h3>
+                            <p class="text-sm text-zinc-500 leading-relaxed mb-6">Precision bidding and conversion-focused campaign architecture for immediate market penetration.</p>
+                            <a href="/brand-v2/nordic/cases" class="flex items-center gap-2 text-xs font-medium text-zinc-400 group-hover:text-blue-600 transition-colors">
+                                View ROAS Cases <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                            </a>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 to-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                    </div>
+
+                    <div class="p-8 lg:p-12 group hover:bg-white transition-colors cursor-pointer relative overflow-hidden flex flex-col h-full">
+                        <div class="mb-12">
+                            <iconify-icon icon="solar:chart-square-linear" width="24" class="text-zinc-400 group-hover:text-zinc-900 transition-colors"></iconify-icon>
+                        </div>
+                        <div class="mt-auto">
+                            <h3 class="text-2xl tracking-tight font-medium mb-3 text-zinc-900">Conversion Logic</h3>
+                            <p class="text-sm text-zinc-500 leading-relaxed mb-6">Data-driven CRO and analytics to ensure traffic seamlessly transitions into Danish client acquisitions.</p>
+                            <a href="/brand-v2/nordic/analytics" class="flex items-center gap-2 text-xs font-medium text-zinc-400 group-hover:text-blue-600 transition-colors">
+                                Analytics Stack <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                            </a>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 to-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Pricing moved to `preview-nordic-pricing.html` -->
+
+            <!-- Feature Case Study Section -->
+            <section class="p-8 lg:p-12 border-t border-zinc-200/60 bg-white">
+                <div class="w-full relative rounded-3xl overflow-hidden p-[1px] js-parallax-container" style="background: linear-gradient(180deg, rgba(0,0,0,0.08), transparent, rgba(0,0,0,0.02));">
+                    <div class="bg-white rounded-[23px] overflow-hidden">
+                        
+                        <div class="relative w-full aspect-[16/9] lg:aspect-[24/10] overflow-hidden bg-zinc-100 isolate">
+                            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/fa51902b-c2a4-4c33-a96e-a8f1ef67edc6_1600w.jpg" alt="Performance Data" class="absolute inset-0 w-full h-full object-cover js-parallax-img scale-110 saturate-50 opacity-90 z-0">
+                            
+                            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                            
+                            <div class="absolute inset-0 z-[2] p-8 lg:p-12 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-medium">
+                                        E-commerce Case Study
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8 text-white max-w-2xl">
+                                    <h2 class="text-3xl lg:text-5xl tracking-tight font-medium mb-6 flex flex-col gap-1">
+                                        <div style="overflow: hidden; padding-bottom: 0.1em;"><span class="js-scroll-reveal block" style="transform: translateY(110%);">Scaling Danish B2B</span></div>
+                                        <div style="overflow: hidden; padding-bottom: 0.1em;"><span class="js-scroll-reveal block" style="transform: translateY(110%);">Revenue by 340%</span></div>
+                                    </h2>
+                                    <a href="#" class="inline-flex items-center gap-2 text-sm font-medium border-b border-white/30 pb-1 hover:border-white transition-colors">
+                                        Read Performance Report <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        const tl = gsap.timeline();
+        tl.to(".js-word-reveal", {
+            y: "0%",
+            ease: "power4.out",
+            duration: 1.2,
+            stagger: 0.15,
+            delay: 0.2
+        })
+        .to(".js-fade-in", {
+            opacity: 1,
+            y: 0,
+            ease: "power3.out",
+            duration: 1,
+            stagger: 0.1
+        }, "-=0.8");
+
+        document.querySelectorAll(".js-scroll-reveal").forEach(function (el) {
+            gsap.to(el, {
+                y: "0%",
+                ease: "power4.out",
+                duration: 1.2,
+                scrollTrigger: {
+                    trigger: el.closest("h2"),
+                    start: "top 90%",
+                }
+            });
+        });
+
+        gsap.to(".js-parallax-img", {
+            yPercent: 15,
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".js-parallax-container",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true
+            }
+        });
+
+        gsap.to(".js-float-1", {
+            y: -15,
+            rotation: 1,
+            ease: "sine.inOut",
+            duration: 4,
+            repeat: -1,
+            yoyo: true
+        });
+
+        gsap.to(".js-float-2", {
+            y: -20,
+            rotation: -2,
+            ease: "sine.inOut",
+            duration: 5,
+            repeat: -1,
+            yoyo: true,
+            delay: 0.5
+        });
+
+        gsap.to(".js-float-3", {
+            y: -10,
+            rotation: 3,
+            ease: "sine.inOut",
+            duration: 3.5,
+            repeat: -1,
+            yoyo: true,
+            delay: 1
+        });
+    </script>
+</body>
+</html>

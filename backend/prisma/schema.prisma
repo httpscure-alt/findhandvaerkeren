@@ -31,6 +31,7 @@ model User {
   savedListings  SavedListing[]
   notifications  Notification[]
   updatedGrowthCampaigns GrowthCampaign[] @relation("GrowthCampaignUpdatedBy")
+  adveroWorkspace        AdveroWorkspace?
 
   @@index([email])
   @@index([role])
@@ -624,7 +625,7 @@ model BlogPost {
   tags             String[]  @default([])
   status           String    @default("draft") // 'draft' | 'published'
   lang             String    @default("da")    // 'da' | 'en'
-  authorName       String    @default("Findhåndværkeren")
+  authorName       String    @default("Advero")
   publishedAt      DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -647,6 +648,116 @@ model SecurityLog {
 
   @@index([userId])
   @@index([eventType])
+  @@index([createdAt])
+}
+
+// —— Advero visibility OS (Postgres / Supabase) ——
+
+enum AdveroAuditStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+}
+
+model AdveroWorkspace {
+  id             String   @id @default(cuid())
+  userId         String?  @unique
+  companyName    String
+  contactEmail   String?
+  setupState     Json     @default("{}")
+  initializedAt  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  audits         AdveroAudit[]
+  subscriptions  AdveroSubscription[]
+  activityEvents AdveroActivityEvent[]
+
+  @@index([contactEmail])
+}
+
+model AdveroAudit {
+  id                   String            @id @default(cuid())
+  workspaceId          String?
+  userId               String?
+  status               AdveroAuditStatus @default(PENDING)
+  jobAttempts          Int               @default(0)
+  errorMessage         String?
+  companyName          String
+  websiteUrl           String?
+  serviceArea          String?
+  industry             String            @default("unknown")
+  growthGoal           String            @default("both")
+  contactEmail         String?
+  engine               String?
+  scoreSearch          Int?
+  scoreLocal           Int?
+  scoreAi              Int?
+  scoreWeb             Int?
+  overallScore         Int?
+  delta                String?
+  topRecommendation    String?
+  recommendationJson   Json?
+  interpretationJson   Json?
+  processedAt          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  workspace            AdveroWorkspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  findings             AdveroAuditFinding[]
+
+  @@index([status])
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([contactEmail])
+  @@index([createdAt])
+}
+
+model AdveroAuditFinding {
+  id        String      @id @default(cuid())
+  auditId   String
+  checkId   String
+  labelDa   String
+  labelEn   String
+  statusDa  String
+  statusEn  String
+  ok        Boolean
+  sortOrder Int         @default(0)
+  audit     AdveroAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+}
+
+model AdveroSubscription {
+  id                   String          @id @default(cuid())
+  workspaceId          String
+  tierId               String
+  serviceLine          String
+  status               String          @default("active")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?         @unique
+  stripePriceId        String?
+  billingCycle         String?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  workspace            AdveroWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model AdveroActivityEvent {
+  id          String          @id @default(cuid())
+  workspaceId String
+  type        String
+  titleDa     String
+  titleEn     String
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+  workspace   AdveroWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
   @@index([createdAt])
 }
 

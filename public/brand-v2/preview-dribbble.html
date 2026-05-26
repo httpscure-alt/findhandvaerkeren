@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="da" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand v2 preview — Dribbble-inspired</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #05060a;
+      color: #eef0f6;
+      overflow-x: hidden;
+    }
+    .bg-field {
+      background:
+        radial-gradient(900px 520px at 10% 10%, rgba(99, 102, 241, 0.22), transparent 55%),
+        radial-gradient(900px 520px at 90% 10%, rgba(16, 185, 129, 0.14), transparent 60%),
+        radial-gradient(900px 520px at 50% 90%, rgba(56, 189, 248, 0.10), transparent 60%),
+        #05060a;
+    }
+    .grain::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 55px rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    @keyframes floaty {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    .floaty { animation: floaty 7s ease-in-out infinite; }
+    .floaty2 { animation: floaty 9s ease-in-out infinite; }
+    .floaty3 { animation: floaty 11s ease-in-out infinite; }
+    .border-shine {
+      position: relative;
+    }
+    .border-shine::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06), rgba(99, 102, 241, 0.22));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .reveal {
+      transform: translateY(18px);
+      opacity: 0;
+      transition: transform 700ms cubic-bezier(.2, .8, .2, 1), opacity 700ms ease;
+    }
+    .reveal.on {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .ring-sweep {
+      position: absolute;
+      inset: -220px -220px auto auto;
+      width: 540px;
+      height: 540px;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.00) 70%);
+      filter: blur(0px);
+      opacity: 0.65;
+      pointer-events: none;
+      transform: translate3d(0,0,0);
+      animation: sweep 10s ease-in-out infinite;
+    }
+    @keyframes sweep {
+      0% { transform: translate(0px, 0px) rotate(0deg); }
+      50% { transform: translate(-40px, 30px) rotate(14deg); }
+      100% { transform: translate(0px, 0px) rotate(0deg); }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-white/20 selection:text-white">
+  <main class="relative min-h-screen bg-field grain">
+    <div class="ring-sweep"></div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 relative">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl glass border-shine flex items-center justify-center">
+            <span class="text-white font-extrabold tracking-tight">N</span>
+          </div>
+          <div class="leading-tight">
+            <div class="text-sm font-semibold tracking-tight">NordVækst<span class="text-white/40">.</span></div>
+            <div class="text-[10px] uppercase tracking-[0.18em] text-white/40">SEO &amp; Google Ads</div>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-6 text-xs uppercase tracking-[0.18em] text-white/55">
+          <a href="#services" class="hover:text-white transition">Services</a>
+          <a href="#tiers" class="hover:text-white transition">Pakker</a>
+          <a href="#process" class="hover:text-white transition">Proces</a>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="#tiers" class="px-4 py-2 rounded-full glass border-shine text-xs uppercase tracking-[0.18em] text-white/80 hover:bg-white/10 transition">
+            Se pakker
+          </a>
+          <a href="/brand-v2/advero-contact.html" class="px-4 py-2 rounded-full bg-white text-black text-xs uppercase tracking-[0.18em] hover:bg-slate-200 transition">
+            Kontakt os
+          </a>
+        </div>
+      </div>
+
+      <section class="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div class="lg:col-span-7">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border-shine text-[10px] uppercase tracking-[0.18em] text-white/70">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Eksklusive væksttjenester
+          </div>
+          <h1 class="mt-6 text-[2.4rem] sm:text-[3.25rem] lg:text-[3.75rem] leading-[1.02] tracking-tight font-medium">
+            Få flere leads med
+            <span class="text-white/50"> Google Ads</span>
+            <span class="text-white/50"> &amp; SEO</span>
+          </h1>
+          <p class="mt-4 text-sm sm:text-base text-white/55 leading-relaxed max-w-[62ch]">
+            Vi hjælper danske håndværkere med at dominere deres lokale marked — fra første klik til færdig opgave.
+          </p>
+          <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <a href="#tiers" class="inline-flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-2xl text-xs font-medium tracking-[0.18em] uppercase hover:bg-slate-200 transition shadow-[0_0_30px_rgba(255,255,255,0.12)]">
+              Se pakker
+              <span class="w-2 h-2 rounded-full bg-black"></span>
+            </a>
+            <a href="/signup?service=ads&tier=ads_standard" class="inline-flex items-center justify-center gap-3 glass border-shine px-6 py-4 rounded-2xl text-xs font-medium tracking-[0.18em] uppercase text-white/85 hover:bg-white/10 transition">
+              Start vækst nu
+              <span class="w-2 h-2 rounded-full bg-white/40"></span>
+            </a>
+          </div>
+          <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="glass border-shine rounded-2xl p-4 reveal floaty">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Tracking</div>
+              <div class="mt-2 text-sm font-semibold">GA4 · GTM · GSC</div>
+              <div class="mt-1 text-xs text-white/50 leading-relaxed">Mål alt der betyder noget.</div>
+            </div>
+            <div class="glass border-shine rounded-2xl p-4 reveal floaty2">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Google Ads</div>
+              <div class="mt-2 text-sm font-semibold">Struktur → Leads</div>
+              <div class="mt-1 text-xs text-white/50 leading-relaxed">Fokus på kvalitet, ikke klik.</div>
+            </div>
+            <div class="glass border-shine rounded-2xl p-4 reveal floaty3">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">SEO</div>
+              <div class="mt-2 text-sm font-semibold">Lokalt &amp; teknisk</div>
+              <div class="mt-1 text-xs text-white/50 leading-relaxed">Bliv fundet i dit område.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5">
+          <div class="glass border-shine rounded-3xl overflow-hidden relative">
+            <div class="absolute inset-0 opacity-20" style="background: radial-gradient(600px 280px at 20% 10%, rgba(99,102,241,0.35), transparent 60%), radial-gradient(560px 260px at 80% 30%, rgba(16,185,129,0.22), transparent 60%);"></div>
+            <div class="relative p-6">
+              <div class="flex items-center justify-between">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">90 dage</div>
+                <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Pilot</div>
+              </div>
+              <div class="mt-3 text-lg font-semibold tracking-tight">Fra setup til stabile leads</div>
+              <p class="mt-2 text-sm text-white/55 leading-relaxed">
+                Vi bygger et fundament der holder: tracking, annoncer, landingssider og SEO — uden at det føles “hårdt sælgende”.
+              </p>
+              <div class="mt-5 grid grid-cols-2 gap-3">
+                <div class="rounded-2xl glass border-shine p-4">
+                  <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Uge 1–2</div>
+                  <div class="mt-2 text-sm font-semibold">Tracking &amp; setup</div>
+                </div>
+                <div class="rounded-2xl glass border-shine p-4">
+                  <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Uge 3–6</div>
+                  <div class="mt-2 text-sm font-semibold">Leads &amp; læring</div>
+                </div>
+                <div class="rounded-2xl glass border-shine p-4">
+                  <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Uge 7–10</div>
+                  <div class="mt-2 text-sm font-semibold">Skalering</div>
+                </div>
+                <div class="rounded-2xl glass border-shine p-4">
+                  <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Uge 11–12</div>
+                  <div class="mt-2 text-sm font-semibold">Stabil drift</div>
+                </div>
+              </div>
+              <div class="mt-6 flex items-center justify-between gap-4">
+                <div class="text-xs text-white/50">Typisk CPL: <span class="text-white/80 font-medium">DKK 30–80</span></div>
+                <a href="#process" class="text-xs uppercase tracking-[0.18em] text-white/75 hover:text-white transition">
+                  Se proces →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" class="mt-16">
+        <div class="flex items-end justify-between gap-6">
+          <div>
+            <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Services</div>
+            <h2 class="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight">Byg en engine for vækst</h2>
+          </div>
+          <div class="hidden md:block text-sm text-white/55 max-w-[48ch]">
+            Kombinér Ads og SEO for at få både hurtige leads og langsigtet synlighed.
+          </div>
+        </div>
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">01</div>
+            <div class="mt-3 text-lg font-semibold">Google Ads</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Kampagner der prioriterer relevante henvendelser, ikke bare trafik.</p>
+            <div class="mt-4 text-xs text-white/50">Search · Calls · Lead forms</div>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">02</div>
+            <div class="mt-3 text-lg font-semibold">SEO</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Teknisk + lokalt content, så du bliver valgt på Google, igen og igen.</p>
+            <div class="mt-4 text-xs text-white/50">On-page · Local · Content</div>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">03</div>
+            <div class="mt-3 text-lg font-semibold">Tracking &amp; rapportering</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Få et klart dashboard med uge-for-uge udvikling og næste skridt.</p>
+            <div class="mt-4 text-xs text-white/50">GA4 · GTM · Search Console</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tiers" class="mt-16">
+        <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Pakker</div>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight">En plan der matcher dit niveau</h2>
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">Ads · Starter</div>
+              <div class="text-[10px] px-2 py-1 rounded-full glass border-shine text-white/60 uppercase tracking-[0.18em]">Mest valgt</div>
+            </div>
+            <div class="mt-4 text-3xl font-semibold tracking-tight">3.499<span class="text-base text-white/50"> DKK/m</span></div>
+            <ul class="mt-4 space-y-2 text-sm text-white/60">
+              <li>• Kampagne setup + struktur</li>
+              <li>• Conversion tracking</li>
+              <li>• Løbende optimering</li>
+            </ul>
+            <a href="/signup?service=ads&tier=ads_starter" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-white text-black px-5 py-4 text-xs font-medium uppercase tracking-[0.18em] hover:bg-slate-200 transition">
+              Vælg Starter
+            </a>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal" style="background: rgba(255,255,255,0.06);">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">Ads · Pro</div>
+              <div class="text-[10px] px-2 py-1 rounded-full bg-emerald-400/15 text-emerald-200 uppercase tracking-[0.18em] border border-emerald-400/20">Boost</div>
+            </div>
+            <div class="mt-4 text-3xl font-semibold tracking-tight">5.499<span class="text-base text-white/50"> DKK/m</span></div>
+            <ul class="mt-4 space-y-2 text-sm text-white/60">
+              <li>• Alt i Starter</li>
+              <li>• Flere annoncegrupper</li>
+              <li>• Landing page sparring</li>
+            </ul>
+            <a href="/signup?service=ads&tier=ads_pro" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-white text-black px-5 py-4 text-xs font-medium uppercase tracking-[0.18em] hover:bg-slate-200 transition">
+              Vælg Pro
+            </a>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">SEO · Growth</div>
+              <div class="text-[10px] px-2 py-1 rounded-full glass border-shine text-white/60 uppercase tracking-[0.18em]">Langsigtet</div>
+            </div>
+            <div class="mt-4 text-3xl font-semibold tracking-tight">4.999<span class="text-base text-white/50"> DKK/m</span></div>
+            <ul class="mt-4 space-y-2 text-sm text-white/60">
+              <li>• Teknisk audit + fixes</li>
+              <li>• Lokal SEO optimering</li>
+              <li>• Content plan</li>
+            </ul>
+            <a href="/signup?service=seo&tier=seo_growth" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-white text-black px-5 py-4 text-xs font-medium uppercase tracking-[0.18em] hover:bg-slate-200 transition">
+              Vælg SEO
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="process" class="mt-16">
+        <div class="text-[10px] uppercase tracking-[0.18em] text-white/45">Proces</div>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight">Et simpelt forløb der virker</h2>
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">Trin 1</div>
+              <div class="text-xs text-white/45">1–2 dage</div>
+            </div>
+            <div class="mt-3 text-lg font-semibold">Kickoff &amp; adgang</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Vi får adgang til Ads/Analytics, og afklarer mål + lokal fokus.</p>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">Trin 2</div>
+              <div class="text-xs text-white/45">1 uge</div>
+            </div>
+            <div class="mt-3 text-lg font-semibold">Opsætning</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Tracking, kampagnestruktur og de første forbedringer på siden.</p>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">Trin 3</div>
+              <div class="text-xs text-white/45">Uge 2–6</div>
+            </div>
+            <div class="mt-3 text-lg font-semibold">Leads &amp; læring</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Vi tester budskaber og søgeord — og skærer det fra, som ikke virker.</p>
+          </div>
+          <div class="glass border-shine rounded-3xl p-6 reveal">
+            <div class="flex items-center justify-between">
+              <div class="text-xs uppercase tracking-[0.18em] text-white/55">Trin 4</div>
+              <div class="text-xs text-white/45">Løbende</div>
+            </div>
+            <div class="mt-3 text-lg font-semibold">Skalering</div>
+            <p class="mt-2 text-sm text-white/55 leading-relaxed">Uge-for-uge forbedringer + klare anbefalinger til næste skridt.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="mt-16 pt-10 border-t border-white/10">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="text-sm text-white/55">
+            © <span id="year"></span> NordVækst. Et koncept til Findhåndværkeren.
+          </div>
+          <div class="flex items-center gap-6 text-xs uppercase tracking-[0.18em] text-white/45">
+            <a href="/privacy" class="hover:text-white transition">Privatliv</a>
+            <a href="/terms" class="hover:text-white transition">Vilkår</a>
+            <a href="/brand-v2/advero-contact.html" class="hover:text-white transition">Kontakt</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+
+    const elements = Array.from(document.querySelectorAll(".reveal"));
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) e.target.classList.add("on");
+      }
+    }, { threshold: 0.15 });
+    for (const el of elements) io.observe(el);
+    // Make the first row feel alive immediately
+    requestAnimationFrame(() => {
+      for (const el of elements.slice(0, 3)) el.classList.add("on");
+    });
+  </script>
+</body>
+</html>

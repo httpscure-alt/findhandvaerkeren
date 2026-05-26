@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NordVækst — Cases (preview)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#F3F2EE;
+        --fg:#1C1C1C;
+        --muted:rgba(28,28,28,.55);
+        --faint:rgba(28,28,28,.14);
+        --fainter:rgba(28,28,28,.10);
+        --active:#D86A5A;
+      }
+      *{ box-sizing:border-box; }
+      body{
+        margin:0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background:var(--bg);
+        color:var(--fg);
+      }
+      a{ color:inherit; text-decoration:none; }
+      .wrap{ max-width: 1120px; margin:0 auto; padding: 32px 24px 48px; }
+      .topbar{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        font-size:11px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.55);
+      }
+      .logo{
+        width:28px; height:28px;
+        border:1px solid rgba(28,28,28,.18);
+        display:flex; align-items:center; justify-content:center;
+        font-size:10px; font-weight:700; color:rgba(28,28,28,.75);
+      }
+      .topbar-right{ display:flex; align-items:center; gap:56px; }
+      .lang span{ display:inline-block; }
+      .lang .sep{ color:rgba(28,28,28,.22); margin:0 6px; }
+
+      .grid{
+        display:grid;
+        grid-template-columns: 260px 1fr;
+        gap: 60px;
+        padding-top: 42px;
+        align-items:start;
+      }
+      .crumb{
+        font-size:12px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.60);
+      }
+      .crumb .slash{
+        margin: 8px 0 8px;
+        color: rgba(28,28,28,.30);
+      }
+
+      .side-section-title{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.50);
+        margin-top: 40px;
+      }
+      .side-section-title .line{
+        width: 14px; height: 1px;
+        background: rgba(28,28,28,.26);
+      }
+      .nav{
+        margin-top: 18px;
+        display:flex;
+        flex-direction:column;
+        gap: 10px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.44);
+      }
+      .nav a:hover{ color:rgba(28,28,28,.70); }
+
+      .chip{
+        border: 1px solid rgba(28,28,28,.10);
+        background: rgba(255,255,255,.55);
+        border-radius: 16px;
+        padding: 10px 10px 9px;
+      }
+      .chip-k{
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      .chip-v{
+        margin-top: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(28,28,28,.78);
+      }
+      .btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border-radius: 999px;
+        padding: 10px 12px;
+        font-size: 10px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        border: 1px solid rgba(28,28,28,.12);
+        background: rgba(255,255,255,.75);
+        color: rgba(28,28,28,.78);
+      }
+      .btn-primary{
+        background: #000;
+        color: #fff;
+        border-color: #000;
+      }
+
+      /* Service detail layout */
+      .service{
+        display:none;
+      }
+      .service.active{
+        display:block;
+      }
+      .service-head{
+        padding-top: 6px;
+      }
+      .service-title{
+        font-size: 34px;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        font-weight: 500;
+        color: rgba(28,28,28,.22);
+      }
+      .service-title strong{
+        color: rgba(28,28,28,.78);
+        font-weight: 500;
+      }
+      .service-sub{
+        margin-top: 14px;
+        font-size: 12px;
+        line-height: 1.75;
+        color: rgba(28,28,28,.60);
+        max-width: 70ch;
+      }
+
+      /* More aesthetic: editorial 2-column service layout (like ref) */
+      .service-layout{
+        margin-top: 26px;
+        display:grid;
+        grid-template-columns: 1fr 520px;
+        gap: 56px;
+        align-items:start;
+      }
+      .microhead{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap: 24px;
+        color: rgba(28,28,28,.55);
+        font-size:11px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+      }
+      .tags{
+        margin-top: 14px;
+        display:flex;
+        flex-wrap:wrap;
+        gap: 10px;
+        font-size:10px;
+        letter-spacing:.18em;
+        color: rgba(28,28,28,.40);
+        text-transform: none;
+      }
+      .section-label{
+        margin-top: 22px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      .body{
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.75;
+        color: rgba(28,28,28,.60);
+        max-width: 52ch;
+      }
+      .rows{
+        margin-top: 14px;
+        border-top: 1px solid rgba(28,28,28,.10);
+      }
+      .row{
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(28,28,28,.10);
+        display:flex;
+        justify-content:space-between;
+        gap: 18px;
+        align-items:baseline;
+      }
+      .row-left{
+        min-width: 0;
+      }
+      .row-k{
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      .row-v{
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(28,28,28,.78);
+        line-height: 1.4;
+      }
+      .row-note{
+        margin-top: 6px;
+        font-size: 12px;
+        color: rgba(28,28,28,.60);
+        line-height: 1.7;
+      }
+      .row-price{
+        white-space: nowrap;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .20em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.55);
+      }
+      .visual{
+        height: 360px;
+        border: 1px solid rgba(28,28,28,.08);
+        box-shadow: 0 18px 60px rgba(28,28,28,.08);
+        background:
+          radial-gradient(280px 220px at 55% 45%, rgba(28,28,28,.05), transparent 62%),
+          linear-gradient(135deg, rgba(255,255,255,.6), rgba(255,255,255,.0));
+        position: relative;
+        overflow:hidden;
+      }
+      .visual::after{
+        content:'';
+        position:absolute;
+        inset:0;
+        background: radial-gradient(520px 340px at 80% 20%, rgba(28,28,28,.06), transparent 70%);
+        pointer-events:none;
+      }
+      .visual-center{
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color: rgba(28,28,28,.18);
+        font-size: 10px;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+      }
+      .cta-row{
+        margin-top: 14px;
+        display:flex;
+        gap: 10px;
+        align-items:center;
+      }
+
+      .footer-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding-top: 56px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.45);
+      }
+      .footer-links{ display:flex; gap: 44px; }
+      .footer-links a:hover{ color: rgba(28,28,28,.70); }
+
+      .badge{
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 50;
+        background:#000;
+        color:#fff;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size:10px;
+        letter-spacing:.18em;
+        text-transform:uppercase;
+      }
+
+      @media (max-width: 860px){
+        .grid{ grid-template-columns: 1fr; gap: 28px; }
+        .topbar-right{ gap: 18px; flex-wrap:wrap; justify-content:flex-end; }
+        .service-title{ font-size: 28px; }
+        .service-layout{ grid-template-columns: 1fr; gap: 20px; }
+        .visual{ height: 260px; }
+      }
+
+      /* remove old list/detail/alt view CSS (replaced by service details) */
+    </style>
+  </head>
+  <body>
+    <div class="badge">NordVækst · Cases</div>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="logo">NV</div>
+        <div class="topbar-right">
+          <div>+45 00 00 00 00</div>
+          <div>support@xn--findhndvrkeren-pibt.dk</div>
+          <div class="lang"><span>DA</span><span class="sep">/</span><span style="color:rgba(28,28,28,.35)">EN</span></div>
+        </div>
+      </div>
+
+      <div class="grid" id="view-services">
+        <aside>
+          <div class="crumb">
+            <div style="font-weight:500">Marketing</div>
+            <div class="slash">/</div>
+            <div>Services</div>
+          </div>
+
+          <div class="side-section-title">
+            <span class="line"></span>
+            <span>Services</span>
+          </div>
+          <nav class="nav" aria-label="Services">
+            <a href="#ads" data-service="ads" class="service-link">Google Ads</a>
+            <a href="#seo" data-service="seo" class="service-link">SEO</a>
+            <a href="#tracking" data-service="tracking" class="service-link">Tracking</a>
+            <a href="#landing" data-service="landing" class="service-link">Landing pages</a>
+            <a href="#reporting" data-service="reporting" class="service-link">Rapportering</a>
+            <a href="#support" data-service="support" class="service-link">Support</a>
+          </nav>
+        </aside>
+
+        <main>
+          <!-- Google Ads -->
+          <section class="service active" id="svc-ads" data-service="ads" aria-label="Google Ads">
+            <div class="service-head">
+              <div class="service-title"><strong>Google Ads</strong> / leads, ikke støj</div>
+              <div class="service-sub">
+                Vi bygger kampagner der fokuserer på relevante henvendelser. Du får en klar struktur, konverteringsmåling
+                og en optimeringsrytme der hurtigt lærer hvad der virker i dit lokalområde.
+              </div>
+            </div>
+
+            <div class="service-layout">
+              <div>
+                <div class="microhead">
+                  <div>Project manager: NordVækst team</div>
+                  <div>Next: SEO</div>
+                </div>
+                <div class="tags">
+                  <span>#GoogleAds</span>
+                  <span>#Leads</span>
+                  <span>#Tracking</span>
+                </div>
+
+                <div class="section-label">Hvordan det virker</div>
+                <div class="body">
+                  Kickoff → setup → ugentlig optimering. Vi tester budskaber og søgeord, flytter budget til det der virker,
+                  og rapporterer kort og klart hver uge.
+                </div>
+
+                <div class="section-label">Priser & pakker</div>
+                <div class="rows">
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Starter</div>
+                      <div class="row-v">Setup + drift</div>
+                      <div class="row-note">Struktur + søgeord, GA4/GTM, ugentlig optimering.</div>
+                    </div>
+                    <div class="row-price">3.499 DKK / md</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Pro</div>
+                      <div class="row-v">Skalering</div>
+                      <div class="row-note">Flere tests, annoncegrupper og landing page sparring.</div>
+                    </div>
+                    <div class="row-price">5.499 DKK / md</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Audit</div>
+                      <div class="row-v">Quick wins</div>
+                      <div class="row-note">Gennemgang + prioriteret action plan på 48 timer.</div>
+                    </div>
+                    <div class="row-price">1.999 DKK</div>
+                  </div>
+                </div>
+
+                <div class="cta-row">
+                  <a class="btn btn-primary" href="#pricing">Se priser</a>
+                  <a class="btn" href="#kontakt">Kontakt</a>
+                </div>
+              </div>
+
+              <div class="visual" aria-label="Visual">
+                <div class="visual-center">GOOGLE ADS / VISUAL</div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- SEO -->
+          <section class="service" id="svc-seo" data-service="seo" aria-label="SEO">
+            <div class="service-head">
+              <div class="service-title"><strong>SEO</strong> / lokalt + teknisk</div>
+              <div class="service-sub">
+                Langsigtet synlighed med tekniske fixes og content der matcher dine services. Fokus på lokal ranking,
+                tydelige service-sider og måling i Search Console.
+              </div>
+            </div>
+            <div class="service-layout">
+              <div>
+                <div class="microhead">
+                  <div>Project manager: NordVækst team</div>
+                  <div>Next: Tracking</div>
+                </div>
+                <div class="tags">
+                  <span>#SEO</span>
+                  <span>#Local</span>
+                  <span>#Content</span>
+                </div>
+
+                <div class="section-label">Hvordan det virker</div>
+                <div class="body">
+                  Vi starter med audit, bygger de vigtigste service-sider og lokale signaler, og forbedrer uge-for-uge
+                  ud fra Search Console data.
+                </div>
+
+                <div class="section-label">Priser & pakker</div>
+                <div class="rows">
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">SEO Growth</div>
+                      <div class="row-v">Løbende</div>
+                      <div class="row-note">Teknisk audit + fixes, lokal SEO, content plan.</div>
+                    </div>
+                    <div class="row-price">4.999 DKK / md</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Lokal SEO</div>
+                      <div class="row-v">Setup</div>
+                      <div class="row-note">Google Business Profile, citations plan og review flow.</div>
+                    </div>
+                    <div class="row-price">1.999 DKK</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Service sider</div>
+                      <div class="row-v">Content</div>
+                      <div class="row-note">Service hub pages der kan ranke (struktur + intern linking).</div>
+                    </div>
+                    <div class="row-price">Fra 1.499 DKK</div>
+                  </div>
+                </div>
+
+                <div class="cta-row">
+                  <a class="btn btn-primary" href="#pricing">Se priser</a>
+                  <a class="btn" href="#kontakt">Kontakt</a>
+                </div>
+              </div>
+
+              <div class="visual" aria-label="Visual">
+                <div class="visual-center">SEO / VISUAL</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Tracking -->
+          <section class="service" id="svc-tracking" data-service="tracking" aria-label="Tracking">
+            <div class="service-head">
+              <div class="service-title"><strong>Tracking</strong> / GA4 + GTM + GSC</div>
+              <div class="service-sub">
+                Få korrekt måling på leads, calls og formularer, så vi kan optimere sikkert. Vi sætter også Search Console op
+                så du kan følge SEO performance.
+              </div>
+            </div>
+            <div class="service-layout">
+              <div>
+                <div class="microhead">
+                  <div>Project manager: NordVækst team</div>
+                  <div>Next: Landing</div>
+                </div>
+                <div class="tags">
+                  <span>#GA4</span>
+                  <span>#GTM</span>
+                  <span>#GSC</span>
+                </div>
+
+                <div class="section-label">Hvordan det virker</div>
+                <div class="body">
+                  Vi definerer hvad et lead er, implementerer events i GTM/GA4 og verificerer alt i DebugView.
+                  Derefter har du et simpelt dashboard og conversions klar til optimering.
+                </div>
+
+                <div class="section-label">Priser</div>
+                <div class="rows">
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">GA4 + GTM</div>
+                      <div class="row-v">Setup</div>
+                      <div class="row-note">Events + conversions + test.</div>
+                    </div>
+                    <div class="row-price">1.999 DKK</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Search Console</div>
+                      <div class="row-v">Setup</div>
+                      <div class="row-note">Verification + sitemap + quick insights.</div>
+                    </div>
+                    <div class="row-price">499 DKK</div>
+                  </div>
+                </div>
+
+                <div class="cta-row">
+                  <a class="btn btn-primary" href="#pricing">Se priser</a>
+                  <a class="btn" href="#kontakt">Kontakt</a>
+                </div>
+              </div>
+
+              <div class="visual" aria-label="Visual">
+                <div class="visual-center">TRACKING / VISUAL</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Landing pages -->
+          <section class="service" id="svc-landing" data-service="landing" aria-label="Landing pages">
+            <div class="service-head">
+              <div class="service-title"><strong>Landing pages</strong> / mere konvertering</div>
+              <div class="service-sub">
+                Klar value prop, social proof og CTA-struktur. Vi fokuserer på mindre friktion og højere konvertering —
+                og sikrer at tracking kan måle effekten.
+              </div>
+            </div>
+            <div class="service-layout">
+              <div>
+                <div class="microhead">
+                  <div>Project manager: NordVækst team</div>
+                  <div>Next: Reporting</div>
+                </div>
+                <div class="tags">
+                  <span>#CRO</span>
+                  <span>#Landing</span>
+                  <span>#Proof</span>
+                </div>
+
+                <div class="section-label">Hvordan det virker</div>
+                <div class="body">
+                  Vi finder friktion i flowet, foreslår en klarere struktur (value prop → proof → CTA), og måler effekten.
+                  Små tweaks først. Store redesign kun hvis det er nødvendigt.
+                </div>
+
+                <div class="section-label">Priser</div>
+                <div class="rows">
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Landing optimering</div>
+                      <div class="row-v">Engangs</div>
+                      <div class="row-note">Struktur, copy polish, CTA + proof.</div>
+                    </div>
+                    <div class="row-price">1.999 DKK</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">CRO sprint</div>
+                      <div class="row-v">Engangs</div>
+                      <div class="row-note">3–5 tests + måling plan.</div>
+                    </div>
+                    <div class="row-price">1.499 DKK</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Speed / CWV</div>
+                      <div class="row-v">Engangs</div>
+                      <div class="row-note">Performance fixes der løfter konvertering.</div>
+                    </div>
+                    <div class="row-price">Fra 1.999 DKK</div>
+                  </div>
+                </div>
+
+                <div class="cta-row">
+                  <a class="btn btn-primary" href="#pricing">Se priser</a>
+                  <a class="btn" href="#kontakt">Kontakt</a>
+                </div>
+              </div>
+
+              <div class="visual" aria-label="Visual">
+                <div class="visual-center">LANDING / VISUAL</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Reporting -->
+          <section class="service" id="svc-reporting" data-service="reporting" aria-label="Rapportering">
+            <div class="service-head">
+              <div class="service-title"><strong>Rapportering</strong> / uge for uge</div>
+              <div class="service-sub">
+                Kort status, tydelige tal og næste skridt — uden fluff. Vi viser hvad vi ændrede, hvad vi lærte,
+                og hvad der kommer næste uge.
+              </div>
+            </div>
+            <div class="service-layout">
+              <div>
+                <div class="microhead">
+                  <div>Project manager: NordVækst team</div>
+                  <div>Next: Support</div>
+                </div>
+                <div class="tags">
+                  <span>#Weekly</span>
+                  <span>#KPI</span>
+                  <span>#NextSteps</span>
+                </div>
+
+                <div class="section-label">Hvordan det virker</div>
+                <div class="body">
+                  Hver uge får du: KPI snapshot, hvad vi ændrede, hvad vi lærte, og én klar prioritet til næste uge.
+                </div>
+
+                <div class="section-label">Priser</div>
+                <div class="rows">
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Ugentlig rapport</div>
+                      <div class="row-v">Inkluderet</div>
+                      <div class="row-note">I Ads/SEO driftspakker.</div>
+                    </div>
+                    <div class="row-price">0 DKK</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Budget plan</div>
+                      <div class="row-v">30 dage</div>
+                      <div class="row-note">Budget scenarier + prioritering.</div>
+                    </div>
+                    <div class="row-price">999 DKK</div>
+                  </div>
+                </div>
+
+                <div class="cta-row">
+                  <a class="btn btn-primary" href="#pricing">Se priser</a>
+                  <a class="btn" href="#kontakt">Kontakt</a>
+                </div>
+              </div>
+
+              <div class="visual" aria-label="Visual">
+                <div class="visual-center">REPORTING / VISUAL</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Support -->
+          <section class="service" id="svc-support" data-service="support" aria-label="Support">
+            <div class="service-head">
+              <div class="service-title"><strong>Support</strong> / fast response</div>
+              <div class="service-sub">
+                Du får en klar kanal, forventninger og hurtige svar når der er brug for det. Små fixes og sparring
+                bliver løst uden at det bliver et stort projekt.
+              </div>
+            </div>
+            <div class="service-layout">
+              <div>
+                <div class="microhead">
+                  <div>Project manager: NordVækst team</div>
+                  <div>Next: Google Ads</div>
+                </div>
+                <div class="tags">
+                  <span>#SLA</span>
+                  <span>#Fixes</span>
+                  <span>#Sparring</span>
+                </div>
+
+                <div class="section-label">Hvordan det virker</div>
+                <div class="body">
+                  Du får en klar kanal og en enkel prioritering. Små fixes løses hurtigt, og større ting estimeres før vi går i gang.
+                </div>
+
+                <div class="section-label">Priser</div>
+                <div class="rows">
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Support</div>
+                      <div class="row-v">Inkluderet</div>
+                      <div class="row-note">I driftspakker (Ads/SEO).</div>
+                    </div>
+                    <div class="row-price">0 DKK</div>
+                  </div>
+                  <div class="row">
+                    <div class="row-left">
+                      <div class="row-k">Audit</div>
+                      <div class="row-v">Engangs</div>
+                      <div class="row-note">Quick wins + plan (48 timer).</div>
+                    </div>
+                    <div class="row-price">1.999 DKK</div>
+                  </div>
+                </div>
+
+                <div class="cta-row">
+                  <a class="btn btn-primary" href="#pricing">Se priser</a>
+                  <a class="btn" href="#kontakt">Kontakt</a>
+                </div>
+              </div>
+
+              <div class="visual" aria-label="Visual">
+                <div class="visual-center">SUPPORT / VISUAL</div>
+              </div>
+            </div>
+          </section>
+
+          <div class="footer-row">
+            <div>FORSIDE / SERVICES</div>
+            <div class="footer-links">
+              <a href="#kontakt">Kontakt</a>
+              <a href="#pricing">Priser</a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const services = Array.from(document.querySelectorAll('.service'));
+      const links = Array.from(document.querySelectorAll('.service-link'));
+
+      function setActiveService(key){
+        services.forEach((s) => s.classList.toggle('active', s.getAttribute('data-service') === key));
+        links.forEach((a) => {
+          const isActive = a.getAttribute('data-service') === key;
+          a.style.color = isActive ? 'rgba(28,28,28,.78)' : 'rgba(28,28,28,.44)';
+          a.style.paddingLeft = isActive ? '16px' : '0px';
+          if (isActive) {
+            a.style.position = 'relative';
+            a.style.setProperty('--active', '1');
+          } else {
+            a.style.removeProperty('--active');
+          }
+        });
+      }
+
+      // Active underline marker like the ref
+      function applyActiveMarker(){
+        links.forEach((a) => {
+          if (!a.style.getPropertyValue('--active')) return;
+          // add a tiny line via ::before-ish using a background gradient
+          a.style.backgroundImage = 'linear-gradient(to right, rgba(28,28,28,.30), rgba(28,28,28,.30))';
+          a.style.backgroundRepeat = 'no-repeat';
+          a.style.backgroundSize = '10px 1px';
+          a.style.backgroundPosition = '0 50%';
+        });
+        links.forEach((a) => {
+          if (a.style.getPropertyValue('--active')) return;
+          a.style.backgroundImage = '';
+        });
+      }
+
+      links.forEach((a) => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const key = a.getAttribute('data-service');
+          if (!key) return;
+          setActiveService(key);
+          applyActiveMarker();
+          history.replaceState(null, '', '#' + key);
+        });
+      });
+
+      const hash = (location.hash || '').replace('#', '');
+      const initial = ['ads','seo','tracking','landing','reporting','support'].includes(hash) ? hash : 'ads';
+      setActiveService(initial);
+      applyActiveMarker();
+    </script>
+  </body>
+</html>
+

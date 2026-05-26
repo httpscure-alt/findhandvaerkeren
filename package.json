@@ -5,19 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
     "dev:frontend": "vite",
     "dev:backend": "cd backend && npm run dev",
     "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "dev:frontend:sim": "vite --mode sim --port 3001",
     "dev:backend:sim": "cd backend && ./scripts/dev-sim.sh",
     "dev:sim": "concurrently \"npm run dev:backend:sim\" \"npm run dev:frontend:sim\" --names \"backend-sim,frontend-sim\" --prefix-colors \"blue,green\"",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "vite build && mv dist/index.html dist/app.html",
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
     "@sentry/react": "^10.32.1",
     "@supabase/supabase-js": "^2.104.0",
+    "gsap": "^3.15.0",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

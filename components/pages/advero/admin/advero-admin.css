@@ -1,0 +1,229 @@
+.advero-admin-shell {
+  position: relative;
+  background-color: #334155;
+}
+
+.advero-admin-header {
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(51 65 85 / 0.92);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.advero-admin-badge {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  color: rgb(255 255 255 / 0.75);
+}
+
+.advero-admin-sidebar {
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+  padding: 0.75rem;
+  height: fit-content;
+}
+
+.advero-admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.7);
+  transition: background 0.15s, color 0.15s;
+}
+
+.advero-admin-nav-item:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+
+.advero-admin-nav-item--active {
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+
+.advero-admin-new-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: linear-gradient(165deg, #64748b 0%, #334155 100%);
+  color: #fff;
+}
+
+.advero-admin-main {
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+  padding: 1.25rem;
+}
+
+.advero-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.advero-admin-table th,
+.advero-admin-table td {
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  text-align: left;
+}
+
+.advero-admin-table th {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.advero-admin-status {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.advero-admin-status--published {
+  background: rgb(16 185 129 / 0.2);
+  color: #6ee7b7;
+}
+
+.advero-admin-status--draft {
+  background: rgb(255 255 255 / 0.1);
+  color: rgb(255 255 255 / 0.65);
+}
+
+.advero-admin-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-admin-field input,
+.advero-admin-field select,
+.advero-admin-field textarea {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(0 0 0 / 0.15);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  color: #fff;
+}
+
+.advero-admin-field textarea {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.advero-admin-editor-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .advero-admin-editor-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.advero-admin-preview {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: #fff;
+  color: #1e293b;
+  padding: 1.25rem;
+  min-height: 12rem;
+  max-height: 28rem;
+  overflow: auto;
+}
+
+.advero-admin-preview h1,
+.advero-admin-preview h2,
+.advero-admin-preview h3 {
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+}
+
+.advero-admin-preview p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.advero-admin-preview ul,
+.advero-admin-preview ol {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+}
+
+.advero-admin-preview code {
+  background: #f1f5f9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+}
+
+.advero-admin-preview pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  overflow: auto;
+}
+
+.advero-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.advero-admin-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.advero-admin-btn--primary {
+  background: #fff;
+  color: #334155;
+}
+
+.advero-admin-btn--ghost {
+  border: 1px solid rgb(255 255 255 / 0.2);
+  color: #fff;
+}
+
+.advero-admin-btn--danger {
+  border: 1px solid rgb(248 113 113 / 0.4);
+  color: #fca5a5;
+}

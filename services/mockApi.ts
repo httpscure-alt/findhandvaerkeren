@@ -30,6 +30,7 @@ class MockStorage {
     { id: 'loc-4', name: 'Aalborg', slug: 'aalborg' },
     { id: 'loc-5', name: 'Roskilde', slug: 'roskilde' },
   ];
+  public visibilityAudits: Map<string, any> = new Map();
 
   constructor() {
     // Initialize dummy data for testing
@@ -49,6 +50,20 @@ class MockStorage {
       avatarUrl: null,
       location: 'København',
       createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    // Advero internal admin (mock CMS)
+    const demoAdminId = 'demo-admin-1';
+    this.users.set(demoAdminId, {
+      id: demoAdminId,
+      email: 'admin@advero.dk',
+      name: 'Advero Admin',
+      firstName: 'Advero',
+      lastName: 'Admin',
+      role: 'ADMIN',
+      avatarUrl: null,
+      location: null,
+      createdAt: new Date().toISOString(),
     });
 
     // Create demo partner user
@@ -1725,6 +1740,87 @@ class MockApiService {
 
     mockStorage.performanceMetrics.set(companyId, data);
     return { success: true };
+  }
+
+  async createVisibilityAudit(data: {
+    companyName: string;
+    websiteUrl?: string;
+    serviceArea?: string;
+    industry?: string;
+    growthGoal?: string;
+    contactEmail?: string;
+  }) {
+    await delay(400);
+    const { mockAnalyzeVisibility } = await import('../lib/mockAnalyzeVisibility');
+    const audit = mockAnalyzeVisibility({
+      companyName: data.companyName,
+      websiteUrl: data.websiteUrl,
+      serviceArea: data.serviceArea,
+      industry: (data.industry as any) || 'unknown',
+      growthGoal: (data.growthGoal as any) || 'both',
+      contactEmail: data.contactEmail,
+    });
+    mockStorage.visibilityAudits.set(audit.id, audit);
+    return { audit };
+  }
+
+  async getVisibilityAudit(id: string) {
+    await delay(150);
+    const audit = mockStorage.visibilityAudits.get(id);
+    if (!audit) throw new Error('Audit not found');
+    return { audit };
+  }
+
+  // ── Blog (mock CMS) ────────────────────────────────────────────────────────
+  async getBlogPosts(params?: { lang?: string; category?: string; page?: number; limit?: number }) {
+    await delay(200);
+    const { mockBlogStore } = await import('../lib/mockBlogStore');
+    const all = mockBlogStore.listPublished({ lang: params?.lang, category: params?.category });
+    const page = params?.page || 1;
+    const limit = params?.limit || 12;
+    const skip = (page - 1) * limit;
+    const posts = all.slice(skip, skip + limit);
+    return {
+      posts,
+      pagination: { page, limit, total: all.length, totalPages: Math.ceil(all.length / limit) || 1 },
+    };
+  }
+
+  async getBlogPost(slug: string) {
+    await delay(150);
+    const { mockBlogStore } = await import('../lib/mockBlogStore');
+    const post = mockBlogStore.getBySlug(slug);
+    if (!post) throw new Error('Post not found');
+    return { post };
+  }
+
+  async adminGetAllBlogPosts(params?: { status?: string }) {
+    await delay(200);
+    const { mockBlogStore } = await import('../lib/mockBlogStore');
+    const posts = mockBlogStore.listAll(params?.status);
+    return { posts, pagination: { page: 1, limit: posts.length, total: posts.length, totalPages: 1 } };
+  }
+
+  async adminCreateBlogPost(data: any) {
+    await delay(250);
+    const { mockBlogStore } = await import('../lib/mockBlogStore');
+    const post = mockBlogStore.create(data);
+    return { post };
+  }
+
+  async adminUpdateBlogPost(id: string, data: any) {
+    await delay(250);
+    const { mockBlogStore } = await import('../lib/mockBlogStore');
+    const post = mockBlogStore.update(id, data);
+    if (!post) throw new Error('Post not found');
+    return { post };
+  }
+
+  async adminDeleteBlogPost(id: string) {
+    await delay(200);
+    const { mockBlogStore } = await import('../lib/mockBlogStore');
+    if (!mockBlogStore.remove(id)) throw new Error('Post not found');
+    return { message: 'Post deleted successfully' };
   }
 }
 

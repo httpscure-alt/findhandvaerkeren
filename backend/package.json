@@ -13,7 +13,9 @@
     "db:seed": "tsx src/prisma/seed.ts",
     "db:studio": "prisma studio",
     "test:connection": "tsx test-connection.ts",
-    "stripe:seed-products": "tsx scripts/stripeSeedProducts.ts"
+    "stripe:seed-products": "tsx scripts/stripeSeedProducts.ts",
+    "stripe:seed": "tsx scripts/stripeSeedProducts.ts",
+    "test:advero-audit": "tsx scripts/test-advero-audit-e2e.ts"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +39,8 @@
     "express": "^4.21.0",
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.2.0",
+    "google-ads-api": "^23.0.0",
+    "googleapis": "^172.0.0",
     "helmet": "^8.1.0",
     "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.2",

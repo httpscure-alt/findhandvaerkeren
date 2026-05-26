@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advero — Email previews</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Inter, system-ui, sans-serif; margin: 0; padding: 40px 20px 64px; background: #1e293b; color: #e2e8f0; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; color: #fff; margin: 0 0 6px; }
+    .lead { margin: 0 0 8px; font-size: 14px; color: #94a3b8; line-height: 1.5; }
+    .base { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #64748b; word-break: break-all; margin: 0 0 20px; padding: 10px 12px; background: #0f172a; border-radius: 10px; border: 1px solid #334155; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+    .toolbar button { font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 10px; cursor: pointer; border: none; background: #334155; color: #fff; }
+    .toolbar button:hover { background: #475569; }
+    h2 { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #64748b; margin: 0 0 12px; }
+    .section { margin-bottom: 28px; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: stretch; }
+    a.row-main { flex: 1; display: block; padding: 14px 16px; background: #fff; border-radius: 14px; color: #0f172a; text-decoration: none; }
+    a.row-main:hover { background: #f8fafc; }
+    .row-title { font-weight: 600; font-size: 15px; }
+    .row-file { font-size: 12px; color: #64748b; margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+    .row-note { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+    button.copy { flex-shrink: 0; align-self: center; font-family: inherit; font-size: 11px; font-weight: 600; padding: 10px 12px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; cursor: pointer; white-space: nowrap; }
+    button.copy.ok { background: #064e3b; border-color: #047857; color: #a7f3d0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Advero email previews</h1>
+    <p class="lead">10 skabeloner · <code style="color:#cbd5e1;">npm run dev</code> skal køre</p>
+    <p class="base" id="base-url"></p>
+    <div class="toolbar">
+      <button type="button" id="open-all">Åbn alle (10)</button>
+    </div>
+    <div class="section"><h2>Onboarding</h2><div id="g-onboarding"></div></div>
+    <div class="section"><h2>Auth &amp; sikkerhed</h2><div id="g-auth"></div></div>
+    <div class="section"><h2>Produkt &amp; fakturering</h2><div id="g-product"></div></div>
+  </div>
+  <script>
+    var origin = window.location.origin;
+    var base = origin + '/brand-v2/email/';
+    document.getElementById('base-url').textContent = base;
+    var templates = [
+      { g: 'onboarding', title: 'Welcome', file: 'welcome-onboarding.html', note: 'Efter konto oprettet' },
+      { g: 'onboarding', title: 'Onboarding reminder', file: 'onboarding-reminder.html', note: 'Profil ikke færdig' },
+      { g: 'auth', title: 'Email verification', file: 'email-verification.html', note: 'OTP + bekræft' },
+      { g: 'auth', title: 'Password reset', file: 'password-reset.html', note: 'Nulstil link' },
+      { g: 'auth', title: 'Password reset success', file: 'password-reset-success.html', note: 'Efter nulstilling' },
+      { g: 'product', title: 'Audit — preview report', file: 'audit-report-preview.html', note: 'Teaser efter første audit' },
+      { g: 'product', title: 'Audit — full report', file: 'audit-report-full.html', note: 'Efter 12 betalte måneder' },
+      { g: 'product', title: 'Payment receipt', file: 'payment-receipt.html', note: 'Kvittering' },
+      { g: 'product', title: 'Payment failed', file: 'payment-failed.html', note: 'Mislykket betaling' },
+      { g: 'product', title: 'Account updated', file: 'account-updated.html', note: 'Kontoændringer' }
+    ];
+    templates.forEach(function (t) {
+      var href = base + t.file;
+      var row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = '<a class="row-main" href="' + href + '" target="_blank" rel="noopener"><div class="row-title">' + t.title + '</div><div class="row-file">' + href + '</div>' + (t.note ? '<div class="row-note">' + t.note + '</div>' : '') + '</a><button type="button" class="copy">Kopiér</button>';
+      row.querySelector('.copy').addEventListener('click', function () {
+        var btn = this;
+        navigator.clipboard.writeText(href).then(function () {
+          btn.textContent = '✓';
+          btn.classList.add('ok');
+          setTimeout(function () { btn.textContent = 'Kopiér'; btn.classList.remove('ok'); }, 1500);
+        });
+      });
+      document.getElementById('g-' + t.g).appendChild(row);
+    });
+    document.getElementById('open-all').addEventListener('click', function () {
+      templates.forEach(function (t) { window.open(base + t.file, '_blank'); });
+    });
+  </script>
+</body>
+</html>

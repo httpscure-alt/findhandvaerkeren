@@ -55,10 +55,14 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     logger.info('✅ Stripe is configured');
 
     const userId = req.userId;
-    const { billingCycle, tier, serviceType } = req.body;
+    const { billingCycle, tier, serviceType, checkoutContext, returnQuery } = req.body;
+
+    const planTierRaw = typeof tier === 'string' ? tier : '';
+    const isGrowthBundle =
+      planTierRaw === 'growth_bundle' || serviceType === 'growth' || serviceType === 'growth_bundle';
 
     // Determine if this is a marketing service or partner plan
-    const isMarketingService = serviceType === 'ads' || serviceType === 'seo';
+    const isMarketingService = serviceType === 'ads' || serviceType === 'seo' || isGrowthBundle;
     const userRole = req.userRole;
 
     // Only Partners can purchase partner listing plans (marketing can be purchased by any authenticated user)
@@ -70,7 +74,12 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     // Validate based on service type
     if (isMarketingService) {
       // Marketing services are monthly only
-      if (!tier || !serviceType) {
+      if (isGrowthBundle) {
+        if (!planTierRaw && !tier) {
+          res.status(400).json({ error: 'Missing required field: tier (growth_bundle)' });
+          return;
+        }
+      } else if (!tier || !serviceType) {
         res.status(400).json({ error: 'Missing required fields: tier and serviceType' });
         return;
       }
@@ -83,7 +92,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     }
 
     // Default to Basic if tier not provided (for backward compatibility)
-    const planTier = tier || 'Basic';
+    const planTier = isGrowthBundle ? 'growth_bundle' : tier || 'Basic';
 
 
     // In development mode, allow test checkout without company
@@ -156,18 +165,29 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     let priceId: string | undefined;
 
     if (isMarketingService) {
-      // Marketing services: ads_basic, ads_standard, seo_pro, etc.
-      const [service, tierLevel] = tier.split('_'); // e.g., 'ads_basic' -> ['ads', 'basic']
-      const envKey = `STRIPE_PRICE_${service.toUpperCase()}_${tierLevel.toUpperCase()}`;
-      priceId = process.env[envKey];
+      if (isGrowthBundle) {
+        priceId = process.env.STRIPE_PRICE_GROWTH_BUNDLE;
+        logger.info(`🔍 Growth+ price ID: STRIPE_PRICE_GROWTH_BUNDLE = ${priceId}`);
+        if (!priceId) {
+          res.status(500).json({
+            error: 'Stripe price configuration missing for Growth+. Please set STRIPE_PRICE_GROWTH_BUNDLE.',
+          });
+          return;
+        }
+      } else {
+        // Marketing services: ads_basic, ads_standard, seo_pro, etc.
+        const [service, tierLevel] = String(tier).split('_');
+        const envKey = `STRIPE_PRICE_${service.toUpperCase()}_${tierLevel.toUpperCase()}`;
+        priceId = process.env[envKey];
 
-      logger.info(`🔍 Looking for marketing price ID: ${envKey} = ${priceId}`);
+        logger.info(`🔍 Looking for marketing price ID: ${envKey} = ${priceId}`);
 
-      if (!priceId) {
-        res.status(500).json({
-          error: `Stripe price configuration missing for ${service} ${tierLevel}. Please set ${envKey} in environment variables.`
-        });
-        return;
+        if (!priceId) {
+          res.status(500).json({
+            error: `Stripe price configuration missing for ${service} ${tierLevel}. Please set ${envKey} in environment variables.`,
+          });
+          return;
+        }
       }
     } else {
       // Partner plans: Basic/Gold with monthly/annual billing
@@ -198,7 +218,28 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
     }
 
     // Get client URL from environment
-    const clientUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://findhandvaerkeren.dk');
+    const clientUrl = (
+      process.env.ADVERO_SITE_URL ||
+      process.env.FRONTEND_URL ||
+      (process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : 'https://advero.dk')
+    ).replace(/\/$/, '');
+
+    const returnQs =
+      typeof returnQuery === 'string' && returnQuery.trim()
+        ? returnQuery.trim().replace(/^\?/, '')
+        : '';
+    const appendReturnQs = (base: string) => (returnQs ? `${base}${base.includes('?') ? '&' : '?'}${returnQs}` : base);
+
+    let successUrl = `${clientUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`;
+    let cancelUrl = `${clientUrl}/billing/cancel`;
+
+    if (checkoutContext === 'advero' && isMarketingService) {
+      const paidParam = encodeURIComponent(planTier);
+      successUrl = appendReturnQs(
+        `${clientUrl}/advero/get-started?step=5&session_id={CHECKOUT_SESSION_ID}&paid=${paidParam}`
+      );
+      cancelUrl = appendReturnQs(`${clientUrl}/advero/get-started?step=4`);
+    }
 
     // Create checkout session
     logger.info('🔵 Creating Stripe session with price:', priceId);
@@ -225,9 +266,11 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
         planTier: planTier,
         billingCycle: billingCycle || 'monthly',
         testMode: (!company).toString(),
+        checkoutContext: checkoutContext || '',
+        auditId: String(req.body?.auditId || '').trim(),
       },
-      success_url: `${clientUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${clientUrl}/billing/cancel`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       subscription_data: {
         ...(isMarketingService ? {} : { trial_period_days: 90 }),
         default_tax_rates: validTaxRate ? [taxRateId!] : [],
@@ -390,6 +433,31 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     logger.info(`✅ Marketing subscription created: ${marketingSubscription.id}`);
 
+    if (metadata.checkoutContext === 'advero' && metadata.userId && metadata.userId !== 'test-user') {
+      try {
+        const { initializeWorkspaceAfterPayment } = await import('../services/advero/adveroWorkspaceService');
+        const user = await prisma.user.findUnique({ where: { id: metadata.userId } });
+        const tierId = metadata.planTier || 'seo_standard';
+        const serviceLine = (metadata.serviceType as string) || 'seo';
+        await initializeWorkspaceAfterPayment({
+          userId: metadata.userId,
+          companyName: user?.name || session.customer_details?.name || 'Advero workspace',
+          contactEmail: user?.email || session.customer_email || undefined,
+          tierId,
+          serviceLine,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: subscriptionId,
+          stripePriceId: priceId,
+          billingCycle: metadata.billingCycle,
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          auditId: metadata.auditId || undefined,
+        });
+        logger.info('Advero workspace initialized after Stripe checkout', { userId: metadata.userId });
+      } catch (adveroErr) {
+        logger.error('Advero workspace init failed', adveroErr);
+      }
+    }
+
     return; // Exit early for marketing services
   }
 
@@ -474,20 +542,28 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       // Send payment success email
       if (company.owner?.email) {
         try {
-          await sendPaymentSuccessEmail(company.owner.email, {
-            companyName: company.name,
-            amount: session.amount_total ? session.amount_total / 100 : 0,
-            currency: session.currency || 'dkk',
-            billingCycle: billingCycle,
-            tier: tier,
-          });
+          await sendPaymentSuccessEmail(
+            company.owner.email,
+            {
+              companyName: company.name,
+              amount: session.amount_total ? session.amount_total / 100 : 0,
+              currency: session.currency || 'dkk',
+              billingCycle: billingCycle,
+              tier: tier,
+              invoiceId: session.id ? `#${String(session.id).slice(-12).toUpperCase()}` : undefined,
+            },
+            company.owner.name
+          );
 
-          // Send subscription activated email
-          await sendSubscriptionActivatedEmail(company.owner.email, {
-            companyName: company.name,
-            tier: tier,
-            billingCycle: billingCycle,
-          });
+          await sendSubscriptionActivatedEmail(
+            company.owner.email,
+            {
+              companyName: company.name,
+              tier: tier,
+              billingCycle: billingCycle,
+            },
+            company.owner.name
+          );
         } catch (emailError) {
           logger.error(`Failed to send payment success email: ${emailError}`);
         }
@@ -863,7 +939,8 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
           currency: invoice.currency || 'dkk',
           failureReason: (invoice as any).last_payment_error?.message || 'Unknown error',
           invoiceUrl: invoice.hosted_invoice_url || undefined,
-        }
+        },
+        dbSubscription.company.owner.name
       );
     } catch (emailError) {
       // Log email error but don't fail webhook
@@ -921,7 +998,7 @@ export const createPortalSession = async (req: AuthRequest, res: Response): Prom
     }
 
     // Get client URL from environment
-    const clientUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://findhandvaerkeren.dk');
+    const clientUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : 'https://findhandvaerkeren.dk');
 
     // Create billing portal session
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -946,9 +1023,11 @@ async function sendPaymentSuccessEmail(
     currency: string;
     billingCycle: string;
     tier: string;
-  }
+    invoiceId?: string;
+  },
+  ownerName?: string | null
 ): Promise<void> {
-  await emailService.sendPaymentSuccessEmail(email, data);
+  await emailService.sendPaymentSuccessEmail(email, data, { brand: 'advero', name: ownerName });
 
   await prisma.emailLog.create({
     data: {
@@ -974,9 +1053,10 @@ async function sendPaymentFailedEmail(
     currency: string;
     failureReason: string;
     invoiceUrl?: string;
-  }
+  },
+  ownerName?: string | null
 ): Promise<void> {
-  await emailService.sendPaymentFailedEmail(email, data);
+  await emailService.sendPaymentFailedEmail(email, data, { brand: 'advero', name: ownerName });
 
   await prisma.emailLog.create({
     data: {
@@ -1000,9 +1080,10 @@ async function sendSubscriptionActivatedEmail(
     companyName: string;
     tier: string;
     billingCycle: string;
-  }
+  },
+  ownerName?: string | null
 ): Promise<void> {
-  await emailService.sendSubscriptionActivatedEmail(email, data);
+  await emailService.sendSubscriptionActivatedEmail(email, data, { brand: 'advero', name: ownerName });
 
   await prisma.emailLog.create({
     data: {

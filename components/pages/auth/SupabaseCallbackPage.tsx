@@ -16,7 +16,7 @@ export default function SupabaseCallbackPage({ lang }: { lang: Language }) {
     const run = async () => {
       if (!supabase || !isSupabaseConfigured) {
         toast.error(isDa ? 'Supabase er ikke konfigureret' : 'Supabase is not configured');
-        navigate('/auth', { replace: true });
+        navigate('/advero/login', { replace: true });
         return;
       }
 
@@ -26,24 +26,29 @@ export default function SupabaseCallbackPage({ lang }: { lang: Language }) {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
         toast.error(error.message);
-        navigate('/auth', { replace: true });
+        navigate('/advero/login', { replace: true });
         return;
       }
 
       const accessToken = data.session?.access_token;
       if (!accessToken) {
         toast.error(isDa ? 'Manglende Supabase session' : 'Missing Supabase session');
-        navigate('/auth', { replace: true });
+        navigate('/advero/login', { replace: true });
         return;
       }
 
       try {
         await loginWithSupabase(accessToken, roleHint);
         toast.success(isDa ? 'Logget ind' : 'Signed in');
-        navigate('/', { replace: true });
+        const nextRaw = qs.get('next');
+        const next =
+          nextRaw && nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : null;
+        const fallback =
+          nextRaw && nextRaw.includes('/advero') ? '/advero/dashboard' : '/';
+        navigate(next ?? fallback, { replace: true });
       } catch (e: any) {
         toast.error(e?.message || (isDa ? 'Login fejlede' : 'Login failed'));
-        navigate('/auth', { replace: true });
+        navigate('/advero/login', { replace: true });
       }
     };
 

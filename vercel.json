@@ -1,12 +1,145 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "xn--findhndvrkeren-pibt.dk" }],
+      "destination": "https://advero.dk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.xn--findhndvrkeren-pibt.dk" }],
+      "destination": "https://advero.dk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.advero.dk" }],
+      "destination": "https://advero.dk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/brand-v2/preview-advero-v3-design-system.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/brand-v2/preview-advero-v3-design-system",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/brand-v2/advero-contact.html",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/pricing",
+      "destination": "/#tiers",
+      "permanent": false
+    },
+    {
+      "source": "/plans",
+      "destination": "/#tiers",
+      "permanent": false
+    },
+    {
+      "source": "/how-it-works",
+      "destination": "/#how-we-work",
+      "permanent": false
+    },
+    {
+      "source": "/overview",
+      "destination": "/#overview",
+      "permanent": false
+    },
+    {
+      "source": "/platform",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/browse",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/browse/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/categories",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/get-offers",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/for-businesses",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/marketing",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/profile/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/advero/admin",
+      "permanent": false
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "/advero/dashboard",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/",
-      "destination": "/index.html"
+      "destination": "/site/home.html"
     },
     {
-      "source": "/:path((?!mockups(?:/|$))(?!client-preview(?:/|$))(?!brand(?:/|$))(?!sitemap\\.xml$)(?!robots\\.txt$)(?!favicon\\.ico$).+)",
-      "destination": "/index.html"
+      "source": "/contact",
+      "destination": "/site/contact.html"
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/blog",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/advero/:path*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/billing/:path*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/brand-v2/growth-pricing",
+      "destination": "/app.html"
     }
   ]
 }

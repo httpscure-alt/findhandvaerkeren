@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="da" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand v2 preview — Nucleus (light)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root { --accent: #D86A5A; }
+    body {
+      font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #fafafa;
+      color: #1c1c1c;
+      background-image: radial-gradient(rgba(28, 28, 28, 0.055) 1px, transparent 1px);
+      background-size: 22px 22px;
+      background-position: center top;
+    }
+    .font-display {
+      font-family: Fraunces, ui-serif, Georgia, "Times New Roman", serif;
+      font-optical-sizing: auto;
+    }
+    .grid-lines::before,
+    .grid-lines::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(15, 23, 42, 0.06);
+      z-index: -1;
+    }
+    .grid-lines::before { left: 0; }
+    .grid-lines::after { right: 0; }
+    .corner-marker {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background-color: var(--accent);
+      opacity: 0.45;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+    .image-overlay {
+      background: linear-gradient(to top, rgba(250, 250, 250, 0.97) 0%, rgba(250, 250, 250, 0.35) 55%, transparent 100%);
+    }
+    .scanlines {
+      background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.02));
+      background-size: 100% 4px;
+    }
+  </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-[#D86A5A]/15 selection:text-slate-900">
+  <main class="max-w-[1400px] mx-auto px-4 sm:px-8 relative grid-lines min-h-screen border-x border-slate-200/60">
+    <div class="hidden lg:block absolute inset-y-0 left-[58.333%] w-px bg-slate-200/70 -z-10"></div>
+
+    <!-- Header -->
+    <header class="pt-10 pb-6">
+      <div class="flex items-center justify-between gap-4">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
+            <img src="/brand/logo-mark.png" alt="Logo" class="w-6 h-6 object-contain opacity-90" />
+          </div>
+          <div class="flex flex-col leading-tight">
+            <span class="text-sm font-semibold tracking-tight text-slate-900 font-display">Findhåndværkeren</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-500">Growth services (preview)</span>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-6 text-xs tracking-widest uppercase text-slate-500 font-semibold">
+          <a class="hover:text-slate-800 transition" href="#tiers" data-i18n="nav.tiers">Pakker</a>
+          <a class="hover:text-slate-800 transition" href="#cpl" data-i18n="nav.cpl">Lead priser</a>
+          <a class="hover:text-slate-800 transition" href="#process" data-i18n="nav.process">Proces</a>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="langToggle"
+            class="text-xs tracking-widest uppercase px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition text-slate-600 font-semibold shadow-sm"
+            aria-label="Toggle language"
+          >
+            EN
+          </button>
+          <a href="#tiers" class="text-xs tracking-widest uppercase px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-sm font-semibold">
+            <span data-i18n="cta.seeTiers">Se pakker</span>
+          </a>
+          <a href="/brand-v2/advero-contact.html" class="text-xs tracking-widest uppercase px-4 py-2 rounded-full text-white hover:opacity-95 transition shadow-sm font-semibold" style="background-color: var(--accent)">
+            <span data-i18n="cta.contact">Kontakt os</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Section 1: Hero + proof cards -->
+    <section class="relative w-full pb-20">
+      <div class="corner-marker top-0 left-0"></div>
+      <div class="corner-marker top-0 right-0"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
+        <!-- Left -->
+        <div class="lg:col-span-7 flex flex-col pt-6">
+          <div class="inline-flex items-center gap-2 text-[10px] font-semibold tracking-widest text-slate-600 uppercase backdrop-blur-md bg-white/90 border border-slate-200/90 px-3 py-1.5 rounded-full w-fit shadow-sm">
+            <span class="inline-block w-2 h-2 rounded-full shrink-0 animate-pulse" style="background-color: var(--accent)"></span>
+            <span data-i18n="hero.kicker">Eksklusive væksttjenester</span>
+          </div>
+
+          <h1 class="font-display mt-8 text-[2.75rem] sm:text-[3.5rem] lg:text-[4.5rem] leading-[1.05] tracking-tight text-slate-900 font-semibold">
+            <span data-i18n="hero.titlePrefix">Få flere leads med</span>
+            <span class="text-slate-400"> Google Ads</span>
+            <span class="text-slate-400"> &amp;</span>
+            <span style="color: var(--accent)"> SEO</span>
+          </h1>
+
+          <p class="mt-6 text-sm sm:text-base text-slate-600 leading-relaxed max-w-[62ch]" data-i18n="hero.sub">
+            Vi hjælper danske håndværkere med at dominere deres lokale marked — fra første klik til færdig opgave.
+          </p>
+
+          <div class="mt-10 flex flex-col sm:flex-row gap-3">
+            <a href="#tiers" class="inline-flex items-center justify-center gap-3 bg-slate-900 text-white px-6 py-4 rounded-xl text-xs font-semibold tracking-widest uppercase hover:bg-slate-800 transition shadow-md">
+              <span data-i18n="hero.primaryCta">Se hvordan vi vækster din virksomhed</span>
+              <span class="w-2 h-2 rounded-full shrink-0" style="background-color: var(--accent)"></span>
+            </a>
+            <a href="/signup?service=ads&tier=ads_standard" class="inline-flex items-center justify-center gap-3 bg-white text-slate-800 px-6 py-4 rounded-xl text-xs font-semibold tracking-widest uppercase border border-slate-200 hover:bg-slate-50 transition shadow-sm">
+              <span data-i18n="hero.secondaryCta">Start vækst nu</span>
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0"></span>
+            </a>
+          </div>
+
+          <!-- Feature image card -->
+          <div class="mt-10 relative rounded-2xl bg-gradient-to-b from-slate-200/80 via-slate-100/40 to-transparent p-px group shadow-sm">
+            <div class="corner-marker top-0 left-0"></div>
+            <div class="corner-marker top-0 right-0"></div>
+            <div class="corner-marker bottom-0 left-0"></div>
+            <div class="corner-marker bottom-0 right-0"></div>
+
+            <div class="relative h-[360px] sm:h-[440px] w-full rounded-2xl bg-slate-100 overflow-hidden flex flex-col justify-end border border-slate-200/80">
+              <img src="/brand/logo-full.png" alt="Findhåndværkeren" class="absolute inset-0 w-full h-full object-cover object-center opacity-25 group-hover:opacity-30 transition-opacity duration-700">
+              <div class="absolute inset-0 scanlines opacity-40 pointer-events-none"></div>
+              <div class="absolute inset-0 image-overlay pointer-events-none"></div>
+
+              <div class="absolute top-6 left-6 flex items-center gap-2 text-[10px] font-semibold tracking-widest text-slate-600 uppercase backdrop-blur-md bg-white/90 border border-slate-200/90 px-3 py-1.5 rounded-full z-20 shadow-sm">
+                <span class="inline-block w-2 h-2 rounded-full shrink-0 animate-pulse" style="background-color: var(--accent)"></span>
+                Live metrics
+              </div>
+
+              <div class="relative z-20 p-8 sm:p-10 flex flex-col items-start w-full">
+                <div class="w-full flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+                  <h2 class="font-display text-6xl sm:text-7xl lg:text-[5rem] tracking-tight font-semibold text-slate-900 leading-none">90 dage</h2>
+                  <span class="text-xs sm:text-sm font-semibold tracking-widest text-slate-500 uppercase">Din vej til 1. pladsen</span>
+                </div>
+                <div class="w-full h-px bg-gradient-to-r from-slate-300/80 to-transparent mt-6 mb-2"></div>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-[62ch]">
+                  Opsætning → Målretning → Aktivering → Monitorering. En simpel proces, der skaber målbar performance.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: proof cards -->
+        <div class="lg:col-span-5 flex flex-col gap-5 pt-6 lg:pt-0">
+          <div class="relative rounded-2xl bg-gradient-to-b from-slate-200/60 to-transparent p-px shadow-sm">
+            <div class="relative rounded-2xl bg-white border border-slate-200/90 p-7 sm:p-8 flex flex-col h-full hover:border-slate-300/90 hover:shadow-md transition-shadow duration-300">
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal mb-8">
+                “Avanceret sporing + månedlig rapportering, så du kan se præcis hvad der virker.”
+              </p>
+              <div class="flex items-center gap-4 mt-auto">
+                <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200"></div>
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-slate-900 tracking-tight">Tracking</span>
+                  <span class="text-[11px] text-slate-500 tracking-wide uppercase mt-0.5 font-semibold">GA4 · GTM · GSC</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative rounded-2xl bg-gradient-to-b from-slate-200/60 to-transparent p-px shadow-sm">
+            <div class="relative rounded-2xl bg-white border border-slate-200/90 p-7 sm:p-8 flex flex-col h-full hover:border-slate-300/90 hover:shadow-md transition-shadow duration-300">
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal mb-8">
+                “Professionelle annoncer, søgeordsanalyse og struktur der er bygget til leads — ikke bare klik.”
+              </p>
+              <div class="flex items-center gap-4 mt-auto">
+                <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200"></div>
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-slate-900 tracking-tight">Google Ads</span>
+                  <span class="text-[11px] text-slate-500 tracking-wide uppercase mt-0.5 font-semibold">Search · struktur · optimering</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative rounded-2xl bg-gradient-to-b from-slate-200/60 to-transparent p-px shadow-sm">
+            <div class="relative rounded-2xl bg-white border border-slate-200/90 p-7 sm:p-8 flex flex-col h-full hover:border-slate-300/90 hover:shadow-md transition-shadow duration-300">
+              <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal mb-8">
+                “Teknisk SEO + content-plan, så du bliver fundet for de rigtige søgninger i dit område.”
+              </p>
+              <div class="flex items-center gap-4 mt-auto">
+                <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200"></div>
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-slate-900 tracking-tight">SEO</span>
+                  <span class="text-[11px] text-slate-500 tracking-wide uppercase mt-0.5 font-semibold">lokalt · on-page · content</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Pricing -->
+    <section id="tiers" class="relative w-full py-20 border-y border-slate-200/80 bg-gradient-to-r from-white via-slate-50/80 to-white">
+      <div class="corner-marker top-0 left-0"></div>
+      <div class="corner-marker top-0 right-0"></div>
+      <div class="corner-marker bottom-0 left-0"></div>
+      <div class="corner-marker bottom-0 right-0"></div>
+
+      <div class="px-0 sm:px-2">
+        <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+          <div>
+            <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mb-2">Vælg din vækstmotor</h2>
+            <p class="text-sm text-slate-500 tracking-wide">Google Ads eller SEO — samme mål: flere leads.</p>
+          </div>
+          <div class="flex items-center gap-2 text-[10px] font-semibold tracking-widest text-slate-600 uppercase backdrop-blur-md bg-white/90 border border-slate-200/90 px-3 py-1.5 rounded-full shadow-sm">
+            Abonnement · månedligt
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
+          <div class="relative rounded-2xl bg-gradient-to-b from-slate-200/70 to-transparent p-px shadow-sm">
+            <div class="relative rounded-2xl bg-white border border-slate-200/90 p-7 flex flex-col h-full min-h-[340px]">
+              <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Google Ads</div>
+              <div class="mt-2 text-lg font-semibold text-slate-900">Basic</div>
+              <div class="text-sm text-slate-500">Lokal Synlighed</div>
+              <div class="mt-6 flex items-baseline gap-2">
+                <span class="text-4xl font-semibold tracking-tight text-slate-900">1.000</span>
+                <span class="text-xs text-slate-400 uppercase tracking-widest">DKK / md.</span>
+              </div>
+              <ul class="mt-6 space-y-3 text-sm text-slate-600">
+                <li>1 Søgekampagne</li>
+                <li>5 Annoncegrupper</li>
+                <li>Professionelle annoncer</li>
+                <li>Basal konverteringssporing</li>
+                <li>Månedlig optimering</li>
+              </ul>
+              <a href="/signup?service=ads&tier=ads_basic" class="mt-auto inline-flex items-center justify-center gap-3 bg-slate-50 text-slate-800 px-6 py-3 rounded-xl text-xs font-semibold tracking-widest uppercase border border-slate-200 hover:bg-slate-100 transition">
+                Start Vækst nu
+              </a>
+              <div class="mt-3 text-[10px] text-center text-slate-400 italic">* Annonceforbrug betales direkte til Google</div>
+            </div>
+          </div>
+
+          <div class="relative rounded-2xl p-px shadow-md" style="background: linear-gradient(to bottom, rgba(216,106,90,0.45), transparent)">
+            <div class="relative rounded-2xl bg-white border border-slate-200/90 p-7 flex flex-col h-full min-h-[340px]">
+              <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] tracking-widest uppercase text-white px-4 py-1.5 rounded-full font-semibold shadow" style="background-color: var(--accent)">
+                Mest populær
+              </div>
+              <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Google Ads</div>
+              <div class="mt-2 text-lg font-semibold text-slate-900">Standard</div>
+              <div class="text-sm text-slate-500">Stabil Vækst</div>
+              <div class="mt-6 flex items-baseline gap-2">
+                <span class="text-4xl font-semibold tracking-tight text-slate-900">2.000</span>
+                <span class="text-xs text-slate-400 uppercase tracking-widest">DKK / md.</span>
+              </div>
+              <ul class="mt-6 space-y-3 text-sm text-slate-600">
+                <li>2 Søgekampagner</li>
+                <li>15 Annoncegrupper</li>
+                <li>Udvidet søgeordsanalyse</li>
+                <li>Avanceret sporing</li>
+                <li>Månedlig rapport</li>
+              </ul>
+              <a href="/signup?service=ads&tier=ads_standard" class="mt-auto inline-flex items-center justify-center gap-3 text-white px-6 py-3 rounded-xl text-xs font-semibold tracking-widest uppercase shadow-sm hover:opacity-95 transition" style="background-color: var(--accent)">
+                Start Vækst nu
+              </a>
+              <div class="mt-3 text-[10px] text-center text-slate-400 italic">* Annonceforbrug betales direkte til Google</div>
+            </div>
+          </div>
+
+          <div class="relative rounded-2xl bg-gradient-to-b from-slate-200/70 to-transparent p-px shadow-sm">
+            <div class="relative rounded-2xl bg-white border border-slate-200/90 p-7 flex flex-col h-full min-h-[340px]">
+              <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">SEO</div>
+              <div class="mt-2 text-lg font-semibold text-slate-900">Standard</div>
+              <div class="text-sm text-slate-500">Stabil Vækst</div>
+              <div class="mt-6 flex items-baseline gap-2">
+                <span class="text-4xl font-semibold tracking-tight text-slate-900">3.000</span>
+                <span class="text-xs text-slate-400 uppercase tracking-widest">DKK / md.</span>
+              </div>
+              <ul class="mt-6 space-y-3 text-sm text-slate-600">
+                <li>Udvidet analyse (25 ord)</li>
+                <li>Optimering af flere sider</li>
+                <li>2-3 Blogindlæg / md.</li>
+                <li>Teknisk SEO</li>
+                <li>Rapportering med KPI</li>
+              </ul>
+              <a href="/signup?service=seo&tier=seo_standard" class="mt-auto inline-flex items-center justify-center gap-3 bg-slate-50 text-slate-800 px-6 py-3 rounded-xl text-xs font-semibold tracking-widest uppercase border border-slate-200 hover:bg-slate-100 transition">
+                Start Vækst nu
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 text-xs text-slate-500 leading-relaxed">
+          Preview note: På den rigtige side vil vi vise faner for Ads/SEO og alle 3 prisniveauer (Basic/Standard/Pro) for begge.
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: CPL benchmarks -->
+    <section id="cpl" class="relative w-full py-20">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
+        <div class="lg:col-span-5">
+          <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mb-3">Hvad koster et lead?</h2>
+          <p class="text-sm text-slate-500 leading-relaxed">
+            Estimeret pris pr. lead baseret på det danske marked. (Bruges som benchmark — ikke garanti.)
+          </p>
+        </div>
+        <div class="lg:col-span-7 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-sm">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Tømrer</p>
+            <p class="text-2xl font-semibold text-slate-900 tracking-tight">150 - 300 <span class="text-xs text-slate-400">DKK</span></p>
+          </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-sm">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">VVS</p>
+            <p class="text-2xl font-semibold text-slate-900 tracking-tight">200 - 450 <span class="text-xs text-slate-400">DKK</span></p>
+          </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-sm">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Elektriker</p>
+            <p class="text-2xl font-semibold text-slate-900 tracking-tight">180 - 400 <span class="text-xs text-slate-400">DKK</span></p>
+          </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center shadow-sm">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Maler</p>
+            <p class="text-2xl font-semibold text-slate-900 tracking-tight">100 - 250 <span class="text-xs text-slate-400">DKK</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Process -->
+    <section id="process" class="relative w-full py-20 border-t border-slate-200/80">
+      <div class="text-center mb-12">
+        <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mb-3">Din vej til 1. pladsen på 90 dage</h2>
+        <p class="text-sm text-slate-500">Vi følger en gennemtestet proces for at sikre de bedste resultater.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
+          <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-3 font-semibold">01</div>
+          <div class="text-slate-900 font-semibold mb-2">Opsætning</div>
+          <div class="text-sm text-slate-600 leading-relaxed">Vi konfigurerer dine profiler og konti til optimal performance.</div>
+        </div>
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
+          <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-3 font-semibold">02</div>
+          <div class="text-slate-900 font-semibold mb-2">Målretning</div>
+          <div class="text-sm text-slate-600 leading-relaxed">Definition af geografi, søgeord og målgrupper.</div>
+        </div>
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
+          <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-3 font-semibold">03</div>
+          <div class="text-slate-900 font-semibold mb-2">Aktivering</div>
+          <div class="text-sm text-slate-600 leading-relaxed">Vi udruller kampagner og optimeringer med det samme.</div>
+        </div>
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
+          <div class="text-[10px] text-slate-400 uppercase tracking-widest mb-3 font-semibold">04</div>
+          <div class="text-slate-900 font-semibold mb-2">Monitorering</div>
+          <div class="text-sm text-slate-600 leading-relaxed">Proaktiv justering baseret på faktiske performance-data.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Cross-sell -->
+    <section class="relative w-full py-20 border-t border-slate-200/80">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mb-4">Ikke klar til fuld skalering endnu?</h2>
+        <p class="text-sm sm:text-base text-slate-600 leading-relaxed mb-8">
+          Start med at blive en del af vores marketplace. Opret din profil, bliv verificeret og bliv fundet af lokale kunder.
+        </p>
+        <a href="/for-businesses" class="inline-flex items-center gap-3 bg-white text-slate-800 px-7 py-4 rounded-xl text-xs font-semibold tracking-widest uppercase border border-slate-200 shadow-sm hover:bg-slate-50 transition">
+          Se hvordan du bliver listet
+          <span class="w-2 h-2 rounded-full shrink-0" style="background-color: var(--accent)"></span>
+        </a>
+      </div>
+    </section>
+
+    <footer class="py-10 text-center text-[10px] tracking-widest uppercase text-slate-400">
+      Brand v2 preview · Nucleus (light) · Content mirrors current marketing page structure
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      const dict = {
+        da: {
+          'nav.tiers': 'Pakker',
+          'nav.cpl': 'Lead priser',
+          'nav.process': 'Proces',
+          'cta.seeTiers': 'Se pakker',
+          'cta.contact': 'Kontakt os',
+          'hero.kicker': 'Eksklusive væksttjenester',
+          'hero.titlePrefix': 'Få flere leads med',
+          'hero.sub': 'Vi hjælper danske håndværkere med at dominere deres lokale marked — fra første klik til færdig opgave.',
+          'hero.primaryCta': 'Se hvordan vi vækster din virksomhed',
+          'hero.secondaryCta': 'Start vækst nu',
+        },
+        en: {
+          'nav.tiers': 'Packages',
+          'nav.cpl': 'Lead costs',
+          'nav.process': 'Process',
+          'cta.seeTiers': 'See packages',
+          'cta.contact': 'Contact us',
+          'hero.kicker': 'Exclusive growth services',
+          'hero.titlePrefix': 'Get more leads with',
+          'hero.sub': 'We help Danish craftsmen dominate their local market — from the first click to a finished job.',
+          'hero.primaryCta': 'See how we grow your business',
+          'hero.secondaryCta': 'Start growth now',
+        },
+      };
+
+      const root = document.documentElement;
+      const btn = document.getElementById('langToggle');
+      if (!btn) return;
+
+      function applyLang(lang) {
+        root.lang = lang;
+        btn.textContent = lang === 'da' ? 'EN' : 'DA';
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+          const k = el.getAttribute('data-i18n');
+          if (!k) return;
+          const v = (dict[lang] && dict[lang][k]) || null;
+          if (v) el.textContent = v;
+        });
+      }
+
+      const saved = (function () {
+        try { return localStorage.getItem('brandV2Lang'); } catch (e) { return null; }
+      })();
+      const initial = saved === 'en' ? 'en' : 'da';
+      applyLang(initial);
+
+      btn.addEventListener('click', function () {
+        const next = root.lang === 'da' ? 'en' : 'da';
+        applyLang(next);
+        try { localStorage.setItem('brandV2Lang', next); } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>

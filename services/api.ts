@@ -4,8 +4,36 @@ const API_BASE_URL = (import.meta as any).env.VITE_API_URL || '';
 const USE_MOCK_API = (import.meta as any).env.VITE_USE_MOCK_API === 'true' || !API_BASE_URL;
 const IS_DEV = (import.meta as any).env.DEV;
 
-
 import { mockApi } from './mockApi';
+
+function hasMockSessionToken(): boolean {
+  try {
+    const token = localStorage.getItem('token');
+    return !!token && token.startsWith('mock-token-');
+  } catch {
+    return false;
+  }
+}
+
+/** Prefer mock API for auth when backend is down (common in local dev). */
+function canMockAuthFallback(error: unknown): boolean {
+  const msg = String((error as Error)?.message || '');
+  return (
+    msg === 'USE_MOCK_API' ||
+    msg === 'API_NOT_AVAILABLE' ||
+    msg.includes('Failed to fetch') ||
+    msg.includes('NetworkError') ||
+    msg.includes('Database connection') ||
+    msg.includes("Can't reach database") ||
+    msg.includes('Failed to login') ||
+    msg.includes('Failed to register')
+  );
+}
+
+function shouldRouteToMockApi(endpoint: string): boolean {
+  if (endpoint.includes('/stripe/')) return false;
+  return USE_MOCK_API || (IS_DEV && hasMockSessionToken());
+}
 
 interface RequestOptions {
   method?: string;
@@ -41,8 +69,8 @@ class ApiService {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<T> {
-    // Use mock API if enabled, BUT allow Stripe endpoints to hit the real backend
-    if (USE_MOCK_API && !endpoint.includes('/stripe/')) {
+    // Use mock API when enabled or when logged in via mock session (dev)
+    if (shouldRouteToMockApi(endpoint)) {
       throw new Error('USE_MOCK_API');
     }
 
@@ -55,13 +83,7 @@ class ApiService {
       throw new Error('API_NOT_AVAILABLE');
     }
 
-    // Check if we have a mock token - if so, use mock API
-    const rawToken = localStorage.getItem('token');
     const token = this.getToken();
-    // If we have a raw token but getToken() returns null, it's a mock token
-    if (options.requiresAuth !== false && rawToken && rawToken.startsWith('mock-token-')) {
-      throw new Error('API_NOT_AVAILABLE');
-    }
 
     // Quick check if API is reachable (only for localhost)
     // Skip health check for Stripe endpoints - they handle their own errors
@@ -206,7 +228,15 @@ class ApiService {
   }
 
   // Auth
-  async register(data: { email: string; password: string; name?: string; firstName?: string; lastName?: string; role?: string }) {
+  async register(data: {
+    email: string;
+    password: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+    brand?: 'platform' | 'advero';
+  }) {
     try {
       return await this.request<{ user: any; token: string }>('/auth/register', {
         method: 'POST',
@@ -214,7 +244,8 @@ class ApiService {
         requiresAuth: false,
       });
     } catch (error: any) {
-      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+      if (canMockAuthFallback(error) && (USE_MOCK_API || IS_DEV)) {
+        if (IS_DEV) console.warn('[api] register → mock fallback:', error.message);
         return mockApi.register(data);
       }
       throw error;
@@ -229,22 +260,19 @@ class ApiService {
         requiresAuth: false,
       });
     } catch (error: any) {
-      // If it's a database connection error or API not available, use mock login
-      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' ||
-        error.message === 'API_NOT_AVAILABLE' ||
-        error.message.includes('Database connection error') ||
-        error.message.includes('Failed to login'))) {
+      if (canMockAuthFallback(error) && (USE_MOCK_API || IS_DEV)) {
+        if (IS_DEV) console.warn('[api] login → mock fallback:', error.message);
         return mockApi.login(email, password);
       }
       throw error;
     }
   }
 
-  async verifyOtp(email: string, otp: string) {
+  async verifyOtp(email: string, otp: string, brand?: 'platform' | 'advero') {
     try {
       return await this.request<{ user: any; token: string }>('/auth/verify-otp', {
         method: 'POST',
-        body: { email, otp },
+        body: { email, otp, ...(brand ? { brand } : {}) },
         requiresAuth: false,
       });
     } catch (error: any) {
@@ -252,11 +280,11 @@ class ApiService {
     }
   }
 
-  async resendOtp(email: string) {
+  async resendOtp(email: string, brand?: 'platform' | 'advero') {
     try {
       return await this.request<{ message: string }>('/auth/resend-otp', {
         method: 'POST',
-        body: { email },
+        body: { email, ...(brand ? { brand } : {}) },
         requiresAuth: false,
       });
     } catch (error: any) {
@@ -1224,8 +1252,14 @@ class ApiService {
   }
 
   // Stripe Payment
-  async createCheckoutSession(data: { billingCycle?: 'monthly' | 'annual'; tier?: string; serviceType?: string }) {
-    const { billingCycle = 'monthly', tier, serviceType } = data;
+  async createCheckoutSession(data: {
+    billingCycle?: 'monthly' | 'annual';
+    tier?: string;
+    serviceType?: string;
+    checkoutContext?: 'advero';
+    returnQuery?: string;
+  }) {
+    const { billingCycle = 'monthly', tier, serviceType, checkoutContext, returnQuery } = data;
     if (IS_DEV) console.log('Creating Stripe checkout session...', data);
 
     if (!API_BASE_URL) {
@@ -1235,7 +1269,13 @@ class ApiService {
     try {
       const result = await this.request<{ url: string }>('/stripe/create-checkout-session', {
         method: 'POST',
-        body: { billingCycle, tier: tier || (serviceType ? undefined : 'Premium'), serviceType },
+        body: {
+          billingCycle,
+          tier: tier || (serviceType ? undefined : 'Premium'),
+          serviceType,
+          checkoutContext,
+          returnQuery,
+        },
       });
 
 
@@ -1859,14 +1899,14 @@ class ApiService {
     });
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, brand?: 'platform' | 'advero') {
     return await this.request<{ success: boolean }>('/auth/forgot-password', {
       method: 'POST',
-      body: { email },
+      body: { email, ...(brand ? { brand } : {}) },
     });
   }
 
-  async resetPassword(payload: { email: string; token: string; newPassword: string }) {
+  async resetPassword(payload: { email: string; token: string; newPassword: string; brand?: 'platform' | 'advero' }) {
     return await this.request<{ success: boolean }>('/auth/reset-password', {
       method: 'POST',
       body: payload,
@@ -1920,7 +1960,7 @@ class ApiService {
       });
     } catch (error: any) {
       if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
-        return { posts: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } };
+        return mockApi.getBlogPosts(params);
       }
       throw error;
     }
@@ -1930,6 +1970,9 @@ class ApiService {
     try {
       return await this.request<{ post: any }>(`/blog/${slug}`, { requiresAuth: false });
     } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.getBlogPost(slug);
+      }
       throw error;
     }
   }
@@ -1940,7 +1983,7 @@ class ApiService {
       return await this.request<{ posts: any[]; pagination: any }>('/blog/admin/posts', { params });
     } catch (error: any) {
       if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
-        return { posts: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } };
+        return mockApi.adminGetAllBlogPosts(params);
       }
       throw error;
     }
@@ -1950,6 +1993,9 @@ class ApiService {
     try {
       return await this.request<{ post: any }>('/blog/admin/posts', { method: 'POST', body: data });
     } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.adminCreateBlogPost(data);
+      }
       throw error;
     }
   }
@@ -1958,6 +2004,9 @@ class ApiService {
     try {
       return await this.request<{ post: any }>(`/blog/admin/posts/${id}`, { method: 'PUT', body: data });
     } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.adminUpdateBlogPost(id, data);
+      }
       throw error;
     }
   }
@@ -1966,8 +2015,132 @@ class ApiService {
     try {
       return await this.request<{ message: string }>(`/blog/admin/posts/${id}`, { method: 'DELETE' });
     } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.adminDeleteBlogPost(id);
+      }
       throw error;
     }
+  }
+
+  async createVisibilityAudit(data: {
+    companyName: string;
+    websiteUrl?: string;
+    serviceArea?: string;
+    industry?: string;
+    growthGoal?: string;
+    contactEmail?: string;
+  }) {
+    try {
+      return await this.request<{ audit: import('../lib/mockAnalyzeVisibility').VisibilityAuditResult }>('/advero/audits', {
+        method: 'POST',
+        body: data,
+        requiresAuth: false,
+      });
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.createVisibilityAudit(data);
+      }
+      throw error;
+    }
+  }
+
+  async getVisibilityAudit(id: string) {
+    try {
+      return await this.request<{ audit: import('../lib/mockAnalyzeVisibility').VisibilityAuditResult }>(
+        `/advero/audits/${id}`,
+        { requiresAuth: false }
+      );
+    } catch (error: any) {
+      if (USE_MOCK_API && (error.message === 'USE_MOCK_API' || error.message === 'API_NOT_AVAILABLE')) {
+        return mockApi.getVisibilityAudit(id);
+      }
+      throw error;
+    }
+  }
+
+  async pollVisibilityAudit(
+    id: string,
+    opts?: { intervalMs?: number; timeoutMs?: number }
+  ): Promise<{ audit: import('../lib/mockAnalyzeVisibility').VisibilityAuditResult }> {
+    const intervalMs = opts?.intervalMs ?? 2000;
+    const timeoutMs = opts?.timeoutMs ?? 120000;
+    const started = Date.now();
+    for (;;) {
+      const { audit } = await this.getVisibilityAudit(id);
+      if (audit.status === 'complete' || audit.status === 'failed') {
+        return { audit };
+      }
+      if (Date.now() - started > timeoutMs) {
+        throw new Error('AUDIT_TIMEOUT');
+      }
+      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+  }
+
+  async getAdveroDashboard(auditId?: string, lang: 'da' | 'en' = 'da') {
+    const params = new URLSearchParams();
+    if (auditId) params.set('auditId', auditId);
+    params.set('lang', lang);
+    const q = params.toString();
+    return await this.request<import('../lib/adveroDashboardApi').AdveroDashboardApiPayload>(
+      `/advero/dashboard?${q}`,
+      { requiresAuth: false }
+    );
+  }
+
+  async claimAdveroAudit(auditId: string) {
+    return await this.request<{ ok: boolean; audit: import('../lib/mockAnalyzeVisibility').VisibilityAuditResult }>(
+      `/advero/audits/${auditId}/claim`,
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async getAdveroIntegrations() {
+    return await this.request<import('../lib/adveroDashboardApi').AdveroIntegrationsPayload>(
+      '/advero/integrations',
+      { requiresAuth: true }
+    );
+  }
+
+  async syncAdveroSearchConsole() {
+    return await this.request<{ snapshot: import('../lib/visibilityIntelligence').SearchConsoleSnapshot }>(
+      '/advero/integrations/search-console/sync',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async disconnectAdveroSearchConsole() {
+    return await this.request<{ ok: boolean }>(
+      '/advero/integrations/search-console/disconnect',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async getGoogleAdsAccounts() {
+    return await this.request<{
+      accounts: { customerId: string; descriptiveName: string; manager: boolean }[];
+    }>('/advero/integrations/google-ads/accounts', { requiresAuth: true });
+  }
+
+  async selectGoogleAdsAccount(customerId: string) {
+    return await this.request<{ snapshot: import('../lib/visibilityIntelligence').GoogleAdsSnapshot }>(
+      '/advero/integrations/google-ads/select-account',
+      { method: 'POST', body: { customerId }, requiresAuth: true }
+    );
+  }
+
+  async syncAdveroGoogleAds() {
+    return await this.request<{ snapshot: import('../lib/visibilityIntelligence').GoogleAdsSnapshot }>(
+      '/advero/integrations/google-ads/sync',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async disconnectAdveroGoogleAds() {
+    return await this.request<{ ok: boolean }>(
+      '/advero/integrations/google-ads/disconnect',
+      { method: 'POST', requiresAuth: true }
+    );
   }
 }
 

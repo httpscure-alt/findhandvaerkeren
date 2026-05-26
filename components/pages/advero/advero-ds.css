@@ -1,0 +1,2388 @@
+/* Advero Option V3 design tokens (scoped). Mirrors public/brand-v2/preview-advero-v3-design-system.html */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+.advero-ds {
+  --ds-primary: #334155;
+  --ds-secondary: #64748b;
+  --ds-white: #ffffff;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: rgb(255 255 255 / 0.92);
+  background-color: var(--ds-primary);
+  min-height: 100%;
+}
+
+.advero-ds .mono-label {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+}
+
+.advero-ds .advero-btn-slate-solid {
+  background: linear-gradient(165deg, #64748b 0%, #334155 52%, #334155 100%);
+  color: #ffffff !important;
+  box-shadow: 0 14px 44px -14px rgba(51, 65, 85, 0.55);
+}
+
+.advero-ds .advero-btn-slate-solid:hover {
+  filter: brightness(1.04);
+}
+
+.advero-ds .advero-btn-slate-solid:disabled {
+  opacity: 0.55;
+  filter: none;
+  cursor: not-allowed;
+}
+
+.advero-ds .advero-logo-wordmark-light {
+  display: block;
+  mix-blend-mode: screen;
+}
+
+.advero-ds .advero-site-header {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  background: rgb(51 65 85 / 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.advero-ds .advero-site-header > div {
+  overflow: visible;
+}
+
+/* Header wordmark: same treatment as homepage `#brand-home-link` (preview-advero-v3-design-system.html) */
+.advero-ds .advero-site-header-brand {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  line-height: 0;
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  margin-inline-end: clamp(1rem, 6vw, 4rem);
+}
+
+.advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
+  height: 3rem;
+  width: auto;
+  max-width: none;
+  transform: scale(2.28);
+  transform-origin: left center;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (min-width: 640px) {
+  .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
+    height: 3.25rem;
+    transform: scale(2.22);
+  }
+}
+
+@media (min-width: 768px) {
+  .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
+    height: 3.375rem;
+    transform: scale(2.16);
+  }
+}
+
+@media (min-width: 1024px) {
+  .advero-ds .advero-site-header-brand .advero-logo-wordmark-light {
+    height: 3.625rem;
+    transform: scale(2.3);
+  }
+}
+
+.advero-ds .advero-nav-tray {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
+  padding: 3px;
+  border-radius: 9999px;
+  background: rgb(51 65 85 / 0.48);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+.advero-ds .advero-nav-pill {
+  border-radius: 9999px;
+  padding: 0.625rem 1rem;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+@media (min-width: 1024px) {
+  .advero-ds .advero-nav-pill {
+    padding: 0.625rem 1.15rem;
+  }
+}
+
+.advero-ds .advero-nav-pill:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.advero-ds .advero-nav-pill--active {
+  background: rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
+.advero-ds .advero-nav-pill--done {
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.85);
+}
+
+.advero-ds .advero-glass-panel {
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.06);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 50px -28px rgb(0 0 0 / 0.45);
+}
+
+.advero-ds .advero-glass-panel--selected {
+  border-color: rgb(255 255 255 / 0.28);
+  background: rgb(255 255 255 / 0.1);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    0 18px 50px -28px rgb(0 0 0 / 0.45);
+}
+
+.advero-ds .advero-dot-grid {
+  background-image: radial-gradient(rgb(100 116 139 / 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: center top;
+  opacity: 0.35;
+}
+
+.advero-ds .advero-lang-toggle {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: rgb(51 65 85 / 0.55);
+  padding: 2px;
+}
+
+.advero-ds .advero-lang-toggle button {
+  border-radius: 9999px;
+  padding: 0.375rem 0.75rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: rgb(255 255 255 / 0.48);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.advero-ds .advero-lang-toggle button[aria-pressed='true'] {
+  color: #ffffff;
+}
+
+.advero-ds .advero-lang-toggle button:hover {
+  color: rgb(255 255 255 / 0.85);
+}
+
+.advero-ds .advero-lang-divider {
+  width: 1px;
+  height: 1.25rem;
+  background: rgb(255 255 255 / 0.2);
+  flex-shrink: 0;
+}
+
+.advero-ds .advero-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.15);
+  background: rgb(255 255 255 / 0.05);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+  outline: none;
+}
+
+.advero-ds .advero-input::placeholder {
+  color: rgb(255 255 255 / 0.35);
+}
+
+.advero-ds .advero-input:focus {
+  border-color: rgb(255 255 255 / 0.3);
+}
+
+.advero-ds .advero-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgb(100 116 139 / 0.7);
+  background: rgb(255 255 255 / 0.1);
+  color: rgb(255 255 255 / 0.93);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.8125rem 1.75rem;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+}
+
+@media (min-width: 640px) {
+  .advero-ds .advero-btn-ghost {
+    font-size: 0.875rem;
+  }
+}
+
+.advero-ds .advero-btn-ghost:hover {
+  border-color: #ffffff;
+  background: rgb(255 255 255 / 0.15);
+}
+
+/* —— Light “setup checklist” card (on slate canvas) —— */
+.advero-setup-card {
+  position: relative;
+  max-width: min(100%, 28rem);
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  color: #0f172a;
+  overflow: hidden;
+  box-shadow:
+    0 32px 64px -24px rgba(15, 23, 42, 0.35),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  animation: advero-setup-card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (min-width: 640px) {
+  .advero-setup-card {
+    max-width: min(100%, 36rem);
+  }
+}
+
+@keyframes advero-setup-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advero-setup-card {
+    animation: none;
+  }
+}
+
+.advero-setup-card-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52%;
+  height: 6.5rem;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 100% at 100% 0%, rgba(56, 189, 248, 0.22), transparent 58%),
+    radial-gradient(circle at 86% 22%, rgba(255, 255, 255, 0.95) 0, transparent 3px),
+    radial-gradient(circle at 78% 38%, rgba(56, 189, 248, 0.35) 0, transparent 2px),
+    radial-gradient(circle at 92% 42%, rgba(14, 165, 233, 0.25) 0, transparent 2px);
+  opacity: 0.95;
+}
+
+.advero-setup-card-head {
+  position: relative;
+  z-index: 1;
+  padding: 1.35rem 1.25rem 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .advero-setup-card-head {
+    padding: 1.5rem 1.5rem 0.85rem;
+  }
+}
+
+.advero-setup-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.advero-setup-card-sub {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.advero-setup-progress-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.advero-setup-min-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.advero-setup-min-btn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.advero-setup-checklist {
+  position: relative;
+  z-index: 1;
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+.advero-setup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.65rem;
+  margin-bottom: 0.2rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  background: transparent;
+  color: #0f172a;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.advero-setup-row:hover:not(:disabled) {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.18);
+}
+
+.advero-setup-row:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.advero-setup-row--done .advero-setup-row-label {
+  color: #94a3b8;
+}
+
+.advero-setup-row--current {
+  background: linear-gradient(90deg, rgba(51, 65, 85, 0.08), rgba(248, 250, 252, 0.95));
+  box-shadow:
+    inset 3px 0 0 0 #334155,
+    0 4px 16px -10px rgba(15, 23, 42, 0.2);
+}
+
+.advero-setup-row--current .advero-setup-row-label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.advero-setup-icon-slot {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.advero-setup-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.advero-setup-row-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.advero-setup-row-meta {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  margin-top: 0.1rem;
+}
+
+.advero-setup-divider {
+  height: 1px;
+  margin: 0.35rem 1rem 0.5rem;
+  background: linear-gradient(90deg, transparent, #e2e8f0 12%, #e2e8f0 88%, transparent);
+}
+
+.advero-setup-body {
+  position: relative;
+  z-index: 1;
+  padding: 1rem 1rem 1.15rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (min-width: 640px) {
+  .advero-setup-body {
+    padding: 1.15rem 1.25rem 1.25rem;
+  }
+}
+
+.advero-setup-body-inner {
+  border-radius: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .advero-setup-body-inner {
+    padding: 1.1rem 1.15rem;
+  }
+}
+
+.advero-setup-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem 1rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  background: #fff;
+}
+
+.advero-setup-footer input[type='checkbox'] {
+  accent-color: #334155;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.advero-setup-floating-pill {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.85rem 0.55rem 0.65rem;
+  max-width: min(18rem, calc(100vw - 2rem));
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px -16px rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+  text-align: left;
+  color: #0f172a;
+  animation: advero-pill-in 0.35s ease both;
+}
+
+@keyframes advero-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.advero-setup-floating-pill-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.advero-setup-floating-pill-sub {
+  font-size: 0.625rem;
+  color: #64748b;
+  margin-top: 0.05rem;
+}
+
+.advero-input-light {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.advero-input-light::placeholder {
+  color: #94a3b8;
+}
+
+.advero-input-light:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.12);
+}
+
+.advero-btn-ghost-on-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.25rem;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.advero-btn-ghost-on-light:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: 0 2px 8px -4px rgba(15, 23, 42, 0.12);
+}
+
+.advero-pick-tile {
+  border-radius: 0.875rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.advero-pick-tile:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px -12px rgba(15, 23, 42, 0.15);
+}
+
+.advero-pick-tile--on {
+  border-color: #334155;
+  box-shadow:
+    0 0 0 1px rgba(51, 65, 85, 0.12),
+    0 10px 28px -14px rgba(51, 65, 85, 0.35);
+}
+
+/* —— Customer dashboard (Advero V3 slate + glass) —— */
+.advero-ds.advero-dash-shell,
+.advero-dash-shell {
+  background-color: var(--ds-primary);
+  color: rgb(255 255 255 / 0.92);
+  min-height: 100vh;
+}
+
+.advero-ds.advero-dash-shell .advero-dot-grid {
+  opacity: 0.28;
+}
+
+@media (max-width: 767px) {
+  .advero-dash-sidebar {
+    width: 4.25rem;
+  }
+
+  .advero-dash-sidebar .advero-dash-brand-name,
+  .advero-dash-sidebar .advero-dash-workspace-name,
+  .advero-dash-sidebar .advero-dash-workspace-chevron,
+  .advero-dash-sidebar .advero-dash-nav-label,
+  .advero-dash-sidebar .advero-dash-nav-badge {
+    display: none;
+  }
+
+  .advero-dash-sidebar .advero-dash-nav-item {
+    justify-content: center;
+  }
+
+  .advero-dash-sidebar .advero-dash-workspace {
+    justify-content: center;
+    padding-inline: 0.5rem;
+  }
+}
+
+.advero-dash-frame {
+  display: flex;
+  min-height: 100vh;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.advero-dash-sidebar {
+  flex-shrink: 0;
+  width: 17rem;
+  transition: width 0.22s ease;
+}
+
+.advero-dash-sidebar--collapsed {
+  width: 4.25rem;
+}
+
+.advero-dash-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: calc(100vh - 1.5rem);
+  padding: 0.85rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: linear-gradient(165deg, rgb(255 255 255 / 0.06) 0%, rgb(255 255 255 / 0.02) 100%);
+  box-shadow: 0 18px 48px -28px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: visible;
+}
+
+.advero-dash-sidebar-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-height: 5rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.35rem;
+  overflow: visible;
+}
+
+.advero-dash-brand {
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  line-height: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  overflow: visible;
+  z-index: 2;
+  max-width: calc(100% - 2.25rem);
+}
+
+.advero-dash-wordmark {
+  display: block;
+  height: 2.5rem;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+  object-position: left center;
+  transform: scale(2.15);
+  transform-origin: left center;
+}
+
+@media (min-width: 768px) {
+  .advero-dash-wordmark {
+    height: 2.75rem;
+    transform: scale(2.35);
+  }
+}
+
+.advero-dash-sidebar--collapsed .advero-dash-sidebar-header {
+  min-height: auto;
+  justify-content: center;
+}
+
+.advero-dash-sidebar--collapsed .advero-dash-brand {
+  position: static;
+  max-width: none;
+}
+
+.advero-dash-logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.06);
+  flex-shrink: 0;
+}
+
+.advero-dash-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.04);
+  color: rgb(255 255 255 / 0.55);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.advero-dash-collapse-btn:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.9);
+  border-color: rgb(255 255 255 / 0.16);
+}
+
+.advero-dash-workspace {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  margin-bottom: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(0 0 0 / 0.15);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.advero-dash-workspace:hover {
+  border-color: rgb(255 255 255 / 0.16);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.advero-dash-workspace-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+  background: rgb(244 114 182 / 0.2);
+  color: rgb(251 207 232);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.advero-dash-workspace-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.advero-dash-workspace-chevron {
+  color: rgb(255 255 255 / 0.4);
+  flex-shrink: 0;
+}
+
+.advero-dash-lang-wrap {
+  padding: 0.35rem 0.15rem 0.55rem;
+}
+
+.advero-dash-lang-wrap--collapsed {
+  display: flex;
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.advero-lang-toggle--compact button {
+  padding: 0.3rem 0.45rem;
+  font-size: 9px;
+}
+
+.advero-dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.advero-dash-nav-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.advero-dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: rgb(255 255 255 / 0.62);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.advero-dash-sidebar--collapsed .advero-dash-nav-item {
+  justify-content: center;
+  padding-inline: 0.5rem;
+}
+
+.advero-dash-nav-item:hover {
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(255 255 255 / 0.92);
+}
+
+.advero-dash-nav-item--active {
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.95);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+.advero-dash-nav-label {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.advero-dash-nav-badge {
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgb(244 114 182 / 0.22);
+  color: rgb(251 207 232);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.advero-dash-nav-item--logout {
+  color: rgb(252 165 165 / 0.9);
+}
+
+.advero-dash-nav-item--logout:hover {
+  background: rgb(239 68 68 / 0.12);
+  color: rgb(254 202 202);
+}
+
+.advero-dash-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: linear-gradient(165deg, rgb(255 255 255 / 0.05) 0%, rgb(255 255 255 / 0.02) 100%);
+  box-shadow: 0 18px 48px -28px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.advero-dash-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.advero-dash-page-header-text {
+  min-width: 0;
+}
+
+.advero-dash-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.advero-dash-page-eyebrow {
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  color: rgb(255 255 255 / 0.42);
+}
+
+.advero-dash-page-title {
+  margin-top: 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgb(255 255 255 / 0.95);
+}
+
+.advero-dash-page-body {
+  flex: 1;
+  overflow: auto;
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+.advero-dash-lead {
+  max-width: 42rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-dash-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .advero-dash-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .advero-dash-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.advero-dash-kpi-card,
+.advero-dash-cta-card {
+  padding: 1.1rem 1.15rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: linear-gradient(165deg, rgb(255 255 255 / 0.06) 0%, rgb(255 255 255 / 0.02) 100%);
+  box-shadow: 0 18px 48px -28px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.advero-dash-kpi-card--highlight {
+  border-color: rgb(56 189 248 / 0.28);
+  box-shadow:
+    0 18px 48px -28px rgb(0 0 0 / 0.45),
+    0 0 0 1px rgb(56 189 248 / 0.15);
+}
+
+.advero-dash-kpi-label {
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.42);
+}
+
+.advero-dash-kpi-card--highlight .advero-dash-kpi-label {
+  color: rgb(125 211 252 / 0.85);
+}
+
+.advero-dash-kpi-value {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.95);
+  font-variant-numeric: tabular-nums;
+}
+
+.advero-dash-kpi-hint {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 0.48);
+}
+
+.advero-dash-cta-card {
+  margin-top: 1.25rem;
+}
+
+.advero-dash-cta-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.95);
+}
+
+.advero-dash-cta-text {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-dash-btn-primary {
+  margin-top: 0.85rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff !important;
+  background: linear-gradient(165deg, #64748b 0%, #334155 52%, #334155 100%);
+  box-shadow: 0 14px 44px -14px rgba(51, 65, 85, 0.55);
+  transition: filter 0.15s ease;
+}
+
+.advero-dash-btn-primary:hover {
+  filter: brightness(1.06);
+}
+
+.advero-dash-btn-ghost {
+  margin-top: 0.85rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.88);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  background: rgb(255 255 255 / 0.04);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.advero-dash-btn-ghost:hover {
+  background: rgb(255 255 255 / 0.08);
+  border-color: rgb(255 255 255 / 0.22);
+}
+
+/* —— Dashboard home (visibility OS) —— */
+@keyframes advero-home-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes advero-home-line-draw {
+  from {
+    stroke-dashoffset: 420;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes advero-home-shimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.advero-home-enter {
+  animation: advero-home-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advero-home-enter,
+  .advero-home-sparkline-line {
+    animation: none !important;
+  }
+}
+
+.advero-home-lead {
+  margin-bottom: 0.25rem;
+}
+
+.advero-home-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .advero-home-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .advero-home-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.advero-home-metric {
+  position: relative;
+  overflow: hidden;
+  padding: 1.15rem 1.2rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.07) 0%, rgb(255 255 255 / 0.02) 55%);
+  box-shadow: 0 20px 50px -32px rgb(0 0 0 / 0.55);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.advero-home-metric::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  opacity: 0.85;
+}
+
+.advero-home-metric--sky::before {
+  background: linear-gradient(90deg, rgb(56 189 248 / 0.7), transparent);
+}
+
+.advero-home-metric--violet::before {
+  background: linear-gradient(90deg, rgb(167 139 250 / 0.65), transparent);
+}
+
+.advero-home-metric--emerald::before {
+  background: linear-gradient(90deg, rgb(52 211 153 / 0.6), transparent);
+}
+
+.advero-home-metric--indigo::before {
+  background: linear-gradient(90deg, rgb(129 140 248 / 0.65), transparent);
+}
+
+.advero-home-metric--featured {
+  border-color: rgb(56 189 248 / 0.22);
+  box-shadow:
+    0 20px 50px -32px rgb(0 0 0 / 0.55),
+    0 0 40px -20px rgb(56 189 248 / 0.25);
+}
+
+.advero-home-metric:hover {
+  transform: translateY(-3px);
+  border-color: rgb(255 255 255 / 0.16);
+  box-shadow: 0 28px 56px -28px rgb(0 0 0 / 0.5);
+}
+
+.advero-home-metric-label {
+  font-size: 0.625rem;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-home-metric-value-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.advero-home-metric-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: rgb(255 255 255 / 0.96);
+  font-variant-numeric: tabular-nums;
+}
+
+.advero-home-metric-suffix {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.advero-home-metric-delta {
+  margin-top: 0.45rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.52);
+}
+
+.advero-home-panel {
+  margin-top: 1.35rem;
+  padding: 1.35rem 1.4rem;
+  border-radius: 1.35rem;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  background: linear-gradient(165deg, rgb(255 255 255 / 0.055) 0%, rgb(255 255 255 / 0.018) 100%);
+  box-shadow: 0 22px 56px -36px rgb(0 0 0 / 0.55);
+  transition: border-color 0.3s ease;
+}
+
+.advero-home-panel:hover {
+  border-color: rgb(255 255 255 / 0.12);
+}
+
+.advero-home-panel--ai {
+  background: linear-gradient(
+    155deg,
+    rgb(56 189 248 / 0.08) 0%,
+    rgb(255 255 255 / 0.03) 42%,
+    rgb(167 139 250 / 0.05) 100%
+  );
+  box-shadow:
+    0 22px 56px -36px rgb(0 0 0 / 0.55),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+.advero-home-panel-head {
+  margin-bottom: 1.1rem;
+}
+
+.advero-home-panel-head--split {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.advero-home-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgb(255 255 255 / 0.95);
+}
+
+.advero-home-section-sub {
+  margin-top: 0.3rem;
+  max-width: 36rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.48);
+}
+
+.advero-home-visibility-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .advero-home-visibility-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: start;
+  }
+}
+
+.advero-home-visibility-chart {
+  padding: 0.85rem 0.9rem 0.65rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(0 0 0 / 0.12);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.advero-home-sparkline {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.advero-home-sparkline-line {
+  stroke-dasharray: 420;
+  animation: advero-home-line-draw 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+.advero-home-chart-caption {
+  margin-top: 0.5rem;
+  font-size: 0.5625rem;
+  color: rgb(255 255 255 / 0.35);
+}
+
+.advero-home-visibility-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.advero-home-visibility-row {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background: rgb(255 255 255 / 0.03);
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.advero-home-visibility-row:hover {
+  background: rgb(255 255 255 / 0.05);
+  border-color: rgb(255 255 255 / 0.11);
+  transform: translateX(2px);
+}
+
+.advero-home-visibility-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.advero-home-visibility-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.9);
+}
+
+.advero-home-visibility-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(167 243 208 / 0.95);
+}
+
+.advero-home-visibility-insight {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.48);
+}
+
+.advero-home-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+@media (min-width: 1024px) {
+  .advero-home-two-col {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 1.35rem;
+  }
+
+  .advero-home-two-col > .advero-home-panel {
+    margin-top: 1.35rem;
+  }
+}
+
+.advero-home-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.advero-home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.advero-home-action-card {
+  padding: 1rem 1.05rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.025);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.advero-home-action-card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(255 255 255 / 0.14);
+  background: rgb(255 255 255 / 0.045);
+}
+
+.advero-home-priority {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.advero-home-priority--high {
+  background: rgb(251 191 36 / 0.15);
+  color: rgb(253 230 138 / 0.95);
+}
+
+.advero-home-priority--medium {
+  background: rgb(56 189 248 / 0.12);
+  color: rgb(186 230 253 / 0.95);
+}
+
+.advero-home-priority--low {
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-home-action-title {
+  margin-top: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.92);
+}
+
+.advero-home-action-body {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.advero-home-action-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(186 230 253 / 0.95);
+  cursor: pointer;
+  transition: color 0.2s ease, gap 0.2s ease;
+}
+
+.advero-home-action-cta:hover {
+  color: rgb(255 255 255 / 0.95);
+  gap: 0.5rem;
+}
+
+.advero-home-leads-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.advero-home-lead-stat {
+  padding: 0.75rem 0.8rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background: rgb(0 0 0 / 0.1);
+}
+
+.advero-home-lead-label {
+  font-size: 0.5625rem;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-home-lead-value {
+  margin-top: 0.35rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.94);
+  font-variant-numeric: tabular-nums;
+}
+
+.advero-home-mini-chart {
+  margin-top: 1rem;
+  padding: 0.65rem 0.75rem 0.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background: rgb(0 0 0 / 0.1);
+}
+
+.advero-home-mini-chart--glow {
+  box-shadow: 0 0 32px -12px rgb(56 189 248 / 0.2);
+}
+
+.advero-home-ai-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.advero-home-ai-headline {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.advero-home-ai-score {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(56 189 248 / 0.18);
+  background: rgb(56 189 248 / 0.06);
+}
+
+.advero-home-ai-score-label {
+  font-size: 0.5625rem;
+  color: rgb(125 211 252 / 0.8);
+}
+
+.advero-home-ai-score-value {
+  margin-top: 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: rgb(255 255 255 / 0.96);
+  font-variant-numeric: tabular-nums;
+}
+
+.advero-home-ai-score-max {
+  margin-left: 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-home-ai-suggestions {
+  margin-top: 1rem;
+}
+
+.advero-home-ai-suggestions-label {
+  font-size: 0.5625rem;
+  color: rgb(255 255 255 / 0.42);
+}
+
+.advero-home-ai-suggestions ul {
+  margin: 0.5rem 0 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.58);
+}
+
+.advero-home-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.advero-home-timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  color: rgb(255 255 255 / 0.72);
+  background: rgb(255 255 255 / 0.02);
+  border: 1px solid transparent;
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease;
+  animation: advero-home-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.advero-home-timeline-item:hover {
+  background: rgb(255 255 255 / 0.04);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+.advero-home-timeline-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: rgb(52 211 153 / 0.15);
+  color: rgb(167 243 208 / 0.95);
+  flex-shrink: 0;
+}
+
+.advero-home-reports {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+@media (min-width: 768px) {
+  .advero-home-reports {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.advero-home-report-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 8.5rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.05) 0%, rgb(255 255 255 / 0.015) 100%);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.advero-home-report-card:hover {
+  transform: translateY(-3px);
+  border-color: rgb(255 255 255 / 0.14);
+  box-shadow: 0 16px 40px -24px rgb(0 0 0 / 0.45);
+}
+
+.advero-home-report-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.92);
+}
+
+.advero-home-report-date {
+  margin-top: 0.35rem;
+  font-size: 0.5625rem;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-home-report-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.05);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.82);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.advero-home-report-btn:hover {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.2);
+  color: rgb(255 255 255 / 0.95);
+}
+
+/* —— Google Ads performance module —— */
+@keyframes advero-gads-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.35);
+  }
+}
+
+.advero-home-metric--amber::before {
+  background: linear-gradient(90deg, rgb(251 191 36 / 0.55), transparent);
+}
+
+.advero-gads-status-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.advero-gads-status-pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgb(52 211 153 / 0.9);
+  box-shadow: 0 0 12px rgb(52 211 153 / 0.55);
+  animation: advero-gads-pulse 2.4s ease-in-out infinite;
+}
+
+.advero-gads-status-pill,
+.advero-gads-trend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.05);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.78);
+}
+
+.advero-gads-trend-pill {
+  color: rgb(167 243 208 / 0.95);
+  border-color: rgb(52 211 153 / 0.2);
+  background: rgb(52 211 153 / 0.08);
+}
+
+.advero-gads-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .advero-gads-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.advero-gads-overview-card {
+  padding: 0.9rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(0 0 0 / 0.12);
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.advero-gads-overview-card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(255 255 255 / 0.14);
+}
+
+.advero-gads-overview-label {
+  font-size: 0.5625rem;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-gads-overview-value {
+  margin-top: 0.4rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgb(255 255 255 / 0.92);
+}
+
+.advero-gads-overview-detail {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 0.48);
+}
+
+.advero-gads-trend-meta {
+  font-size: 0.5625rem;
+  color: rgb(167 243 208 / 0.85);
+}
+
+.advero-home-panel-head:has(.advero-gads-trend-meta) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.advero-gads-trend-chart {
+  padding: 0.85rem 0.95rem 0.7rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(0 0 0 / 0.14);
+}
+
+.advero-gads-trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.62);
+}
+
+.advero-gads-trend-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.advero-gads-legend-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+}
+
+.advero-gads-legend-dot--sky {
+  background: rgb(56 189 248 / 0.9);
+  box-shadow: 0 0 8px rgb(56 189 248 / 0.45);
+}
+
+.advero-gads-legend-dot--violet {
+  background: rgb(167 139 250 / 0.9);
+  box-shadow: 0 0 8px rgb(167 139 250 / 0.35);
+}
+
+.advero-gads-trend-secondary {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgb(255 255 255 / 0.08);
+  opacity: 0.85;
+}
+
+.advero-gads-landing-highlight {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.78);
+}
+
+.advero-gads-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.advero-gads-tag {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+
+.advero-gads-tag--success {
+  background: rgb(52 211 153 / 0.14);
+  color: rgb(167 243 208 / 0.95);
+}
+
+.advero-gads-tag--neutral {
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-gads-suggest-list {
+  margin: 0.85rem 0 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-gads-ai-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+@media (min-width: 640px) {
+  .advero-gads-ai-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.advero-gads-ai-card {
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.03);
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.advero-gads-ai-card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(56 189 248 / 0.18);
+}
+
+.advero-gads-ai-card-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.9);
+}
+
+.advero-gads-ai-card-body {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advero-gads-status-pulse {
+    animation: none;
+  }
+}
+
+/* —— Audit journey: analyzing + results —— */
+.advero-audit-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.03);
+  font-size: 0.875rem;
+  color: rgb(255 255 255 / 0.45);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.advero-audit-step--active {
+  border-color: rgb(52 211 153 / 0.35);
+  background: rgb(52 211 153 / 0.08);
+  color: rgb(255 255 255 / 0.92);
+}
+
+.advero-audit-step--done {
+  border-color: rgb(255 255 255 / 0.12);
+  color: rgb(255 255 255 / 0.72);
+}
+
+.advero-audit-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(255 255 255 / 0.5);
+}
+
+.advero-audit-step--active .advero-audit-step-icon {
+  background: rgb(52 211 153 / 0.2);
+  color: rgb(167 243 208 / 0.95);
+}
+
+.advero-audit-step--done .advero-audit-step-icon {
+  background: rgb(52 211 153 / 0.15);
+  color: rgb(167 243 208 / 0.9);
+}
+
+.advero-results-score {
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02));
+}
+
+.advero-results-score-value {
+  margin-top: 0.35rem;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: rgb(255 255 255 / 0.98);
+  line-height: 1;
+}
+
+.advero-results-score-value span {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-results-score-delta {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(52 211 153 / 0.9);
+}
+
+.advero-results-channel {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.03);
+}
+
+.advero-results-panel {
+  padding: 1.1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+}
+
+.advero-results-panel--ai {
+  border-color: rgb(56 189 248 / 0.2);
+  background: linear-gradient(160deg, rgb(56 189 248 / 0.08), rgb(255 255 255 / 0.02));
+}
+
+.advero-results-package {
+  position: relative;
+  padding: 1rem 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.03);
+}
+
+.advero-results-package--rec {
+  border-color: rgb(52 211 153 / 0.4);
+  background: rgb(52 211 153 / 0.08);
+}
+
+.advero-results-package-badge {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgb(52 211 153 / 0.2);
+  color: rgb(167 243 208 / 0.95);
+}
+
+/* —— Dashboard intelligence (interpretation, OS flow, setup) —— */
+.advero-dash-metric-impact,
+.advero-dash-channel-impact {
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.48);
+}
+
+.advero-dash-business-impact {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.58);
+}
+
+.advero-dash-business-impact strong {
+  color: rgb(255 255 255 / 0.75);
+  font-weight: 600;
+}
+
+.advero-dash-priority {
+  padding: 1.25rem 1.35rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(52 211 153 / 0.28);
+  background: linear-gradient(145deg, rgb(52 211 153 / 0.1), rgb(255 255 255 / 0.03));
+}
+
+.advero-dash-priority--compact {
+  border-color: rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.04);
+}
+
+.advero-dash-priority-kicker {
+  margin-bottom: 0.5rem;
+  color: rgb(167 243 208 / 0.75);
+}
+
+.advero-dash-priority-title {
+  margin-top: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.95);
+}
+
+.advero-dash-priority-body {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.62);
+}
+
+.advero-dash-connected {
+  padding: 1.1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.03);
+}
+
+.advero-dash-connected-steps {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .advero-dash-connected-steps {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+}
+
+.advero-dash-connected-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.advero-dash-connected-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.7);
+}
+
+.advero-dash-connected-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-dash-connected-detail {
+  margin-top: 0.2rem;
+  font-size: 0.8125rem;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.advero-dash-connected-detail--link {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.advero-dash-connected-detail--link:hover {
+  color: rgb(255 255 255 / 0.92);
+}
+
+.advero-dash-connected-arrow {
+  margin-top: 0.35rem;
+  color: rgb(255 255 255 / 0.25);
+  flex-shrink: 0;
+}
+
+.advero-dash-setup {
+  padding: 1rem 1.15rem;
+  border-radius: 1rem;
+  border: 1px dashed rgb(255 255 255 / 0.15);
+  background: rgb(255 255 255 / 0.02);
+}
+
+.advero-dash-setup-list {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.advero-dash-setup-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8125rem;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-dash-setup-item--done {
+  color: rgb(255 255 255 / 0.78);
+}
+
+.advero-dash-setup-icon {
+  display: flex;
+  color: rgb(255 255 255 / 0.35);
+}
+
+.advero-dash-setup-item--done .advero-dash-setup-icon {
+  color: rgb(52 211 153 / 0.9);
+}
+
+.advero-dash-setup-label {
+  flex: 1;
+}
+
+.advero-dash-setup-optional {
+  margin-left: 0.35rem;
+  font-size: 0.625rem;
+  opacity: 0.65;
+}
+
+.advero-dash-setup-action {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  color: rgb(125 211 252 / 0.9);
+}
+
+.advero-dash-health-grid {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (min-width: 640px) {
+  .advero-dash-health-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.advero-dash-health-item {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.03);
+}
+
+.advero-dash-health-item--active {
+  border-color: rgb(56 189 248 / 0.22);
+}
+
+.advero-dash-health-item--ok {
+  border-color: rgb(52 211 153 / 0.2);
+}
+
+.advero-dash-health-label {
+  font-size: 0.625rem;
+  color: rgb(255 255 255 / 0.42);
+}
+
+.advero-dash-health-status {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.88);
+}
+
+.advero-dash-history-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 120px;
+  margin-top: 1rem;
+}
+
+.advero-dash-history-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.advero-dash-history-bar {
+  width: 100%;
+  max-width: 2.5rem;
+  border-radius: 0.35rem 0.35rem 0 0;
+  background: linear-gradient(180deg, rgb(56 189 248 / 0.55), rgb(52 211 153 / 0.35));
+  min-height: 8px;
+}
+
+.advero-dash-history-label {
+  margin-top: 0.35rem;
+  font-size: 0.5625rem;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-dash-history-score {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.advero-dash-history-hint {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-dash-narrative {
+  padding: 1rem 1.15rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+}
+
+.advero-dash-narrative-body {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.advero-dash-narrative-meta {
+  margin-top: 0.65rem;
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-dash-upsell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.03);
+}
+
+.advero-dash-upsell-body {
+  flex: 1;
+  min-width: 200px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.58);
+}
+
+.advero-dash-upsell-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgb(125 211 252 / 0.95);
+}
+
+.advero-dash-campaigns-bridge {
+  font-size: 0.8125rem;
+  color: rgb(167 243 208 / 0.85);
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  background: rgb(52 211 153 / 0.08);
+  border: 1px solid rgb(52 211 153 / 0.2);
+}

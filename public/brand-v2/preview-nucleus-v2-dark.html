@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="da" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advero — Nucleus preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root{
+        /* White mode, keeping the same structure as your reference HTML */
+        --bg: #FFFFFF;
+        --panel: rgba(255,255,255,0.72);
+        --surface: #09090D; /* used only for dark cards if needed */
+        --text: rgba(24,24,27,.92);
+        --muted: rgba(24,24,27,.60);
+        --line: rgba(24,24,27,0.10);
+        /* Primary (use for recommended / most popular accents) */
+        --primary: #CBD5E1;
+        --accent: var(--primary);
+        /* Dot color tuned for white bg (visible, not noisy) */
+        --dot: rgba(24,24,27,0.11);
+      }
+      body{
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        /* Subtle dot grid background (same idea as your black reference, but for white) */
+        background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+        background-size: 32px 32px;
+        background-position: center top;
+      }
+
+      /* Make dots visible across ALL surfaces (matches your dark reference “everywhere” feel). */
+      body::before{
+        content:'';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 999;
+        background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+        background-size: 32px 32px;
+        background-position: center top;
+        opacity: 1;
+        mix-blend-mode: multiply;
+      }
+      .grid-lines::before,
+      .grid-lines::after{
+        content:'';
+        position:absolute;
+        top:0; bottom:0;
+        width:1px;
+        background: rgba(24,24,27,0.08);
+        z-index:-1;
+      }
+      .grid-lines::before{ left:0; }
+      .grid-lines::after{ right:0; }
+      .corner-dot{
+        position:absolute;
+        width:6px; height:6px;
+        border-radius:999px;
+        /* No green markers across the page */
+        background: var(--primary);
+        opacity:.9;
+        z-index: 40;
+        box-shadow: 0 0 0 2px rgba(255,255,255,.95);
+        transform: translate(-50%,-50%);
+      }
+      .dot-grid-boost{
+        background-image:
+          radial-gradient(rgba(24,24,27,0.075) 1px, transparent 1px),
+          radial-gradient(560px 320px at 30% 10%, rgba(216,106,90,0.12), transparent 60%),
+          radial-gradient(700px 360px at 70% 40%, rgba(24,24,27,0.06), transparent 62%);
+        background-size: 28px 28px, auto, auto;
+        background-position: center top, center, center;
+      }
+      /* Remove the heavy overlay approach; keep it like your reference (clean + predictable). */
+      .reveal-wrap{ overflow: hidden; padding-bottom: 0.08em; }
+      .reveal-line{ display:block; transform: translateY(110%); }
+      .fade-in{ opacity: 0; transform: translateY(14px); }
+      .scanlines{
+        background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0,0,0,0.03) 50%, rgba(0,0,0,0.03));
+        background-size: 100% 4px;
+      }
+      .img-overlay{
+        background: linear-gradient(to top, rgba(244,244,245,.92) 0%, rgba(244,244,245,.12) 52%, transparent 100%);
+      }
+      .glass{
+        background: var(--panel);
+        border: 1px solid rgba(24,24,27,0.10);
+        backdrop-filter: blur(10px);
+      }
+      .hero-shell{
+        --hx: 50%;
+        --hy: 42%;
+        position:relative;
+      }
+      .hero-spotlight{
+        pointer-events:none;
+        position:absolute;
+        inset:0;
+        z-index:3;
+        opacity:0;
+        transition:opacity 0.35s ease;
+        background:radial-gradient(closest-side circle at var(--hx) var(--hy), rgba(216,106,90,0.26), transparent 68%);
+        mix-blend-mode:multiply;
+      }
+      .hero-shell:hover .hero-spotlight{
+        opacity:1;
+      }
+      .hero-shell:focus-within .hero-spotlight{
+        opacity:.65;
+      }
+      .hero-float-blob{
+        position:absolute;
+        width:clamp(280px, 55vw, 520px);
+        height:clamp(280px, 55vw, 520px);
+        border-radius:999px;
+        filter:blur(38px);
+        opacity:.45;
+        background: radial-gradient(circle at 30% 30%, rgba(216,106,90,0.35), transparent 65%), radial-gradient(circle at 70% 60%, rgba(148,163,184,0.5), transparent 62%);
+        animation: blob-drift 12s ease-in-out infinite alternate;
+        pointer-events:none;
+      }
+      @keyframes blob-drift{
+        from{ transform:translate(-6%, -4%) scale(1); }
+        to{ transform:translate(8%, 6%) scale(1.06); }
+      }
+      @media (prefers-reduced-motion: reduce){
+        .hero-float-blob{ animation: none !important; }
+      }
+      .hero-stat-num{
+        text-shadow: 0 0 60px rgba(216,106,90,0.12);
+      }
+    </style>
+  </head>
+  <body class="antialiased overflow-x-hidden selection:bg-[#D86A5A]/15 selection:text-zinc-900 dot-grid-boost">
+    <style>
+      /* Keep everything above the fixed dot overlay */
+      body > *{ position: relative; z-index: 20; }
+    </style>
+    <main class="max-w-[1400px] mx-auto px-4 sm:px-8 relative grid-lines min-h-screen border-x border-zinc-200/70 bg-white/50">
+      <div class="hidden lg:block absolute inset-y-0 left-[58.333%] w-px bg-zinc-200/70 -z-10"></div>
+
+      <header class="pt-8 sm:pt-10 pb-6">
+        <div class="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-6">
+          <a href="/" class="flex items-center min-w-0 justify-start" aria-label="Advero">
+            <img
+              src="/brand/advero-logo.png"
+              alt="Advero"
+              width="160"
+              height="40"
+              class="h-10 sm:h-11 md:h-12 w-auto max-w-[min(280px,calc(100vw-12rem))] object-contain object-left"
+              decoding="async"
+            />
+          </a>
+
+          <nav class="flex flex-wrap items-center justify-start gap-x-6 gap-y-2 text-xs tracking-widest uppercase text-zinc-500 md:justify-center md:px-4">
+            <a class="hover:text-zinc-900 transition" href="#tiers" data-i18n="nav.packages">Pakker</a>
+            <a class="hover:text-zinc-900 transition" href="#process" data-i18n="nav.process">Proces</a>
+          </nav>
+
+          <div class="flex flex-wrap items-center gap-2 md:justify-end">
+            <div class="hidden sm:flex items-center rounded-full border border-zinc-200 bg-white overflow-hidden">
+              <button type="button" class="px-3 py-2 text-[10px] uppercase tracking-widest font-medium text-zinc-700 hover:bg-zinc-50 transition"
+                      data-lang-toggle="da" aria-pressed="true">DK</button>
+              <div class="w-px h-6 bg-zinc-200"></div>
+              <button type="button" class="px-3 py-2 text-[10px] uppercase tracking-widest font-medium text-zinc-500 hover:bg-zinc-50 transition"
+                      data-lang-toggle="en" aria-pressed="false">EN</button>
+            </div>
+            <a href="#tiers" class="text-xs tracking-widest uppercase px-4 py-2 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 transition text-zinc-700" data-i18n="cta.prices">
+              Se priser
+            </a>
+            <a href="/brand-v2/advero-contact.html" class="text-xs tracking-widest uppercase px-4 py-2 rounded-full text-black hover:opacity-95 transition" style="background: var(--primary);" data-i18n="cta.contact">
+              Kontakt os
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <section class="relative w-full pb-20">
+        <div class="corner-dot top-0 left-0"></div>
+        <div class="corner-dot top-0 right-0"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
+          <div class="lg:col-span-7 flex flex-col pt-6">
+            <h1 class="mt-8 text-[2.75rem] sm:text-[3.5rem] lg:text-[80px] lg:leading-[80px] lg:tracking-[-0.05em] leading-[1.05] tracking-tighter text-zinc-900 font-medium">
+              <span class="reveal-wrap"><span class="reveal-line" data-i18n="hero.line1">Få flere leads med</span></span>
+              <span class="reveal-wrap"><span class="reveal-line text-zinc-400" data-i18n="hero.line2">Google Ads</span></span>
+              <span class="reveal-wrap"><span class="reveal-line text-zinc-400" data-i18n="hero.line3">og SEO</span></span>
+            </h1>
+
+            <div class="mt-8 flex flex-wrap gap-3 fade-in hero-cta-row">
+              <a href="#tiers" class="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-5 py-3 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 hover:border-zinc-300 transition-colors shadow-sm" data-i18n="cta.prices">Se priser</a>
+              <a href="/brand-v2/advero-contact.html" class="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-5 py-3 rounded-full text-white shadow-md hover:brightness-105 transition-[transform,filter] hover:-translate-y-0.5 active:translate-y-0" style="background: linear-gradient(135deg,#D86A5A 0%,#c45748 55%, #b8493c 100%)">
+                <span data-i18n="cta.contact">Kontakt os</span><span aria-hidden="true">→</span>
+              </a>
+            </div>
+
+            <p class="mt-6 text-[16px] leading-[24px] text-slate-500 max-w-[62ch] fade-in" data-i18n="hero.intro">
+              Vi hjælper danske håndværkere med at dominere deres lokale marked — fra første klik til færdig opgave.
+            </p>
+
+            <div class="hero-visual-mount mt-10 relative rounded-2xl bg-gradient-to-b from-zinc-200/70 via-white/40 to-transparent p-px group shadow-lg">
+              <div class="corner-dot top-0 left-0"></div>
+              <div class="corner-dot top-0 right-0"></div>
+              <div class="corner-dot bottom-0 left-0"></div>
+              <div class="corner-dot bottom-0 right-0"></div>
+
+              <div class="hero-shell relative h-[360px] sm:h-[440px] w-full rounded-2xl bg-zinc-100 overflow-hidden flex flex-col justify-end border border-zinc-200/70 hero-interactive-touch" tabindex="0">
+                <div class="hero-float-blob left-[-10%] top-[-20%]" aria-hidden="true"></div>
+                <div class="hero-float-blob right-[-14%] bottom-[-26%]" style="animation-delay:-4s;" aria-hidden="true"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-zinc-200/80 via-white to-zinc-300/55"></div>
+                <div
+                  class="absolute inset-0 opacity-[0.4] pointer-events-none"
+                  style="background-image: radial-gradient(rgba(24,24,27,0.07) 1px, transparent 1px); background-size: 24px 24px"
+                ></div>
+                <div class="hero-spotlight"></div>
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.09] hero-mark">
+                  <img src="/brand/advero-logo.png" alt="" class="w-[min(52%,360px)] h-auto object-contain grayscale contrast-125 hero-mark-img" decoding="async" />
+                </div>
+                <div class="absolute inset-0 scanlines opacity-25 pointer-events-none"></div>
+
+                <div class="absolute top-6 left-6 flex items-center gap-2 text-[10px] font-medium tracking-widest text-zinc-700 uppercase glass px-3 py-1.5 rounded-full z-20">
+                  <span data-i18n="hero.planBadge">30-dages kickoff · månedlig drift</span>
+                  <span class="inline-block w-2 h-2 rounded-full animate-pulse" style="background: var(--primary)" aria-hidden="true"></span>
+                </div>
+
+                <div class="relative z-20 p-8 sm:p-10 flex flex-col items-start w-full">
+                  <div class="w-full flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+                    <h2 class="hero-stat-num text-6xl sm:text-7xl lg:text-[5rem] tracking-tighter font-medium text-zinc-900 leading-none hero-stat-mount" data-i18n="hero.days">30 dage</h2>
+                    <span class="text-xs sm:text-sm font-medium tracking-widest text-zinc-500 uppercase max-w-[20rem] text-balance leading-snug text-left sm:text-right" data-i18n="hero.rankLine">Derefter løbende månedlig service</span>
+                  </div>
+                  <div class="w-full h-px bg-gradient-to-r from-zinc-300/80 to-transparent mt-6 mb-2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 flex flex-col gap-5 pt-6 lg:pt-0">
+            <div class="relative rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent p-px">
+              <div class="relative rounded-2xl bg-white p-7 sm:p-8 flex flex-col h-full hover:bg-zinc-50 transition-colors duration-300 border border-zinc-200/70 shadow-sm">
+                <p class="text-sm sm:text-base text-zinc-600 leading-relaxed font-normal mb-8" data-i18n="card.tracking.quote">
+                  “Avanceret sporing + månedlig rapportering, så du kan se præcis hvad der virker.”
+                </p>
+                <div class="flex items-center gap-4 mt-auto">
+                  <div class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200"></div>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-zinc-900 tracking-tight" data-i18n="card.tracking.title">Tracking</span>
+                    <span class="text-[11px] text-zinc-500 tracking-wide uppercase mt-0.5" data-i18n="card.tracking.meta">GA4 · GTM · GSC</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl bg-gradient-to-b from-white/[0.06] to-transparent p-px">
+              <div class="relative rounded-2xl bg-white p-7 sm:p-8 flex flex-col h-full hover:bg-zinc-50 transition-colors duration-300 border border-zinc-200/70 shadow-sm">
+                <p class="text-sm sm:text-base text-zinc-600 leading-relaxed font-normal mb-8" data-i18n="card.ads.quote">
+                  “Professionelle annoncer, søgeordsanalyse og struktur der er bygget til leads — ikke bare klik.”
+                </p>
+                <div class="flex items-center gap-4 mt-auto">
+                  <div class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200"></div>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-zinc-900 tracking-tight" data-i18n="card.ads.title">Google Ads</span>
+                    <span class="text-[11px] text-zinc-500 tracking-wide uppercase mt-0.5" data-i18n="card.ads.meta">Search · struktur · optimering</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl bg-gradient-to-b from-white/[0.05] to-transparent p-px">
+              <div class="relative rounded-2xl bg-white p-7 sm:p-8 flex flex-col h-full hover:bg-zinc-50 transition-colors duration-300 border border-zinc-200/70 shadow-sm">
+                <p class="text-sm sm:text-base text-zinc-600 leading-relaxed font-normal mb-8" data-i18n="card.seo.quote">
+                  “Teknisk SEO + content-plan, så du bliver fundet for de rigtige søgninger i dit område.”
+                </p>
+                <div class="flex items-center gap-4 mt-auto">
+                  <div class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200"></div>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-zinc-900 tracking-tight" data-i18n="card.seo.title">SEO</span>
+                    <span class="text-[11px] text-zinc-500 tracking-wide uppercase mt-0.5" data-i18n="card.seo.meta">lokalt · on-page · content</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing / tiers -->
+      <section id="tiers" class="relative w-full py-20 border-y border-zinc-200/70 bg-white/50">
+        <div class="corner-dot top-0 left-0"></div>
+        <div class="corner-dot top-0 right-0"></div>
+        <div class="corner-dot bottom-0 left-0"></div>
+        <div class="corner-dot bottom-0 right-0"></div>
+
+        <div class="px-0 sm:px-2">
+          <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+            <div>
+              <h2 class="text-2xl sm:text-3xl font-medium tracking-tight text-zinc-900 mb-2" data-i18n="tiers.title">Vælg din vækstmotor</h2>
+              <p class="text-sm text-zinc-600 tracking-wide" data-i18n="tiers.sub">Google Ads eller SEO — månedlige pakker. Vi starter typisk med et 30-dages kickoff-forløb ved opstart.</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-medium tracking-widest text-zinc-700 uppercase glass px-3 py-1.5 rounded-full" data-i18n="tiers.badge">
+              Abonnement · månedligt
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
+            <div class="relative rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent p-px">
+              <div class="relative rounded-2xl bg-white p-7 flex flex-col h-full min-h-[340px] border border-zinc-200/70 shadow-sm">
+                <div class="text-[10px] uppercase tracking-widest text-zinc-500" data-i18n="tier.channel.ads">Google Ads</div>
+                <div class="mt-2 text-lg font-semibold text-zinc-900" data-i18n="tier1.name">Basic</div>
+                <div class="text-sm text-zinc-500" data-i18n="tier1.tag">Lokal synlighed</div>
+                <div class="mt-6 flex items-baseline gap-2">
+                  <span class="text-4xl font-medium tracking-tighter text-zinc-900">1.000</span>
+                  <span class="text-xs text-zinc-500 uppercase tracking-widest" data-i18n="tier.priceSuffix">DKK / md.</span>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm text-zinc-600 mb-8">
+                  <li data-i18n="tier1.li1">1 søgekampagne</li>
+                  <li data-i18n="tier1.li2">5 annoncegrupper</li>
+                  <li data-i18n="tier1.li3">Professionelle annoncer</li>
+                  <li data-i18n="tier1.li4">Basal konverteringssporing</li>
+                  <li data-i18n="tier1.li5">Månedlig optimering</li>
+                </ul>
+                <a href="/brand-v2/advero-contact.html" class="mt-auto inline-flex items-center justify-center gap-3 bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-zinc-800 transition" data-i18n="tier.cta">
+                  Start vækst nu
+                </a>
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl bg-gradient-to-b from-white/[0.12] to-transparent p-px">
+              <div class="relative rounded-2xl bg-white p-7 flex flex-col h-full min-h-[340px] border border-zinc-200/70 shadow-sm">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] tracking-widest uppercase text-black px-4 py-1.5 rounded-full" style="background: var(--primary);" data-i18n="tier.popular">
+                  Mest populær
+                </div>
+                <div class="text-[10px] uppercase tracking-widest text-zinc-500" data-i18n="tier.channel.ads2">Google Ads</div>
+                <div class="mt-2 text-lg font-semibold text-zinc-900" data-i18n="tier2.name">Standard</div>
+                <div class="text-sm text-zinc-500" data-i18n="tier2.tag">Stabil vækst</div>
+                <div class="mt-6 flex items-baseline gap-2">
+                  <span class="text-4xl font-medium tracking-tighter text-zinc-900">2.000</span>
+                  <span class="text-xs text-zinc-500 uppercase tracking-widest" data-i18n="tier.priceSuffix">DKK / md.</span>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm text-zinc-600 mb-8">
+                  <li data-i18n="tier2.li1">2 søgekampagner</li>
+                  <li data-i18n="tier2.li2">15 annoncegrupper</li>
+                  <li data-i18n="tier2.li3">Udvidet søgeordsanalyse</li>
+                  <li data-i18n="tier2.li4">Avanceret sporing</li>
+                  <li data-i18n="tier2.li5">Månedlig rapport</li>
+                </ul>
+                <a href="/brand-v2/advero-contact.html" class="mt-auto inline-flex items-center justify-center gap-3 text-black px-6 py-3 rounded-xl text-xs font-medium tracking-widest uppercase hover:opacity-95 transition" style="background: var(--primary);" data-i18n="tier.cta2">
+                  Start vækst nu
+                </a>
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent p-px">
+              <div class="relative rounded-2xl bg-white p-7 flex flex-col h-full min-h-[340px] border border-zinc-200/70 shadow-sm">
+                <div class="text-[10px] uppercase tracking-widest text-zinc-500" data-i18n="tier.channel.seo">SEO</div>
+                <div class="mt-2 text-lg font-semibold text-zinc-900" data-i18n="tier3.name">Standard</div>
+                <div class="text-sm text-zinc-500" data-i18n="tier3.tag">Stabil vækst</div>
+                <div class="mt-6 flex items-baseline gap-2">
+                  <span class="text-4xl font-medium tracking-tighter text-zinc-900">3.000</span>
+                  <span class="text-xs text-zinc-500 uppercase tracking-widest" data-i18n="tier.priceSuffix">DKK / md.</span>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm text-zinc-600 mb-8">
+                  <li data-i18n="tier3.li1">Udvidet analyse (25 ord)</li>
+                  <li data-i18n="tier3.li2">Optimering af flere sider</li>
+                  <li data-i18n="tier3.li3">2–3 blogindlæg / md.</li>
+                  <li data-i18n="tier3.li4">Teknisk SEO</li>
+                  <li data-i18n="tier3.li5">Rapportering med KPI</li>
+                </ul>
+                <a href="/brand-v2/advero-contact.html" class="mt-auto inline-flex items-center justify-center gap-3 bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-zinc-800 transition" data-i18n="tier.cta3">
+                  Start vækst nu
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Process -->
+      <section id="process" class="relative w-full py-20 border-t border-zinc-200/70 bg-white/30">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl sm:text-3xl font-medium tracking-tight text-zinc-900 mb-3" data-i18n="process.title">Sådan arbejder vi den første måned</h2>
+          <p class="text-sm text-zinc-600" data-i18n="process.sub">En gennemskuelig proces. Resultater varierer med marked, konkurrence og budget.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div class="bg-white border border-zinc-200/70 rounded-2xl p-6 shadow-sm">
+            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-3 font-semibold">01</div>
+            <div class="text-zinc-900 font-semibold mb-2" data-i18n="process.s1t">Opsætning</div>
+            <div class="text-sm text-zinc-600 leading-relaxed" data-i18n="process.s1b">Vi konfigurerer dine profiler og konti til optimal performance.</div>
+          </div>
+          <div class="bg-white border border-zinc-200/70 rounded-2xl p-6 shadow-sm">
+            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-3 font-semibold">02</div>
+            <div class="text-zinc-900 font-semibold mb-2" data-i18n="process.s2t">Målretning</div>
+            <div class="text-sm text-zinc-600 leading-relaxed" data-i18n="process.s2b">Definition af geografi, søgeord og målgrupper.</div>
+          </div>
+          <div class="bg-white border border-zinc-200/70 rounded-2xl p-6 shadow-sm">
+            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-3 font-semibold">03</div>
+            <div class="text-zinc-900 font-semibold mb-2" data-i18n="process.s3t">Aktivering</div>
+            <div class="text-sm text-zinc-600 leading-relaxed" data-i18n="process.s3b">Vi udruller kampagner og optimeringer med det samme.</div>
+          </div>
+          <div class="bg-white border border-zinc-200/70 rounded-2xl p-6 shadow-sm">
+            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-3 font-semibold">04</div>
+            <div class="text-zinc-900 font-semibold mb-2" data-i18n="process.s4t">Monitorering</div>
+            <div class="text-sm text-zinc-600 leading-relaxed" data-i18n="process.s4b">Proaktiv justering baseret på faktiske performance-data.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advero-only closing (no legacy marketplace / other product funnels) -->
+      <section class="relative w-full py-20 border-t border-zinc-200/70 bg-white/30">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-2xl sm:text-3xl font-medium tracking-tight text-zinc-900 mb-4" data-i18n="closing.title">Klar til at tale om jeres vækst?</h2>
+          <p class="text-sm sm:text-base text-zinc-600 leading-relaxed mb-8" data-i18n="closing.body">
+            Vi hjælper jer videre med Google SEO og Google Ads — uden at blande andre produkter ind i jeres funnel.
+          </p>
+          <a href="/brand-v2/advero-contact.html" class="inline-flex items-center gap-3 bg-white text-zinc-800 px-7 py-4 rounded-xl text-xs font-medium tracking-widest uppercase border border-zinc-200 shadow-sm hover:bg-zinc-50 transition" data-i18n="closing.cta">
+            Skriv til Advero
+            <span class="w-2 h-2 rounded-full" style="background: var(--accent)"></span>
+          </a>
+        </div>
+      </section>
+
+      <footer class="py-10 text-center text-[10px] tracking-widest uppercase text-zinc-500 fade-in" data-i18n="footer">
+        Advero · nucleus preview
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        var i18n = {
+          da: {
+            'meta.title': 'Advero — nucleus preview',
+            'nav.packages': 'Pakker',
+            'nav.process': 'Proces',
+            'cta.prices': 'Se priser',
+            'cta.contact': 'Kontakt os',
+            'hero.line1': 'Få flere leads med',
+            'hero.line2': 'Google Ads',
+            'hero.line3': 'og SEO',
+            'hero.intro': 'Vi hjælper danske håndværkere med at dominere deres lokale marked — fra første klik til færdig opgave.',
+            'hero.planBadge': '30-dages kickoff · månedlig drift',
+            'hero.days': '30 dage',
+            'hero.rankLine': 'Derefter løbende månedlig service',
+            'card.tracking.quote': '“Avanceret sporing + månedlig rapportering, så du kan se præcis hvad der virker.”',
+            'card.tracking.title': 'Tracking',
+            'card.tracking.meta': 'GA4 · GTM · GSC',
+            'card.ads.quote': '“Professionelle annoncer, søgeordsanalyse og struktur der er bygget til leads — ikke bare klik.”',
+            'card.ads.title': 'Google Ads',
+            'card.ads.meta': 'Søgning · struktur · optimering',
+            'card.seo.quote': '“Teknisk SEO + content-plan, så du bliver fundet for de rigtige søgninger i dit område.”',
+            'card.seo.title': 'SEO',
+            'card.seo.meta': 'Lokalt · on-page · indhold',
+            'tiers.title': 'Vælg din vækstmotor',
+            'tiers.sub':
+              'Google Ads eller SEO — månedlige pakker. Vi starter typisk med et 30-dages kickoff-forløb ved opstart.',
+            'tiers.badge': 'Abonnement · månedligt',
+            'tier.channel.ads': 'Google Ads',
+            'tier.channel.ads2': 'Google Ads',
+            'tier.channel.seo': 'SEO',
+            'tier1.name': 'Basic',
+            'tier1.tag': 'Lokal synlighed',
+            'tier.priceSuffix': 'DKK / md.',
+            'tier1.li1': '1 søgekampagne',
+            'tier1.li2': '5 annoncegrupper',
+            'tier1.li3': 'Professionelle annoncer',
+            'tier1.li4': 'Basal konverteringssporing',
+            'tier1.li5': 'Månedlig optimering',
+            'tier.cta': 'Start vækst nu',
+            'tier.popular': 'Mest populær',
+            'tier2.name': 'Standard',
+            'tier2.tag': 'Stabil vækst',
+            'tier2.li1': '2 søgekampagner',
+            'tier2.li2': '15 annoncegrupper',
+            'tier2.li3': 'Udvidet søgeordsanalyse',
+            'tier2.li4': 'Avanceret sporing',
+            'tier2.li5': 'Månedlig rapport',
+            'tier.cta2': 'Start vækst nu',
+            'tier3.name': 'Standard',
+            'tier3.tag': 'Stabil vækst',
+            'tier3.li1': 'Udvidet analyse (25 ord)',
+            'tier3.li2': 'Optimering af flere sider',
+            'tier3.li3': '2–3 blogindlæg / md.',
+            'tier3.li4': 'Teknisk SEO',
+            'tier3.li5': 'Rapportering med KPI',
+            'tier.cta3': 'Start vækst nu',
+            'process.title': 'Sådan arbejder vi den første måned',
+            'process.sub': 'En gennemskuelig proces. Resultater varierer med marked, konkurrence og budget.',
+            'process.s1t': 'Opsætning',
+            'process.s1b': 'Vi konfigurerer dine profiler og konti til optimal performance.',
+            'process.s2t': 'Målretning',
+            'process.s2b': 'Definition af geografi, søgeord og målgrupper.',
+            'process.s3t': 'Aktivering',
+            'process.s3b': 'Vi udruller kampagner og optimeringer med det samme.',
+            'process.s4t': 'Monitorering',
+            'process.s4b': 'Proaktiv justering baseret på faktiske performance-data.',
+            'closing.title': 'Klar til at tale om jeres vækst?',
+            'closing.body': 'Vi hjælper jer videre med Google SEO og Google Ads — uden at blande andre produkter ind i jeres funnel.',
+            'closing.cta': 'Skriv til Advero',
+            'footer': 'Advero · nucleus preview'
+          },
+          en: {
+            'meta.title': 'Advero — nucleus preview',
+            'nav.packages': 'Plans',
+            'nav.process': 'Process',
+            'cta.prices': 'View pricing',
+            'cta.contact': 'Contact us',
+            'hero.line1': 'Get more leads with',
+            'hero.line2': 'Google Ads',
+            'hero.line3': '& SEO',
+            'hero.intro': 'We help Danish trades dominate their local market — from first click to booked jobs.',
+            'hero.planBadge': '30-day kickoff · monthly cadence',
+            'hero.days': '30 days',
+            'hero.rankLine': 'Then ongoing monthly service',
+            'card.tracking.quote': '“Advanced tracking + monthly reporting so you see exactly what works.”',
+            'card.tracking.title': 'Tracking',
+            'card.tracking.meta': 'GA4 · GTM · GSC',
+            'card.ads.quote': '“Professional ads, keyword insight, and structure built for leads — not just clicks.”',
+            'card.ads.title': 'Google Ads',
+            'card.ads.meta': 'Search · structure · optimization',
+            'card.seo.quote': '“Technical SEO + content planning so you show up for the right searches locally.”',
+            'card.seo.title': 'SEO',
+            'card.seo.meta': 'Local · on‑page · content',
+            'tiers.title': 'Choose your growth engine',
+            'tiers.sub':
+              'Google Ads or SEO — billed monthly. We usually begin with a 30-day kickoff when you start.',
+            'tiers.badge': 'Subscription · monthly',
+            'tier.channel.ads': 'Google Ads',
+            'tier.channel.ads2': 'Google Ads',
+            'tier.channel.seo': 'SEO',
+            'tier1.name': 'Basic',
+            'tier1.tag': 'Local visibility',
+            'tier.priceSuffix': 'DKK / mo.',
+            'tier1.li1': '1 search campaign',
+            'tier1.li2': '5 ad groups',
+            'tier1.li3': 'Professional ad copy',
+            'tier1.li4': 'Baseline conversion tracking',
+            'tier1.li5': 'Monthly optimisation',
+            'tier.cta': 'Start growing',
+            'tier.popular': 'Most popular',
+            'tier2.name': 'Standard',
+            'tier2.tag': 'Steady growth',
+            'tier2.li1': '2 search campaigns',
+            'tier2.li2': '15 ad groups',
+            'tier2.li3': 'Extended keyword analysis',
+            'tier2.li4': 'Advanced tracking',
+            'tier2.li5': 'Monthly reporting',
+            'tier.cta2': 'Start growing',
+            'tier3.name': 'Standard',
+            'tier3.tag': 'Steady growth',
+            'tier3.li1': 'Extended keyword set (25 terms)',
+            'tier3.li2': 'Optimisations across multiple pages',
+            'tier3.li3': '2–3 blog posts / mo.',
+            'tier3.li4': 'Technical SEO',
+            'tier3.li5': 'KPI reporting',
+            'tier.cta3': 'Start growing',
+            'process.title': 'How we work your first month',
+            'process.sub': 'A clear workflow. Results vary with market competition, geography, and budget.',
+            'process.s1t': 'Setup',
+            'process.s1b': 'We configure accounts and foundations for optimal performance.',
+            'process.s2t': 'Targeting',
+            'process.s2b': 'Define geography, keywords, and audience focus.',
+            'process.s3t': 'Activation',
+            'process.s3b': 'We launch campaigns and optimisations immediately.',
+            'process.s4t': 'Monitoring',
+            'process.s4b': 'Proactive adjustments based on real performance data.',
+            'closing.title': 'Ready to talk growth?',
+            'closing.body': 'We help you move forward with Google SEO and Google Ads — without mixing in unrelated product funnels.',
+            'closing.cta': 'Message Advero',
+            'footer': 'Advero · nucleus preview'
+          }
+        };
+
+        function setLang(lang) {
+          var dict = i18n[lang] || i18n.da;
+          document.documentElement.setAttribute('lang', lang);
+          if (dict['meta.title']) document.title = dict['meta.title'];
+          document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n');
+            if (!key) return;
+            var next = dict[key];
+            if (typeof next === 'string') el.textContent = next;
+          });
+          document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n-alt');
+            if (key && dict[key]) el.setAttribute('alt', dict[key]);
+          });
+          document.querySelectorAll('[data-lang-toggle]').forEach(function (btn) {
+            var isActive = btn.getAttribute('data-lang-toggle') === lang;
+            btn.setAttribute('aria-pressed', String(isActive));
+            btn.classList.toggle('text-zinc-700', isActive);
+            btn.classList.toggle('text-zinc-500', !isActive);
+            btn.classList.toggle('bg-zinc-50', isActive);
+          });
+          try {
+            localStorage.setItem('advero.lang', lang);
+          } catch (e) {}
+        }
+
+        document.querySelectorAll('[data-lang-toggle]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            setLang(btn.getAttribute('data-lang-toggle') || 'da');
+          });
+        });
+
+        var initial = 'da';
+        try {
+          var stored = localStorage.getItem('advero.lang');
+          if (stored === 'en' || stored === 'da') initial = stored;
+        } catch (e) {}
+        setLang(initial);
+
+        if (!window.gsap) return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        var reduceMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        var heroHeading = document.querySelector('h1');
+        var heroLines = heroHeading ? heroHeading.querySelectorAll('.reveal-line') : document.querySelectorAll('.reveal-line');
+
+        if (reduceMotion) {
+          gsap.set(heroLines, { clearProps: 'transform' });
+          gsap.set('.reveal-line', { y: 0 });
+          gsap.set('.fade-in', { opacity: 1, y: 0 });
+          gsap.set('.hero-visual-mount', { opacity: 1, y: 0, scale: 1 });
+          gsap.set('.hero-mark-img', { opacity: 1, scale: 1, x: 0, y: 0 });
+          return;
+        }
+
+        /** Above-the-fold headline: animate on load, not scroll. */
+        if (heroLines.length > 0) {
+          gsap.fromTo(heroLines,
+            { yPercent: 110 },
+            {
+              yPercent: 0,
+              duration: 0.92,
+              stagger: 0.09,
+              ease: 'power4.out',
+              delay: 0.06
+            });
+        }
+
+        gsap.fromTo(document.querySelectorAll('.fade-in'),
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            ease: 'power3.out',
+            duration: 0.75,
+            stagger: 0.1,
+            delay: 0.12
+          });
+
+        gsap.fromTo(document.querySelectorAll('.hero-visual-mount'),
+          { opacity: 0, y: 40, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power3.out', delay: 0.28 });
+
+        gsap.fromTo(document.querySelectorAll('.hero-mark-img'),
+          { opacity: 0, scale: 0.94, y: 20 },
+          { opacity: 1, scale: 1, y: 0, duration: 1.1, ease: 'power3.out', delay: 0.42 });
+
+        var heroTouch = document.querySelector('.hero-interactive-touch');
+        var markImg = document.querySelector('.hero-mark-img');
+        if (heroTouch && markImg) {
+          var mqParallax = gsap.quickTo(markImg, 'xPercent', { duration: 0.6, ease: 'power2.out' });
+          var mqParallaxY = gsap.quickTo(markImg, 'yPercent', { duration: 0.6, ease: 'power2.out' });
+          var onHeroPointer = function (e) {
+            var rect = heroTouch.getBoundingClientRect();
+            var x = ((e.clientX - rect.left) / rect.width) * 100;
+            var y = ((e.clientY - rect.top) / rect.height) * 100;
+            heroTouch.style.setProperty('--hx', x + '%');
+            heroTouch.style.setProperty('--hy', y + '%');
+            mqParallax(((e.clientX - rect.left) / rect.width - 0.5) * -6);
+            mqParallaxY(((e.clientY - rect.top) / rect.height - 0.5) * -4);
+          };
+          heroTouch.addEventListener('mousemove', onHeroPointer);
+          heroTouch.addEventListener('mouseleave', function () {
+            heroTouch.style.setProperty('--hx', '50%');
+            heroTouch.style.setProperty('--hy', '42%');
+            mqParallax(0);
+            mqParallaxY(0);
+          });
+        }
+
+      })();
+    </script>
+  </body>
+</html>
+

@@ -18,7 +18,15 @@ interface AuthContextType {
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
   loginWithSupabase: (accessToken: string, roleHint?: 'CONSUMER' | 'PARTNER') => Promise<void>;
-  register: (email: string, password: string, name?: string, firstName?: string, lastName?: string, role?: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    name?: string,
+    firstName?: string,
+    lastName?: string,
+    role?: string,
+    brand?: 'platform' | 'advero'
+  ) => Promise<{ requiresVerification?: boolean; user?: User; token?: string }>;
   logout: () => void;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -115,15 +123,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(user);
   };
 
-  const register = async (email: string, password: string, name?: string, firstName?: string, lastName?: string, role?: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    name?: string,
+    firstName?: string,
+    lastName?: string,
+    role?: string,
+    brand?: 'platform' | 'advero'
+  ) => {
     try {
-      const { user, token } = await api.register({ email, password, name, firstName, lastName, role });
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setToken(token);
-      setUser(user);
+      const response = await api.register({ email, password, name, firstName, lastName, role, brand });
+      if ((response as any).requiresVerification) {
+        return response as { requiresVerification: boolean };
+      }
+      const { user, token } = response as { user: User; token: string };
+      if (token && user) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setToken(token);
+        setUser(user);
+      }
+      return response;
     } catch (error: any) {
-      // Re-throw the error - mockApi should handle offline mode now
       throw error;
     }
   };

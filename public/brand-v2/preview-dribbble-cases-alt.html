@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NordVækst — Cases (alt preview)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#F3F2EE;
+        --fg:#1C1C1C;
+        --muted:rgba(28,28,28,.55);
+        --faint:rgba(28,28,28,.14);
+        --active:#D86A5A;
+      }
+      *{ box-sizing:border-box; }
+      body{
+        margin:0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background:var(--bg);
+        color:var(--fg);
+        overflow-x:hidden;
+      }
+      a{ color:inherit; text-decoration:none; }
+      .wrap{ max-width: 1180px; margin:0 auto; padding: 32px 24px 56px; }
+
+      .badge{
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 50;
+        background:#000;
+        color:#fff;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size:10px;
+        letter-spacing:.18em;
+        text-transform:uppercase;
+      }
+
+      .topbar{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        font-size:11px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.55);
+      }
+      .logo{
+        width:28px; height:28px;
+        border:1px solid rgba(28,28,28,.18);
+        display:flex; align-items:center; justify-content:center;
+        font-size:10px; font-weight:700; color:rgba(28,28,28,.75);
+      }
+      .topbar-right{ display:flex; align-items:center; gap:56px; }
+      .lang .sep{ color:rgba(28,28,28,.22); margin:0 6px; }
+
+      .grid{
+        display:grid;
+        grid-template-columns: 240px 1fr 420px;
+        gap: 56px;
+        padding-top: 42px;
+        align-items:start;
+      }
+
+      .crumb{
+        font-size:12px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.60);
+      }
+      .crumb .slash{
+        margin: 8px 0 8px;
+        color: rgba(28,28,28,.30);
+      }
+
+      .side-section-title{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.50);
+        margin-top: 40px;
+      }
+      .side-section-title .line{
+        width: 14px; height: 1px;
+        background: rgba(28,28,28,.26);
+      }
+      .nav{
+        margin-top: 18px;
+        display:flex;
+        flex-direction:column;
+        gap: 10px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.44);
+      }
+      .nav a:hover{ color:rgba(28,28,28,.70); }
+
+      /* Big faint list */
+      .cases{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 56px;
+        row-gap: 26px;
+        padding-top: 6px;
+      }
+      .case{
+        appearance:none;
+        border:0;
+        background:transparent;
+        padding:0;
+        text-align:left;
+        cursor:pointer;
+      }
+      .case-name{
+        font-size: 40px;
+        line-height: 1.05;
+        letter-spacing:-0.02em;
+        font-weight:600;
+        color: var(--faint);
+        transition: color 200ms ease;
+      }
+      .case:hover .case-name{ color: rgba(28,28,28,.25); }
+      .case.active .case-name{ color: var(--active); }
+
+      /* Right panel (alt layout) */
+      .panel{
+        position: sticky;
+        top: 28px;
+        align-self: start;
+        padding-top: 6px;
+      }
+      .panel-visual{
+        height: 280px;
+        border: 1px solid rgba(28,28,28,.10);
+        box-shadow: 0 18px 60px rgba(28,28,28,.08);
+        background:
+          radial-gradient(260px 200px at 60% 45%, rgba(28,28,28,.06), transparent 62%),
+          linear-gradient(135deg, rgba(255,255,255,.75), rgba(255,255,255,.0));
+        position: relative;
+        overflow:hidden;
+      }
+      .panel-visual::after{
+        content:'';
+        position:absolute;
+        inset:0;
+        background: radial-gradient(520px 340px at 85% 20%, rgba(28,28,28,.06), transparent 70%);
+        pointer-events:none;
+      }
+      .panel-visual-label{
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color: rgba(28,28,28,.18);
+        font-size: 10px;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+      }
+      .panel-card{
+        margin-top: 16px;
+        background: rgba(255,255,255,.42);
+        border: 1px solid rgba(28,28,28,.10);
+        border-radius: 18px;
+        padding: 16px 16px 14px;
+        box-shadow: 0 18px 60px rgba(28,28,28,.08);
+        backdrop-filter: blur(10px);
+      }
+      .panel-eyebrow{
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      .panel-title{
+        margin-top: 10px;
+        font-size: 16px;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        font-weight: 650;
+        color: rgba(28,28,28,.88);
+      }
+      .panel-sub{
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: rgba(28,28,28,.60);
+      }
+      .panel-meta{
+        margin-top: 12px;
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .chip{
+        border: 1px solid rgba(28,28,28,.10);
+        background: rgba(255,255,255,.55);
+        border-radius: 16px;
+        padding: 10px 10px 9px;
+      }
+      .chip-k{
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      .chip-v{
+        margin-top: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(28,28,28,.78);
+      }
+      .panel-list{
+        margin-top: 12px;
+        padding-left: 18px;
+        color: rgba(28,28,28,.60);
+        font-size: 12px;
+        line-height: 1.75;
+      }
+      .panel-cta{
+        margin-top: 12px;
+        display:flex;
+        gap: 10px;
+        align-items:center;
+      }
+      .btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border-radius: 999px;
+        padding: 10px 12px;
+        font-size: 10px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        border: 1px solid rgba(28,28,28,.12);
+        background: rgba(255,255,255,.75);
+        color: rgba(28,28,28,.78);
+      }
+      .btn-primary{
+        background: #000;
+        color: #fff;
+        border-color: #000;
+      }
+
+      .footer-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding-top: 56px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.45);
+      }
+      .footer-links{ display:flex; gap: 44px; }
+      .footer-links a:hover{ color: rgba(28,28,28,.70); }
+
+      @media (max-width: 1020px){
+        .grid{ grid-template-columns: 1fr; gap: 28px; }
+        .cases{ grid-template-columns: 1fr; row-gap: 18px; }
+        .case-name{ font-size: 34px; }
+        .topbar-right{ gap: 18px; flex-wrap:wrap; justify-content:flex-end; }
+        .panel{ position: static; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="badge">NordVækst · Cases · Alt</div>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="logo">NV</div>
+        <div class="topbar-right">
+          <div>+45 00 00 00 00</div>
+          <div>support@xn--findhndvrkeren-pibt.dk</div>
+          <div class="lang"><span>DA</span><span class="sep">/</span><span style="color:rgba(28,28,28,.35)">EN</span></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <aside>
+          <div class="crumb">
+            <div style="font-weight:500">Marketing</div>
+            <div class="slash">/</div>
+            <div>Pakker</div>
+          </div>
+
+          <div class="side-section-title">
+            <span class="line"></span>
+            <span>Services</span>
+          </div>
+          <nav class="nav" aria-label="Services">
+            <a href="#ads">Google Ads</a>
+            <a href="#seo">SEO</a>
+            <a href="#tracking">Tracking</a>
+            <a href="#landing">Landing pages</a>
+            <a href="#reporting">Rapportering</a>
+            <a href="#support">Support</a>
+          </nav>
+        </aside>
+
+        <main>
+          <section class="cases" id="cases" aria-label="Pakker og forløb">
+            <button class="case active" type="button" data-id="ads-starter"><div class="case-name">GOOGLE ADS — STARTER</div></button>
+            <button class="case" type="button" data-id="ads-pro"><div class="case-name">GOOGLE ADS — PRO</div></button>
+            <button class="case" type="button" data-id="seo-growth"><div class="case-name">SEO — GROWTH</div></button>
+            <button class="case" type="button" data-id="tracking-ga4-gtm"><div class="case-name">TRACKING — GA4 + GTM</div></button>
+            <button class="case" type="button" data-id="landing-opt"><div class="case-name">LANDING PAGE — OPTIMERING</div></button>
+            <button class="case" type="button" data-id="reporting-weekly"><div class="case-name">RAPPORTERING — UGE FOR UGE</div></button>
+            <button class="case" type="button" data-id="ads-audit"><div class="case-name">KAMPAGNE AUDIT — QUICK WINS</div></button>
+            <button class="case" type="button" data-id="seo-local"><div class="case-name">LOKAL SEO — PROFIL + CITATIONS</div></button>
+            <button class="case" type="button" data-id="seo-content"><div class="case-name">CONTENT — SERVICE HUB PAGES</div></button>
+            <button class="case" type="button" data-id="gsc-setup"><div class="case-name">SEARCH CONSOLE — SETUP</div></button>
+            <button class="case" type="button" data-id="speed-cwv"><div class="case-name">SPEED — CORE WEB VITALS</div></button>
+            <button class="case" type="button" data-id="cro"><div class="case-name">CRO — MERE KONVERTERING</div></button>
+            <button class="case" type="button" data-id="ads-retarget"><div class="case-name">RETARGETING — WARM TRAFIK</div></button>
+            <button class="case" type="button" data-id="lead-flow"><div class="case-name">LEAD FLOW — FORM + CALLS</div></button>
+            <button class="case" type="button" data-id="seo-tech"><div class="case-name">SITEMAP + ROBOTS — SEO BASE</div></button>
+            <button class="case" type="button" data-id="budget-plan"><div class="case-name">BUDGET PLAN — NÆSTE 30 DAGE</div></button>
+            <button class="case" type="button" data-id="pilot-90"><div class="case-name">90 DAGE — PILOT FORLØB</div></button>
+            <button class="case" type="button" data-id="support"><div class="case-name">SUPPORT — FAST RESPONSE</div></button>
+          </section>
+
+          <div class="footer-row">
+            <div>FORSIDE / PAKKER</div>
+            <div class="footer-links">
+              <a href="#kontakt">Kontakt</a>
+              <a href="#pricing">Priser</a>
+            </div>
+          </div>
+        </main>
+
+        <aside class="panel" aria-label="Preview panel">
+          <div class="panel-visual">
+            <div class="panel-visual-label" id="p-visual-label">GOOGLE ADS / MOCKUP</div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-eyebrow" id="p-eyebrow">Google Ads</div>
+            <div class="panel-title" id="p-title">Google Ads — Starter</div>
+            <div class="panel-sub" id="p-sub">
+              Kom i gang med kampagner der prioriterer relevante henvendelser — ikke bare klik.
+            </div>
+
+            <div class="panel-meta">
+              <div class="chip">
+                <div class="chip-k">Fra</div>
+                <div class="chip-v" id="p-price">3.499 DKK / md</div>
+              </div>
+              <div class="chip">
+                <div class="chip-k">Leverance</div>
+                <div class="chip-v" id="p-delivery">Opsætning + drift</div>
+              </div>
+            </div>
+
+            <ul class="panel-list" id="p-includes">
+              <li>Struktur + søgeord</li>
+              <li>Konverteringsmåling (GA4/GTM)</li>
+              <li>Ugentlig optimering</li>
+              <li>Kort rapport + næste skridt</li>
+            </ul>
+
+            <div class="panel-cta">
+              <a class="btn btn-primary" id="p-cta-primary" href="#pricing">Se pakke</a>
+              <a class="btn" id="p-cta-secondary" href="#kontakt">Kontakt</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script>
+      const data = {
+        "ads-starter": {
+          eyebrow: "Google Ads",
+          title: "Google Ads — Starter",
+          sub: "Kom i gang med kampagner der prioriterer relevante henvendelser — ikke bare klik.",
+          price: "3.499 DKK / md",
+          delivery: "Opsætning + drift",
+          visual: "GOOGLE ADS / MOCKUP",
+          includes: ["Struktur + søgeord", "Konverteringsmåling (GA4/GTM)", "Ugentlig optimering", "Kort rapport + næste skridt"],
+        },
+        "ads-pro": {
+          eyebrow: "Google Ads",
+          title: "Google Ads — Pro",
+          sub: "Mere volumen og bedre kvalitet: flere annoncegrupper, tests og landingsside-sparring.",
+          price: "5.499 DKK / md",
+          delivery: "Skalering",
+          visual: "GOOGLE ADS / PRO",
+          includes: ["Alt i Starter", "Flere annoncegrupper + tests", "Landing page sparring", "Tættere optimerings-cyklus"],
+        },
+        "seo-growth": {
+          eyebrow: "SEO",
+          title: "SEO — Growth",
+          sub: "Langsigtet synlighed med tekniske fixes og content der matcher dine services.",
+          price: "4.999 DKK / md",
+          delivery: "Løbende",
+          visual: "SEO / OVERVIEW",
+          includes: ["Teknisk audit + fixes", "Lokal SEO fokus", "Content plan", "Måling i GSC"],
+        },
+        "tracking-ga4-gtm": {
+          eyebrow: "Tracking",
+          title: "Tracking — GA4 + GTM",
+          sub: "Rigtigt tracking på leads, calls og formularer, så vi kan optimere sikkert.",
+          price: "Fra 1.999 DKK (engangs)",
+          delivery: "48 timer",
+          visual: "TRACKING / EVENTS",
+          includes: ["GA4 setup", "GTM events", "Conversions", "Test i DebugView"],
+        },
+        "landing-opt": {
+          eyebrow: "Landing pages",
+          title: "Landing page — Optimering",
+          sub: "Bedre konvertering med klarere value prop, social proof og CTA-struktur.",
+          price: "Fra 1.999 DKK (engangs)",
+          delivery: "1 uge",
+          visual: "LANDING / WIREFRAME",
+          includes: ["Wireframe forslag", "Copy polish", "CTA + proof", "Track plan"],
+        },
+        "reporting-weekly": {
+          eyebrow: "Rapportering",
+          title: "Rapportering — Uge for uge",
+          sub: "Kort status, tydelige tal og næste skridt — uden fluff.",
+          price: "Inkluderet i drift",
+          delivery: "Ugentligt",
+          visual: "REPORT / SNAPSHOT",
+          includes: ["KPI snapshot", "Hvad ændrede vi", "Hvad lærte vi", "Næste prioritet"],
+        },
+        "ads-audit": {
+          eyebrow: "Google Ads",
+          title: "Kampagne audit — Quick wins",
+          sub: "Gennemgang der finder lækager, dyre clicks og de hurtigste forbedringer.",
+          price: "1.999 DKK (engangs)",
+          delivery: "48 timer",
+          visual: "ADS / AUDIT",
+          includes: ["Konto review", "Søgeord + negative", "Annonce- og strukturfixes", "Prioriteret action plan"],
+        },
+        "seo-local": {
+          eyebrow: "SEO",
+          title: "Lokal SEO — Profil + citations",
+          sub: "Google Business Profile og lokale signaler, så du ranker lokalt.",
+          price: "Fra 1.999 DKK (engangs)",
+          delivery: "1–2 uger",
+          visual: "LOCAL / SIGNALS",
+          includes: ["Profil optimering", "NAP consistency", "Citations plan", "Review flow forslag"],
+        },
+        "seo-content": {
+          eyebrow: "SEO",
+          title: "Content — Service hub pages",
+          sub: "Sider der kan ranke: service, lokation, proof og FAQ.",
+          price: "Fra 1.499 DKK / side",
+          delivery: "Per side",
+          visual: "CONTENT / HUB",
+          includes: ["Outline + søgeord", "Copy struktur", "Intern linking", "Schema forslag"],
+        },
+        "gsc-setup": {
+          eyebrow: "Tracking",
+          title: "Search Console — Setup",
+          sub: "Se hvad du ranker på, hvad der klikker, og hvor du kan vokse næste.",
+          price: "499 DKK (engangs)",
+          delivery: "1 dag",
+          visual: "GSC / INSIGHTS",
+          includes: ["Property setup", "Sitemap submit", "Indexing check", "Quick insights"],
+        },
+        "speed-cwv": {
+          eyebrow: "Performance",
+          title: "Speed — Core Web Vitals",
+          sub: "Få siden hurtigere, så både SEO og Ads konvertering bliver bedre.",
+          price: "Fra 1.999 DKK (engangs)",
+          delivery: "1–2 uger",
+          visual: "SPEED / CWV",
+          includes: ["CWV audit", "Quick fixes", "Image optim.", "Retest + score"],
+        },
+        "cro": {
+          eyebrow: "CRO",
+          title: "CRO — Mere konvertering",
+          sub: "Små ændringer der gør stor forskel: trust, flow, friktion og CTA.",
+          price: "Fra 1.499 DKK (engangs)",
+          delivery: "1 uge",
+          visual: "CRO / TESTS",
+          includes: ["Funnel review", "3–5 tests", "Copy tweaks", "Måling plan"],
+        },
+        "ads-retarget": {
+          eyebrow: "Google Ads",
+          title: "Retargeting — Warm trafik",
+          sub: "Fang besøgende der ikke konverterer første gang, og få flere leads pr. krone.",
+          price: "Fra 999 DKK / md",
+          delivery: "Setup + drift",
+          visual: "RETARGET / WARM",
+          includes: ["Audience setup", "Kreativ sparring", "Frekvens-kontrol", "Måling + optimering"],
+        },
+        "lead-flow": {
+          eyebrow: "Lead flow",
+          title: "Lead flow — Form + calls",
+          sub: "Gør det nemmere at kontakte dig: forms, call tracking og CTA’er.",
+          price: "Fra 1.499 DKK (engangs)",
+          delivery: "1 uge",
+          visual: "LEADS / FLOW",
+          includes: ["Form forbedring", "Call tracking", "CTA struktur", "Lead routing forslag"],
+        },
+        "seo-tech": {
+          eyebrow: "SEO",
+          title: "Sitemap + robots — SEO base",
+          sub: "Teknisk fundament der gør det nemt for Google at crawle og indeksere korrekt.",
+          price: "999 DKK (engangs)",
+          delivery: "48 timer",
+          visual: "SEO / BASE",
+          includes: ["robots.txt", "sitemap.xml", "Canonical tjek", "GSC submit"],
+        },
+        "budget-plan": {
+          eyebrow: "Plan",
+          title: "Budget plan — Næste 30 dage",
+          sub: "Simpelt budget og prioritering: hvor pengene skal bruges for bedst effekt.",
+          price: "999 DKK (engangs)",
+          delivery: "2 dage",
+          visual: "PLAN / 30D",
+          includes: ["Budget scenarier", "Prioriteringsliste", "Forventningsramme", "Næste skridt"],
+        },
+        "pilot-90": {
+          eyebrow: "Program",
+          title: "90 dage — Pilot forløb",
+          sub: "Fra setup til stabile leads: tracking, Ads, landingssider og SEO med progression.",
+          price: "Efter aftale",
+          delivery: "12 uger",
+          visual: "90 DAGE / PILOT",
+          includes: ["Kickoff + adgang", "Setup uge 1–2", "Test & læring", "Skalering + drift"],
+        },
+        "support": {
+          eyebrow: "Support",
+          title: "Support — Fast response",
+          sub: "Du får en klar kanal, forventninger og hurtige svar når der er brug for det.",
+          price: "Inkluderet",
+          delivery: "Hverdage",
+          visual: "SUPPORT / SLA",
+          includes: ["Svar SLA", "Små fixes", "Spørgsmål & sparring", "Tydelig prioritering"],
+        },
+      };
+
+      const panel = {
+        visual: document.getElementById('p-visual-label'),
+        eyebrow: document.getElementById('p-eyebrow'),
+        title: document.getElementById('p-title'),
+        sub: document.getElementById('p-sub'),
+        price: document.getElementById('p-price'),
+        delivery: document.getElementById('p-delivery'),
+        includes: document.getElementById('p-includes'),
+      };
+
+      function render(id){
+        const d = data[id];
+        if (!d) return;
+        panel.visual.textContent = d.visual || 'VISUAL / MOCKUP';
+        panel.eyebrow.textContent = d.eyebrow;
+        panel.title.textContent = d.title;
+        panel.sub.textContent = d.sub;
+        panel.price.textContent = d.price;
+        panel.delivery.textContent = d.delivery;
+        panel.includes.innerHTML = d.includes.map((x)=>`<li>${x}</li>`).join('');
+      }
+
+      const buttons = Array.from(document.querySelectorAll('.case'));
+      buttons.forEach((btn) => {
+        const id = btn.getAttribute('data-id');
+        const activate = () => {
+          buttons.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          if (id) render(id);
+        };
+        btn.addEventListener('mouseenter', activate);
+        btn.addEventListener('focus', activate);
+        btn.addEventListener('click', activate);
+      });
+
+      render('ads-starter');
+    </script>
+  </body>
+</html>
+

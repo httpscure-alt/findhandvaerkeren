@@ -50,6 +50,36 @@ services:
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
 
+      # Advero marketing prices (run backend/scripts/stripeSeedProducts.ts)
+      - key: STRIPE_PRICE_SEO_BASIC
+        sync: false
+      - key: STRIPE_PRICE_SEO_STANDARD
+        sync: false
+      - key: STRIPE_PRICE_SEO_PRO
+        sync: false
+      - key: STRIPE_PRICE_ADS_BASIC
+        sync: false
+      - key: STRIPE_PRICE_ADS_STANDARD
+        sync: false
+      - key: STRIPE_PRICE_ADS_PRO
+        sync: false
+      - key: STRIPE_PRICE_GROWTH_BUNDLE
+        sync: false
+      - key: ADVERO_SITE_URL
+        sync: false
+
+      # Google (Search Console + Ads OAuth)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_OAUTH_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_ADS_DEVELOPER_TOKEN
+        sync: false
+      - key: GOOGLE_ADS_LOGIN_CUSTOMER_ID
+        sync: false
+
       # Optional but recommended
       - key: SENTRY_DSN
         sync: false

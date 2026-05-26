@@ -1,12 +1,11 @@
 /**
- * Creates Stripe Products + recurring Prices to match backend/src/config/stripePlans.ts
- * and frontend constants (constants/pricing.ts, constants/marketingPricing.ts).
+ * Creates Stripe Products + recurring Prices for Advero marketing tiers (DKK/month).
  *
  * Usage (from backend/):
  *   npx tsx scripts/stripeSeedProducts.ts
  *
  * Requires STRIPE_SECRET_KEY in .env (test or live — matches Dashboard mode).
- * Prints .env lines to paste into backend/.env and Vercel.
+ * Prints .env lines to paste into backend host + Vercel (if needed).
  */
 
 import path from 'path';
@@ -17,27 +16,19 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const API_VERSION = '2023-10-16' as const;
 
-/** DKK amounts in smallest unit (øre). Keep in sync with constants/pricing.ts */
-const PARTNER_BASIC_MONTHLY_DKK = 500;
-const PARTNER_GOLD_MONTHLY_DKK = 1000;
-const ANNUAL_DISCOUNT = 0.2; // 20% — matches PARTNER_PLAN_PRICING.ANNUAL_DISCOUNT_PERCENTAGE
-
-/** Marketing DKK/month (whole kroner). Keep in sync with constants/marketingPricing.ts */
+/** DKK/month — keep in sync with constants/marketingPricing.ts */
 const MARKETING = {
-  ADS_BASIC: 1000,
-  ADS_STANDARD: 2000,
-  ADS_PRO: 5000,
-  SEO_BASIC: 1500,
-  SEO_STANDARD: 3000,
-  SEO_PRO: 5000,
+  SEO_BASIC: 299,
+  SEO_STANDARD: 599,
+  SEO_PRO: 999,
+  ADS_BASIC: 499,
+  ADS_STANDARD: 999,
+  ADS_PRO: 2999,
+  GROWTH_BUNDLE: 4500,
 } as const;
 
 function dkkToMinorUnits(kr: number): number {
   return Math.round(kr * 100);
-}
-
-function annualFromMonthlyMonthlyKr(monthlyKr: number): number {
-  return Math.round(monthlyKr * 12 * (1 - ANNUAL_DISCOUNT));
 }
 
 async function main() {
@@ -56,113 +47,106 @@ async function main() {
     productId: string,
     envKey: string,
     unitAmount: number,
-    recurring: Stripe.PriceCreateParams.Recurring
+    recurring: Stripe.PriceCreateParams.Recurring,
+    nickname?: string
   ) => {
     const price = await stripe.prices.create({
       product: productId,
       currency,
       unit_amount: unitAmount,
       recurring,
-      metadata: { fh_env_key: envKey },
+      nickname,
+      metadata: { advero_env_key: envKey },
     });
     out[envKey] = price.id;
-    console.log(`  ${envKey}=${price.id}`);
+    console.log(`  ${envKey}=${price.id}  (${unitAmount / 100} DKK/mo)`);
   };
 
-  console.log('\n--- Partner plans ---\n');
-
-  const partnerBasic = await stripe.products.create({
-    name: 'Findhåndværkeren — Partner Basic (listing)',
-    description: 'Business listing — Basic tier (monthly / annual)',
-    metadata: { app: 'findhandvaerkeren', kind: 'partner_basic' },
-  });
-
-  await mkPrice(
-    partnerBasic.id,
-    'STRIPE_PRICE_BASIC_MONTHLY',
-    dkkToMinorUnits(PARTNER_BASIC_MONTHLY_DKK),
-    { interval: 'month' }
-  );
-  await mkPrice(
-    partnerBasic.id,
-    'STRIPE_PRICE_BASIC_ANNUAL',
-    dkkToMinorUnits(annualFromMonthlyMonthlyKr(PARTNER_BASIC_MONTHLY_DKK)),
-    { interval: 'year' }
-  );
-
-  const partnerGold = await stripe.products.create({
-    name: 'Findhåndværkeren — Partner Gold (listing)',
-    description: 'Business listing — Gold tier (monthly / annual)',
-    metadata: { app: 'findhandvaerkeren', kind: 'partner_gold' },
-  });
-
-  await mkPrice(
-    partnerGold.id,
-    'STRIPE_PRICE_GOLD_MONTHLY',
-    dkkToMinorUnits(PARTNER_GOLD_MONTHLY_DKK),
-    { interval: 'month' }
-  );
-  await mkPrice(
-    partnerGold.id,
-    'STRIPE_PRICE_GOLD_ANNUAL',
-    dkkToMinorUnits(annualFromMonthlyMonthlyKr(PARTNER_GOLD_MONTHLY_DKK)),
-    { interval: 'year' }
-  );
-
-  console.log('\n--- Google Ads (monthly) ---\n');
+  console.log('\n--- Advero — Google Ads (Starter / Growth / Pro) ---\n');
 
   const adsProduct = await stripe.products.create({
-    name: 'Findhåndværkeren — Google Ads',
-    description: 'Marketing — Google Ads subscription (monthly)',
-    metadata: { app: 'findhandvaerkeren', kind: 'marketing_ads' },
+    name: 'Advero — Google Ads',
+    description: 'Google Ads management — monthly subscription (ad spend billed by Google)',
+    metadata: { app: 'advero', kind: 'marketing_ads' },
   });
 
-  await mkPrice(adsProduct.id, 'STRIPE_PRICE_ADS_BASIC', dkkToMinorUnits(MARKETING.ADS_BASIC), {
-    interval: 'month',
-  });
+  await mkPrice(
+    adsProduct.id,
+    'STRIPE_PRICE_ADS_BASIC',
+    dkkToMinorUnits(MARKETING.ADS_BASIC),
+    { interval: 'month' },
+    'Google Ads Starter'
+  );
   await mkPrice(
     adsProduct.id,
     'STRIPE_PRICE_ADS_STANDARD',
     dkkToMinorUnits(MARKETING.ADS_STANDARD),
-    { interval: 'month' }
+    { interval: 'month' },
+    'Google Ads Growth'
   );
-  await mkPrice(adsProduct.id, 'STRIPE_PRICE_ADS_PRO', dkkToMinorUnits(MARKETING.ADS_PRO), {
-    interval: 'month',
-  });
+  await mkPrice(
+    adsProduct.id,
+    'STRIPE_PRICE_ADS_PRO',
+    dkkToMinorUnits(MARKETING.ADS_PRO),
+    { interval: 'month' },
+    'Google Ads Pro'
+  );
 
-  console.log('\n--- SEO (monthly) ---\n');
+  console.log('\n--- Advero — SEO (Starter / Growth / Pro) ---\n');
 
   const seoProduct = await stripe.products.create({
-    name: 'Findhåndværkeren — SEO',
-    description: 'Marketing — SEO subscription (monthly)',
-    metadata: { app: 'findhandvaerkeren', kind: 'marketing_seo' },
+    name: 'Advero — SEO',
+    description: 'SEO management — monthly subscription',
+    metadata: { app: 'advero', kind: 'marketing_seo' },
   });
 
-  await mkPrice(seoProduct.id, 'STRIPE_PRICE_SEO_BASIC', dkkToMinorUnits(MARKETING.SEO_BASIC), {
-    interval: 'month',
-  });
+  await mkPrice(
+    seoProduct.id,
+    'STRIPE_PRICE_SEO_BASIC',
+    dkkToMinorUnits(MARKETING.SEO_BASIC),
+    { interval: 'month' },
+    'SEO Starter'
+  );
   await mkPrice(
     seoProduct.id,
     'STRIPE_PRICE_SEO_STANDARD',
     dkkToMinorUnits(MARKETING.SEO_STANDARD),
-    { interval: 'month' }
+    { interval: 'month' },
+    'SEO Growth'
   );
-  await mkPrice(seoProduct.id, 'STRIPE_PRICE_SEO_PRO', dkkToMinorUnits(MARKETING.SEO_PRO), {
-    interval: 'month',
+  await mkPrice(
+    seoProduct.id,
+    'STRIPE_PRICE_SEO_PRO',
+    dkkToMinorUnits(MARKETING.SEO_PRO),
+    { interval: 'month' },
+    'SEO Pro'
+  );
+
+  console.log('\n--- Advero — Growth+ bundle ---\n');
+
+  const growthProduct = await stripe.products.create({
+    name: 'Advero — Growth+',
+    description: 'SEO Growth + Google Ads Growth + AI Visibility Search',
+    metadata: { app: 'advero', kind: 'marketing_growth_bundle' },
   });
+
+  await mkPrice(
+    growthProduct.id,
+    'STRIPE_PRICE_GROWTH_BUNDLE',
+    dkkToMinorUnits(MARKETING.GROWTH_BUNDLE),
+    { interval: 'month' },
+    'Growth+ bundle'
+  );
 
   console.log('\n--- Copy into backend/.env (and API host env) ---\n');
   const keys = [
-    'STRIPE_PRICE_BASIC_MONTHLY',
-    'STRIPE_PRICE_BASIC_ANNUAL',
-    'STRIPE_PRICE_GOLD_MONTHLY',
-    'STRIPE_PRICE_GOLD_ANNUAL',
     'STRIPE_PRICE_ADS_BASIC',
     'STRIPE_PRICE_ADS_STANDARD',
     'STRIPE_PRICE_ADS_PRO',
     'STRIPE_PRICE_SEO_BASIC',
     'STRIPE_PRICE_SEO_STANDARD',
     'STRIPE_PRICE_SEO_PRO',
+    'STRIPE_PRICE_GROWTH_BUNDLE',
   ];
   for (const k of keys) {
     console.log(`${k}=${out[k]}`);
@@ -170,7 +154,7 @@ async function main() {
 
   console.log(
     `\nDone. Mode: ${secret.startsWith('sk_live') ? 'LIVE' : 'TEST'}. ` +
-      'Add webhook endpoint for /api/stripe/webhook and set STRIPE_WEBHOOK_SECRET.'
+      'Point Stripe webhook to /api/stripe/webhook and set STRIPE_WEBHOOK_SECRET.'
   );
 }
 

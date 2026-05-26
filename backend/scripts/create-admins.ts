@@ -36,8 +36,8 @@ async function createAdmin(email: string, name: string) {
 }
 
 async function main() {
-    await createAdmin('superadmin@findhndvrkeren.dk', 'Super Admin');
-    await createAdmin('admin@findhndvrkeren.dk', 'Administrator');
+    await createAdmin('admin@advero.dk', 'Advero Admin');
+    await createAdmin('hello@advero.dk', 'Advero Team');
     
     console.log('\n✨ Admin account setup complete!');
     console.log('🔄 You can now log in with these credentials on the website.');

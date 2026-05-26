@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NordVækst — Services (clean preview)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#F3F2EE;
+        --fg:rgba(28,28,28,.86);
+        --muted:rgba(28,28,28,.55);
+        --faint:rgba(28,28,28,.14);
+        --line:rgba(28,28,28,.10);
+        --accent:#D86A5A; /* previous orange */
+      }
+      *{ box-sizing:border-box; }
+      body{
+        margin:0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background:var(--bg);
+        color:var(--fg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      a{ color:inherit; text-decoration:none; }
+      .wrap{ max-width: 1120px; margin:0 auto; padding: 32px 24px 56px; position: relative; }
+
+      /* subtle premium background */
+      .bg{
+        position: fixed;
+        inset: 0;
+        pointer-events:none;
+        z-index: 0;
+      }
+      .grain{
+        position:absolute;
+        inset:0;
+        opacity: 0.05;
+        mix-blend-mode: multiply;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+      }
+      .blob{
+        position:absolute;
+        width: 520px;
+        height: 520px;
+        border-radius: 999px;
+        filter: blur(60px);
+        opacity: 0.55;
+      }
+      .blob.a{ left:-220px; top:-240px; background: radial-gradient(circle at 30% 30%, rgba(216,106,90,.45), transparent 62%); }
+      .blob.b{ right:-260px; top:-120px; background: radial-gradient(circle at 30% 30%, rgba(28,28,28,.12), transparent 60%); opacity: .35; }
+      .blob.c{ left:35%; bottom:-300px; background: radial-gradient(circle at 30% 30%, rgba(216,106,90,.26), transparent 68%); opacity: .55; }
+      .watermark{
+        position:absolute;
+        left: 6%;
+        top: 140px;
+        font-size: 110px;
+        line-height: 1;
+        letter-spacing: -0.06em;
+        font-weight: 500;
+        color: rgba(28,28,28,.04);
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .watermark span{
+        display:inline-block;
+        transform: translateY(0);
+      }
+
+      .surface{
+        position: relative;
+        z-index: 1;
+      }
+
+      .topbar{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        font-size:11px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        color:var(--muted);
+      }
+      .logo{
+        width:28px; height:28px;
+        border:1px solid rgba(28,28,28,.18);
+        display:flex; align-items:center; justify-content:center;
+        font-size:10px; font-weight:600; color:rgba(28,28,28,.75);
+      }
+      .topbar-right{ display:flex; align-items:center; gap:56px; }
+      .lang .sep{ color:rgba(28,28,28,.22); margin:0 6px; }
+
+      .grid{
+        display:grid;
+        grid-template-columns: 260px 1fr;
+        gap: 60px;
+        padding-top: 42px;
+        align-items:start;
+      }
+      .crumb{
+        font-size:12px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.60);
+      }
+      .crumb .slash{ margin: 8px 0; color: rgba(28,28,28,.30); }
+
+      .side-section-title{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.50);
+        margin-top: 40px;
+      }
+      .side-section-title .line{ width:14px; height:1px; background: rgba(28,28,28,.26); }
+      .nav{
+        margin-top: 18px;
+        display:flex;
+        flex-direction:column;
+        gap: 10px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color:rgba(28,28,28,.44);
+      }
+      .nav a{ padding-left: 0; }
+      .nav a{ transition: color 160ms ease, padding-left 220ms ease; }
+      .nav a:hover{ color:rgba(28,28,28,.70); }
+      .nav a.active{
+        color: rgba(28,28,28,.86);
+        padding-left: 16px;
+        position: relative;
+      }
+      .nav a.active::before{
+        content:'';
+        position:absolute;
+        left:0;
+        top: 50%;
+        width: 10px;
+        height: 1px;
+        background: rgba(216,106,90,.75);
+        transform: translateY(-50%);
+      }
+      .nav a.active::after{
+        content:'';
+        position:absolute;
+        left: 16px;
+        right: -6px;
+        bottom: -6px;
+        height: 1px;
+        background: linear-gradient(to right, rgba(216,106,90,.55), rgba(216,106,90,0));
+        opacity: 0.75;
+      }
+
+      /* Clean service sheet */
+      .sheet{ display:none; }
+      .sheet.active{ display:block; }
+      .sheet.enter{
+        animation: enter 420ms cubic-bezier(.2,.8,.2,1) both;
+      }
+      @keyframes enter{
+        from{ opacity: 0; transform: translateY(10px); }
+        to{ opacity: 1; transform: translateY(0); }
+      }
+      .headline{
+        margin-top: 6px;
+        font-size: 56px;
+        line-height: 1.03;
+        letter-spacing: -0.03em;
+        font-weight: 500;
+        color: rgba(28,28,28,.16);
+      }
+      .headline strong{
+        color: var(--accent);
+        font-weight: 500;
+      }
+      .headline strong::after{
+        content:'';
+        display:inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        margin-left: 10px;
+        transform: translateY(-6px);
+        opacity: 0.85;
+      }
+      .intro{
+        margin-top: 14px;
+        font-size: 12px;
+        line-height: 1.85;
+        color: var(--muted);
+        max-width: 64ch;
+      }
+      .rule{ margin-top: 20px; height:1px; background: var(--line); width: 100%; }
+
+      .meta-line{
+        margin-top: 12px;
+        display:flex;
+        justify-content:space-between;
+        gap: 18px;
+        color: rgba(28,28,28,.55);
+        font-size:11px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+      }
+      .meta-line span{
+        color: rgba(216,106,90,.70);
+      }
+
+      .row{
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+        display:flex;
+        justify-content:space-between;
+        gap: 18px;
+        align-items:baseline;
+        transition: background-color 180ms ease;
+      }
+      .row:hover{
+        background-color: rgba(255,255,255,.35);
+      }
+      .k{
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      .k.accent{
+        color: rgba(216,106,90,.70);
+      }
+      .v{
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(28,28,28,.78);
+        line-height: 1.4;
+      }
+      .note{
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.8;
+        color: var(--muted);
+        max-width: 52ch;
+      }
+      .price{
+        white-space: nowrap;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .20em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.55);
+      }
+
+      .cols{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+        margin-top: 18px;
+      }
+      .section-title{
+        margin-top: 0;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.50);
+      }
+      ul{
+        margin: 10px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.9;
+      }
+
+      .steps{
+        margin-top: 10px;
+        display:flex;
+        flex-direction:column;
+        gap: 12px;
+      }
+      .step{
+        display:grid;
+        grid-template-columns: 64px 1fr;
+        gap: 18px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .step:last-child{ border-bottom: 0; }
+      .step .k{ margin-top: 2px; }
+
+      .cta{
+        margin-top: 18px;
+        display:flex;
+        gap: 10px;
+        align-items:center;
+      }
+      .btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border-radius: 999px;
+        padding: 10px 12px;
+        font-size: 10px;
+        letter-spacing:.20em;
+        text-transform:uppercase;
+        border: 1px solid rgba(28,28,28,.12);
+        background: rgba(255,255,255,.75);
+        color: rgba(28,28,28,.78);
+      }
+      .btn-primary{ background:#000; color:#fff; border-color:#000; }
+      .btn-primary{
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        box-shadow: 0 14px 50px rgba(216,106,90,.18);
+      }
+      .btn-primary:hover{
+        filter: saturate(1.05);
+      }
+
+      /* subtle “visual” on the right to avoid plain feeling */
+      .visual{
+        margin-top: 18px;
+        height: 320px;
+        border: 1px solid var(--line);
+        background:
+          radial-gradient(280px 220px at 60% 45%, rgba(28,28,28,.05), transparent 62%),
+          linear-gradient(135deg, rgba(255,255,255,.75), rgba(255,255,255,0));
+        box-shadow: 0 18px 60px rgba(28,28,28,.06);
+        position: relative;
+        overflow:hidden;
+      }
+      .visual::after{
+        content:'';
+        position:absolute;
+        inset:0;
+        background: radial-gradient(520px 340px at 85% 20%, rgba(216,106,90,.14), transparent 70%);
+        pointer-events:none;
+      }
+      .visual::before{
+        content:'';
+        position:absolute;
+        inset:-40px;
+        background:
+          radial-gradient(120px 120px at 30% 30%, rgba(216,106,90,.18), transparent 60%),
+          radial-gradient(140px 140px at 70% 55%, rgba(28,28,28,.08), transparent 62%);
+        transform: rotate(10deg);
+        opacity: 0.65;
+      }
+      .visual-img{
+        position:absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.55;
+        filter: grayscale(100%) contrast(1.05);
+        mix-blend-mode: multiply;
+        transform: scale(1.02);
+      }
+      .visual-label{
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color: rgba(28,28,28,.18);
+        font-size: 10px;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        text-shadow: 0 1px 0 rgba(255,255,255,.6);
+      }
+
+      .footer-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding-top: 56px;
+        font-size:10px;
+        letter-spacing:.22em;
+        text-transform:uppercase;
+        color: rgba(28,28,28,.45);
+      }
+      .footer-links{ display:flex; gap: 44px; }
+      .footer-links a:hover{ color: rgba(28,28,28,.70); }
+
+      @media (max-width: 920px){
+        .grid{ grid-template-columns: 1fr; gap: 28px; }
+        .topbar-right{ gap: 18px; flex-wrap:wrap; justify-content:flex-end; }
+        .headline{ font-size: 38px; }
+        .cols{ grid-template-columns: 1fr; gap: 18px; }
+        .visual{ height: 240px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg">
+      <div class="blob a"></div>
+      <div class="blob b"></div>
+      <div class="blob c"></div>
+      <div class="grain"></div>
+      <div class="watermark" aria-hidden="true"><span id="wm">NORDVÆKST</span></div>
+    </div>
+
+    <div class="wrap surface">
+      <div class="topbar">
+        <div class="logo">NV</div>
+        <div class="topbar-right">
+          <div>+45 00 00 00 00</div>
+          <div>support@xn--findhndvrkeren-pibt.dk</div>
+          <div class="lang"><span>DA</span><span class="sep">/</span><span style="color:rgba(28,28,28,.35)">EN</span></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <aside>
+          <div class="crumb">
+            <div style="font-weight:500">Marketing</div>
+            <div class="slash">/</div>
+            <div>Services</div>
+          </div>
+
+          <div class="side-section-title">
+            <span class="line"></span>
+            <span>Services</span>
+          </div>
+          <nav class="nav" aria-label="Services">
+            <a href="#ads" data-svc="ads" class="svc-link active">Google Ads</a>
+            <a href="#seo" data-svc="seo" class="svc-link">SEO</a>
+            <a href="#tracking" data-svc="tracking" class="svc-link">Tracking</a>
+            <a href="#landing" data-svc="landing" class="svc-link">Landing pages</a>
+            <a href="#reporting" data-svc="reporting" class="svc-link">Rapportering</a>
+            <a href="#support" data-svc="support" class="svc-link">Support</a>
+          </nav>
+        </aside>
+
+        <main>
+          <section class="sheet active" data-svc="ads">
+            <div class="headline"><strong>Google Ads</strong> / leads</div>
+            <div class="intro">
+              Kampagner der prioriterer relevante henvendelser. Vi tester budskaber, flytter budget til det der virker,
+              og holder alt målbart.
+            </div>
+            <div class="meta-line">
+              <div>Project manager: <span>NordVækst</span></div>
+              <div>Next: <span>SEO</span></div>
+            </div>
+            <div class="rule"></div>
+            <div class="row">
+              <div>
+                <div class="k">Starter</div>
+                <div class="v">Setup + drift</div>
+                <div class="note">Struktur + søgeord · GA4/GTM · ugentlig optimering.</div>
+              </div>
+              <div class="price">3.499 DKK / md</div>
+            </div>
+            <div class="row">
+              <div>
+                <div class="k">Pro</div>
+                <div class="v">Skalering</div>
+                <div class="note">Flere tests · annoncegrupper · landing page sparring.</div>
+              </div>
+              <div class="price">5.499 DKK / md</div>
+            </div>
+
+            <div class="cols">
+              <div>
+                <div class="section-title">Inkluderet</div>
+                <ul>
+                  <li>Søgeord + negative keywords</li>
+                  <li>Annonce variationer</li>
+                  <li>Konverteringsmåling</li>
+                  <li>Ugentlig optimering</li>
+                </ul>
+              </div>
+              <div>
+                <div class="section-title">Hvordan det virker</div>
+                <div class="steps">
+                  <div class="step">
+                    <div class="k">Trin 1</div>
+                    <div>
+                      <div class="v">Kickoff</div>
+                      <div class="note">Mål, lokationer, services, tracking-plan.</div>
+                    </div>
+                  </div>
+                  <div class="step">
+                    <div class="k">Trin 2</div>
+                    <div>
+                      <div class="v">Setup</div>
+                      <div class="note">Struktur, søgeord, annoncer, conversions.</div>
+                    </div>
+                  </div>
+                  <div class="step">
+                    <div class="k">Trin 3</div>
+                    <div>
+                      <div class="v">Optimering</div>
+                      <div class="note">Tests, budgetflyt og uge-for-uge forbedringer.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cta">
+              <a class="btn btn-primary" href="#pricing">Se priser</a>
+              <a class="btn" href="#kontakt">Kontakt</a>
+            </div>
+
+            <div class="visual" aria-label="Visual">
+              <div class="visual-img" data-visual></div>
+              <div class="visual-label" data-visual-label>GOOGLE ADS / VISUAL</div>
+            </div>
+          </section>
+
+          <section class="sheet" data-svc="seo">
+            <div class="headline"><strong>SEO</strong> / lokalt</div>
+            <div class="intro">Teknisk + lokalt content. Målt i Search Console. Byg sider der kan ranke.</div>
+            <div class="meta-line"><div>Project manager: <span>NordVækst</span></div><div>Next: <span>Tracking</span></div></div>
+            <div class="rule"></div>
+            <div class="row">
+              <div>
+                <div class="k">Growth</div>
+                <div class="v">Løbende</div>
+                <div class="note">Audit + fixes · content plan · lokal SEO.</div>
+              </div>
+              <div class="price">4.999 DKK / md</div>
+            </div>
+            <div class="row">
+              <div>
+                <div class="k">Lokal SEO</div>
+                <div class="v">Setup</div>
+                <div class="note">Google Business Profile · citations · reviews flow.</div>
+              </div>
+              <div class="price">1.999 DKK</div>
+            </div>
+            <div class="cols">
+              <div>
+                <div class="section-title">Inkluderet</div>
+                <ul>
+                  <li>Teknisk audit + quick wins</li>
+                  <li>Service hub pages</li>
+                  <li>Intern linking</li>
+                  <li>Måling i GSC</li>
+                </ul>
+              </div>
+              <div>
+                <div class="section-title">Hvordan det virker</div>
+                <div class="steps">
+                  <div class="step"><div class="k">Trin 1</div><div><div class="v">Audit</div><div class="note">Baseline + plan.</div></div></div>
+                  <div class="step"><div class="k">Trin 2</div><div><div class="v">Build</div><div class="note">Sider + lokale signaler.</div></div></div>
+                  <div class="step"><div class="k">Trin 3</div><div><div class="v">Grow</div><div class="note">Uge-for-uge forbedringer.</div></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="cta"><a class="btn btn-primary" href="#pricing">Se priser</a><a class="btn" href="#kontakt">Kontakt</a></div>
+            <div class="visual" aria-label="Visual"><div class="visual-img" data-visual></div><div class="visual-label" data-visual-label>SEO / VISUAL</div></div>
+          </section>
+
+          <section class="sheet" data-svc="tracking">
+            <div class="headline"><strong>Tracking</strong> / GA4</div>
+            <div class="intro">Events + conversions på plads, så vi kan optimere sikkert.</div>
+            <div class="meta-line"><div>Project manager: <span>NordVækst</span></div><div>Next: <span>Landing</span></div></div>
+            <div class="rule"></div>
+            <div class="row">
+              <div><div class="k">GA4 + GTM</div><div class="v">Setup</div><div class="note">Events · conversions · DebugView test.</div></div>
+              <div class="price">1.999 DKK</div>
+            </div>
+            <div class="row">
+              <div><div class="k">Search Console</div><div class="v">Setup</div><div class="note">Verification · sitemap · quick insights.</div></div>
+              <div class="price">499 DKK</div>
+            </div>
+            <div class="cols">
+              <div><div class="section-title">Inkluderet</div><ul><li>Conversion tracking</li><li>Test + QA</li><li>Basal dashboard</li><li>Dokumentation</li></ul></div>
+              <div><div class="section-title">Hvordan det virker</div><div class="steps">
+                <div class="step"><div class="k">Trin 1</div><div><div class="v">Plan</div><div class="note">Hvad er et lead?</div></div></div>
+                <div class="step"><div class="k">Trin 2</div><div><div class="v">Implementér</div><div class="note">Tags + events.</div></div></div>
+                <div class="step"><div class="k">Trin 3</div><div><div class="v">Verificér</div><div class="note">DebugView + rapport.</div></div></div>
+              </div></div>
+            </div>
+            <div class="cta"><a class="btn btn-primary" href="#pricing">Se priser</a><a class="btn" href="#kontakt">Kontakt</a></div>
+            <div class="visual" aria-label="Visual"><div class="visual-img" data-visual></div><div class="visual-label" data-visual-label>TRACKING / VISUAL</div></div>
+          </section>
+
+          <section class="sheet" data-svc="landing">
+            <div class="headline"><strong>Landing</strong> / CRO</div>
+            <div class="intro">Mere konvertering med klarere struktur, proof og CTA.</div>
+            <div class="meta-line"><div>Project manager: <span>NordVækst</span></div><div>Next: <span>Reporting</span></div></div>
+            <div class="rule"></div>
+            <div class="row">
+              <div><div class="k">Optimering</div><div class="v">Engangs</div><div class="note">Wireframe · copy polish · CTA + proof.</div></div>
+              <div class="price">1.999 DKK</div>
+            </div>
+            <div class="row">
+              <div><div class="k">CRO sprint</div><div class="v">Engangs</div><div class="note">3–5 tests + måling plan.</div></div>
+              <div class="price">1.499 DKK</div>
+            </div>
+            <div class="cols">
+              <div><div class="section-title">Inkluderet</div><ul><li>Struktur</li><li>Proof</li><li>CTA flow</li><li>Måling</li></ul></div>
+              <div><div class="section-title">Hvordan det virker</div><div class="steps">
+                <div class="step"><div class="k">Trin 1</div><div><div class="v">Analyse</div><div class="note">Friktion + faldpunkter.</div></div></div>
+                <div class="step"><div class="k">Trin 2</div><div><div class="v">Design</div><div class="note">Ny struktur + copy.</div></div></div>
+                <div class="step"><div class="k">Trin 3</div><div><div class="v">Mål</div><div class="note">Konverteringsløft.</div></div></div>
+              </div></div>
+            </div>
+            <div class="cta"><a class="btn btn-primary" href="#pricing">Se priser</a><a class="btn" href="#kontakt">Kontakt</a></div>
+            <div class="visual" aria-label="Visual"><div class="visual-img" data-visual></div><div class="visual-label" data-visual-label>LANDING / VISUAL</div></div>
+          </section>
+
+          <section class="sheet" data-svc="reporting">
+            <div class="headline"><strong>Reporting</strong> / uge</div>
+            <div class="intro">Kort status, tydelige tal, og én prioritet til næste uge.</div>
+            <div class="meta-line"><div>Project manager: <span>NordVækst</span></div><div>Next: <span>Support</span></div></div>
+            <div class="rule"></div>
+            <div class="row">
+              <div><div class="k">Ugentlig</div><div class="v">Inkluderet</div><div class="note">I Ads/SEO driftspakker.</div></div>
+              <div class="price">0 DKK</div>
+            </div>
+            <div class="row">
+              <div><div class="k">Budget plan</div><div class="v">30 dage</div><div class="note">Scenarier + prioritering.</div></div>
+              <div class="price">999 DKK</div>
+            </div>
+            <div class="cols">
+              <div><div class="section-title">Inkluderet</div><ul><li>KPI snapshot</li><li>Ændringer</li><li>Læringer</li><li>Næste skridt</li></ul></div>
+              <div><div class="section-title">Hvordan det virker</div><div class="steps">
+                <div class="step"><div class="k">Trin 1</div><div><div class="v">Mål</div><div class="note">KPI’er.</div></div></div>
+                <div class="step"><div class="k">Trin 2</div><div><div class="v">Rapport</div><div class="note">Ugentlig status.</div></div></div>
+                <div class="step"><div class="k">Trin 3</div><div><div class="v">Plan</div><div class="note">Næste prioritet.</div></div></div>
+              </div></div>
+            </div>
+            <div class="cta"><a class="btn btn-primary" href="#pricing">Se priser</a><a class="btn" href="#kontakt">Kontakt</a></div>
+            <div class="visual" aria-label="Visual"><div class="visual-img" data-visual></div><div class="visual-label" data-visual-label>REPORTING / VISUAL</div></div>
+          </section>
+
+          <section class="sheet" data-svc="support">
+            <div class="headline"><strong>Support</strong> / hurtigt</div>
+            <div class="intro">En klar kanal, hurtige svar, små fixes. Store ting estimeres først.</div>
+            <div class="meta-line"><div>Project manager: <span>NordVækst</span></div><div>Next: <span>Google Ads</span></div></div>
+            <div class="rule"></div>
+            <div class="row">
+              <div><div class="k">Support</div><div class="v">Inkluderet</div><div class="note">I driftspakker.</div></div>
+              <div class="price">0 DKK</div>
+            </div>
+            <div class="row">
+              <div><div class="k">Audit</div><div class="v">Engangs</div><div class="note">Quick wins + plan.</div></div>
+              <div class="price">1.999 DKK</div>
+            </div>
+            <div class="cols">
+              <div><div class="section-title">Inkluderet</div><ul><li>SLA</li><li>Små fixes</li><li>Sparring</li><li>Prioritering</li></ul></div>
+              <div><div class="section-title">Hvordan det virker</div><div class="steps">
+                <div class="step"><div class="k">Trin 1</div><div><div class="v">Kanal</div><div class="note">Én kanal.</div></div></div>
+                <div class="step"><div class="k">Trin 2</div><div><div class="v">Prioritér</div><div class="note">Vigtigt nu/senere.</div></div></div>
+                <div class="step"><div class="k">Trin 3</div><div><div class="v">Løs</div><div class="note">Hurtige fixes.</div></div></div>
+              </div></div>
+            </div>
+            <div class="cta"><a class="btn btn-primary" href="#pricing">Se priser</a><a class="btn" href="#kontakt">Kontakt</a></div>
+            <div class="visual" aria-label="Visual"><div class="visual-img" data-visual></div><div class="visual-label" data-visual-label>SUPPORT / VISUAL</div></div>
+          </section>
+
+          <div class="footer-row">
+            <div>FORSIDE / SERVICES</div>
+            <div class="footer-links">
+              <a href="#kontakt">Kontakt</a>
+              <a href="#pricing">Priser</a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const links = Array.from(document.querySelectorAll('.svc-link'));
+      const sheets = Array.from(document.querySelectorAll('.sheet'));
+      const wm = document.getElementById('wm');
+
+      const visuals = {
+        ads: { wm: 'GOOGLE ADS', label: 'GOOGLE ADS / VISUAL', img: '/brand-v2/ref/consumer-hero.jpg' },
+        seo: { wm: 'SEO', label: 'SEO / VISUAL', img: '/brand-v2/ref/consumer-hero.jpg' },
+        tracking: { wm: 'TRACKING', label: 'TRACKING / VISUAL', img: '/brand-v2/ref/consumer-hero.jpg' },
+        landing: { wm: 'LANDING', label: 'LANDING / VISUAL', img: '/brand-v2/ref/consumer-hero.jpg' },
+        reporting: { wm: 'REPORTING', label: 'REPORTING / VISUAL', img: '/brand-v2/ref/consumer-hero.jpg' },
+        support: { wm: 'SUPPORT', label: 'SUPPORT / VISUAL', img: '/brand-v2/ref/consumer-hero.jpg' },
+      };
+
+      function setActive(key){
+        links.forEach((a) => a.classList.toggle('active', a.getAttribute('data-svc') === key));
+        sheets.forEach((s) => {
+          const is = s.getAttribute('data-svc') === key;
+          s.classList.toggle('active', is);
+          if (is) {
+            s.classList.remove('enter');
+            // reflow to restart animation
+            void s.offsetWidth;
+            s.classList.add('enter');
+
+            const v = visuals[key];
+            if (wm && v) wm.textContent = v.wm;
+            const img = s.querySelector('[data-visual]');
+            const lbl = s.querySelector('[data-visual-label]');
+            if (img && v?.img) img.style.backgroundImage = `url('${v.img}')`;
+            if (lbl && v?.label) lbl.textContent = v.label;
+          }
+        });
+      }
+
+      links.forEach((a) => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const key = a.getAttribute('data-svc');
+          if (!key) return;
+          setActive(key);
+          history.replaceState(null, '', '#' + key);
+        });
+      });
+
+      const hash = (location.hash || '').replace('#', '');
+      const allowed = new Set(['ads','seo','tracking','landing','reporting','support']);
+      setActive(allowed.has(hash) ? hash : 'ads');
+    </script>
+  </body>
+</html>
+
