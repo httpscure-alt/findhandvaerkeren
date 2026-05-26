@@ -19,14 +19,7 @@ const GetStartedRecommendationPanel: React.FC<Props> = ({
   compact = false,
 }) => {
   const copy = explainRecommendation(recommendation, isDa ? 'da' : 'en');
-  const engineLabel =
-    audit.engine === 'toprank'
-      ? isDa
-        ? 'Baseret på TopRank-audit'
-        : 'Based on TopRank audit'
-      : isDa
-        ? 'Baseret på synlighedsanalyse'
-        : 'Based on visibility analysis';
+  const engineLabel = isDa ? 'Baseret på jeres synlighedsanalyse' : 'Based on your visibility analysis';
 
   const channels = [
     { label: isDa ? 'Søg' : 'Search', value: audit.scores.search },

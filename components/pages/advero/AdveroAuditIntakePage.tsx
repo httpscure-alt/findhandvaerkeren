@@ -6,6 +6,7 @@ import { useToast } from '../../../hooks/useToast';
 import { api } from '../../../services/api';
 import type { GrowthGoal, IndustryCategory } from '../../../lib/recommendPlan';
 import { mockAnalyzeVisibility } from '../../../lib/mockAnalyzeVisibility';
+import { getJourneyStoryCopy } from '../../../lib/adveroJourneyStory';
 import './advero-ds.css';
 
 const AdveroAuditIntakePage: React.FC = () => {
@@ -22,15 +23,15 @@ const AdveroAuditIntakePage: React.FC = () => {
   const [growthGoal, setGrowthGoal] = useState<GrowthGoal>('both');
   const [loading, setLoading] = useState(false);
 
+  const story = getJourneyStoryCopy();
+
   const t = {
     kicker: isDa ? 'Gratis synlighedsaudit' : 'Free visibility audit',
-    title: isDa ? 'Få gratis synlighedsaudit' : 'Get free visibility audit',
+    title: isDa ? 'Fortæl om jeres virksomhed' : 'Tell us about your business',
     subtitle: isDa
-      ? 'Indtast jeres virksomhed — vi kører TopRank-analyse og viser resultater med anbefalet pakke.'
-      : 'Enter your business — we run TopRank analysis and show results with a recommended package.',
-    afterSubmit: isDa
-      ? 'Analyse → resultater → konto → pakke → betaling → dashboard.'
-      : 'Analysis → results → account → package → payment → dashboard.',
+      ? 'Vi analyserer jeres synlighed online og viser resultater med en anbefalet pakke.'
+      : 'We analyze your online visibility and show results with a recommended package.',
+    engineNote: isDa ? story.engineNoteDa : story.engineNoteEn,
     website: isDa ? 'Website URL' : 'Website URL',
     company: isDa ? 'Virksomhedsnavn' : 'Business name',
     category: isDa ? 'Kategori / branche' : 'Category',
@@ -103,8 +104,8 @@ const AdveroAuditIntakePage: React.FC = () => {
         <div className="mb-8 text-center">
           <p className="mono-label text-[10px] font-semibold tracking-[0.2em] text-white/50">{t.kicker}</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{t.title}</h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/60">{t.subtitle}</p>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-white/45">{t.afterSubmit}</p>
+          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/60">{t.subtitle}</p>
+          <p className="mx-auto mt-3 max-w-lg text-xs leading-relaxed text-white/45">{t.engineNote}</p>
         </div>
 
         <form

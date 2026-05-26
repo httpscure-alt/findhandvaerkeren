@@ -18,8 +18,8 @@ const AdveroDashboardVisibilityPage: React.FC = () => {
         <p className="advero-dash-lead">
           {intel.hasAudit
             ? isDa
-              ? 'Jeres TopRank-analyse driver anbefalinger, kampagner og rapporter her i dashboardet.'
-              : 'Your TopRank analysis drives recommendations, campaigns, and reports in this dashboard.'
+              ? 'Jeres synlighedsanalyse driver anbefalinger, kampagner og rapporter her i dashboardet.'
+              : 'Your visibility analysis drives recommendations, campaigns, and reports in this dashboard.'
             : isDa
               ? 'Forbind Search Console og Google Ads under Integrationer for at aktivere fuld synlighedsovervågning.'
               : 'Connect Search Console and Google Ads under Integrations to enable full visibility monitoring.'}

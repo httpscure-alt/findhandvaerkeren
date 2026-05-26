@@ -6,6 +6,7 @@ import { api } from '../../../services/api';
 import { persistAuditSnapshot } from '../../../lib/adveroDashboardIntelligence';
 import { markSetupComplete } from '../../../lib/adveroSetupProgress';
 import { mockAnalyzeVisibility, saveAuditToSession } from '../../../lib/mockAnalyzeVisibility';
+import { getJourneyStoryCopy } from '../../../lib/adveroJourneyStory';
 import './advero-ds.css';
 
 const MIN_MS = 4800;
@@ -23,13 +24,15 @@ const AdveroAuditAnalyzingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [statusLabel, setStatusLabel] = useState<string | null>(null);
 
+  const story = useMemo(() => getJourneyStoryCopy(), []);
+
   const steps = useMemo(
     () =>
       [
         { id: 'visibility' as StepId, da: 'Kører synlighedsanalyse', en: 'Running visibility analysis' },
         { id: 'local' as StepId, da: 'Tjekker lokal synlighed', en: 'Checking local discoverability' },
         { id: 'ai' as StepId, da: 'Vurderer AI-klarhed', en: 'Evaluating AI readiness' },
-        { id: 'interpret' as StepId, da: 'TopRank + fortolkning', en: 'TopRank + interpretation' },
+        { id: 'interpret' as StepId, da: 'Fortolker resultater', en: 'Interpreting results' },
         { id: 'package' as StepId, da: 'Anbefaler den rigtige pakke', en: 'Matching the right package' },
       ],
     []
@@ -96,46 +99,54 @@ const AdveroAuditAnalyzingPage: React.FC = () => {
   }, [auditId, isDa, navigate, steps.length]);
 
   return (
-    <div className="advero-ds relative isolate flex min-h-screen flex-col bg-[#334155]">
+    <div className="advero-ds relative isolate min-h-screen">
       <div className="advero-dot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden />
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-16 sm:px-6">
-        <div className="text-center">
-          <p className="mono-label text-[10px] font-semibold tracking-[0.2em] text-white/45">
-            {isDa ? 'Analyse i gang' : 'Analysis in progress'}
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-            {isDa ? 'Vi analyserer jeres synlighed' : 'Analyzing your visibility'}
-          </h1>
-          <p className="mx-auto mt-3 max-w-sm text-sm text-white/55">
-            {statusLabel ||
-              (isDa
-                ? 'TopRank-motor og fortolkning — typisk under et minut.'
-                : 'TopRank engine and interpretation — usually under a minute.')}
-          </p>
-        </div>
+      <main className="relative z-[1] mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-16 sm:px-6">
+        <div className="advero-setup-card w-full">
+          <div className="advero-setup-card-corner" aria-hidden />
+          <div className="advero-setup-card-head text-center sm:text-left">
+            <p className="mono-label text-[10px] text-slate-500">{isDa ? 'Analyse i gang' : 'Analysis in progress'}</p>
+            <h1 className="advero-setup-card-title mt-1">
+              {isDa ? 'Vi analyserer jeres synlighed' : 'Analyzing your visibility'}
+            </h1>
+            <p className="advero-setup-card-sub">
+              {statusLabel || (isDa ? story.engineNoteDa : story.engineNoteEn)}
+            </p>
+          </div>
 
-        {error ? (
-          <p className="mt-8 text-center text-sm text-red-300">{error}</p>
-        ) : (
-          <ul className="advero-audit-steps mt-10 space-y-3">
-            {steps.map((step, i) => {
-              const done = i < activeStep;
-              const current = i === activeStep;
-              return (
-                <li
-                  key={step.id}
-                  className={`advero-audit-step ${done ? 'advero-audit-step--done' : ''} ${current ? 'advero-audit-step--active' : ''}`}
-                >
-                  <span className="advero-audit-step-icon" aria-hidden>
-                    {done ? <Check size={16} strokeWidth={2.5} /> : current ? <Loader2 size={16} className="animate-spin" /> : null}
-                  </span>
-                  <span>{isDa ? step.da : step.en}</span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+          <div className="advero-setup-divider" aria-hidden />
+
+          <div className="advero-setup-body">
+            <div className="advero-setup-body-inner">
+              {error ? (
+                <p className="text-center text-sm text-red-600">{error}</p>
+              ) : (
+                <ul className="advero-audit-steps space-y-2">
+                  {steps.map((step, i) => {
+                    const done = i < activeStep;
+                    const current = i === activeStep;
+                    return (
+                      <li
+                        key={step.id}
+                        className={`advero-audit-step ${done ? 'advero-audit-step--done' : ''} ${current ? 'advero-audit-step--active' : ''}`}
+                      >
+                        <span className="advero-audit-step-icon" aria-hidden>
+                          {done ? (
+                            <Check size={16} strokeWidth={2.5} />
+                          ) : current ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : null}
+                        </span>
+                        <span>{isDa ? step.da : step.en}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

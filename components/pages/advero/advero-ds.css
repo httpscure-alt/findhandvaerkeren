@@ -316,6 +316,53 @@
   }
 }
 
+.advero-setup-card--wide {
+  max-width: min(100%, 40rem);
+}
+
+@media (min-width: 640px) {
+  .advero-setup-card--wide {
+    max-width: min(100%, 48rem);
+  }
+}
+
+/* Audit progress steps inside setup card (light) */
+.advero-setup-card .advero-audit-step {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.advero-setup-card .advero-audit-step--active {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  box-shadow:
+    inset 3px 0 0 0 #334155,
+    0 4px 16px -10px rgba(15, 23, 42, 0.12);
+}
+
+.advero-setup-card .advero-audit-step--done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.advero-setup-card .advero-audit-step-icon {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.advero-setup-card .advero-audit-step--active .advero-audit-step-icon {
+  background: #334155;
+  color: #fff;
+}
+
+.advero-setup-card .advero-audit-step--done .advero-audit-step-icon {
+  background: #16a34a;
+  color: #fff;
+}
+
 @keyframes advero-setup-card-in {
   from {
     opacity: 0;

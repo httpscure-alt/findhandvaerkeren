@@ -33,6 +33,7 @@ import {
   wizardPatchFromAudit,
 } from '../../../lib/getStartedAudit';
 import GetStartedRecommendationPanel from './GetStartedRecommendationPanel';
+import { getStartedIntroCopy } from '../../../lib/adveroJourneyStory';
 import {
   MARKETING_PRICING,
   MARKETING_TIER_LEVEL_NAMES,
@@ -162,13 +163,22 @@ const AdveroClientGetStartedPage: React.FC = () => {
   const flowUngated = isAdveroGetStartedUngated(searchParams);
 
   const isDa = lang === 'da';
+
+  const [persist, setPersist] = useState<WizardPersist>(() => loadPersist());
+  const [auditContext, setAuditContext] = useState<VisibilityAuditResult | null>(null);
+  const [auditRec, setAuditRec] = useState<PlanRecommendation | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  const introCopy = useMemo(
+    () => getStartedIntroCopy(isDa, Boolean(auditContext)),
+    [isDa, auditContext]
+  );
+
   const t = useMemo(
     () => ({
       kicker: isDa ? 'Kom i gang' : 'Get started',
-      title: isDa ? 'Konto og betaling' : 'Account and payment',
-      subtitle: isDa
-        ? 'Vælg ydelser, plan og betaling. Vi guider dig igennem trin for trin.'
-        : 'Pick services, plans, and payment. We guide you step by step.',
+      title: introCopy.title,
+      subtitle: introCopy.subtitle,
       backSite: isDa ? 'Til forsiden' : 'Back to home',
       contact: isDa ? 'Kontakt' : 'Contact',
       step1: isDa ? 'Ydelser' : 'Services',
@@ -233,17 +243,13 @@ const AdveroClientGetStartedPage: React.FC = () => {
       expand: isDa ? 'Udvid opsætning' : 'Expand setup',
       paidLabel: isDa ? 'Betalt' : 'Paid',
       payRemaining: isDa ? 'Betal næste ydelse' : 'Pay for next service',
-      paymentSuccess: isDa ? 'Betaling modtaget — tak!' : 'Payment received — thank you!',
+      paymentSuccess: isDa ? 'Betaling modtaget. Tak!' : 'Payment received. Thank you!',
       allPaid: isDa ? 'Alle valgte ydelser er betalt.' : 'All selected services are paid.',
       continuePayment: isDa ? 'Gå til betaling' : 'Continue to payment',
     }),
-    [isDa]
+    [isDa, introCopy.title, introCopy.subtitle]
   );
 
-  const [persist, setPersist] = useState<WizardPersist>(() => loadPersist());
-  const [auditContext, setAuditContext] = useState<VisibilityAuditResult | null>(null);
-  const [auditRec, setAuditRec] = useState<PlanRecommendation | null>(null);
-  const [auditLoading, setAuditLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [paidTiers, setPaidTiers] = useState<Set<string>>(() => getPaidTiers());
   const journeyQuery = useMemo(() => buildGetStartedQueryString(searchParams), [searchParams]);
@@ -316,6 +322,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
           const next: WizardPersist = {
             ...p,
             ...patch,
+            step: patch.fromReport ? (2 as StepId) : p.step,
             billingName: patch.billingName || p.billingName,
           };
           savePersist(next);
@@ -386,7 +393,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
           next.adsTier = ads;
         }
         if (fromReport && (seo || ads) && !stepParam) {
-          next.step = 1;
+          next.step = 2;
         }
         if (auditId) {
           next.auditId = auditId;
@@ -423,6 +430,12 @@ const AdveroClientGetStartedPage: React.FC = () => {
     },
     [setSearchParams]
   );
+
+  useEffect(() => {
+    if (persist.fromReport && auditContext && persist.step === 1) {
+      setStep(2);
+    }
+  }, [persist.fromReport, auditContext, persist.step, setStep]);
 
   const defaultBillingName = useMemo(() => {
     const n = (user?.name || '').trim();
@@ -623,10 +636,8 @@ const AdveroClientGetStartedPage: React.FC = () => {
             <div className="advero-setup-card-head">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1 pr-2">
-                  <h2 className="advero-setup-card-title">{t.cardTitle}</h2>
-                  <p className="advero-setup-card-sub">
-                    {hideSetupHints ? t.cardSubHidden : t.cardSubWhenHints}
-                  </p>
+                  <h2 className="advero-setup-card-title">{t.title}</h2>
+                  <p className="advero-setup-card-sub">{t.subtitle}</p>
                   <div className="advero-setup-progress-pill">{t.progressStep(persist.step, 5)}</div>
                 </div>
                 <button
@@ -778,6 +789,20 @@ const AdveroClientGetStartedPage: React.FC = () => {
                     </button>
                   </div>
                 )}
+
+                {persist.step === 2 && auditContext && persist.fromReport ? (
+                  <div className="mb-5 rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-slate-700">
+                    <p className="font-medium text-slate-900">{auditContext.companyName}</p>
+                    {auditContext.websiteUrl ? (
+                      <p className="mt-1 text-slate-600">{auditContext.websiteUrl}</p>
+                    ) : null}
+                    <p className="mt-2 text-xs text-slate-500">
+                      {isDa
+                        ? 'Oplysninger fra jeres audit — I skal ikke udfylde virksomhedsdata igen.'
+                        : 'Details from your audit — no need to enter your business information again.'}
+                    </p>
+                  </div>
+                ) : null}
 
                 {persist.step === 2 && (
                   <div className="space-y-8">

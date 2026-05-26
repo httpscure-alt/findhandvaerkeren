@@ -15,7 +15,7 @@ export interface PackageCard {
 
 /** Display packages for results screen — recommendation highlighted. */
 export function buildPackageCards(rec: PlanRecommendation, auditId?: string): PackageCard[] {
-  const base = { from: 'audit', auditId, step: 1 as const };
+  const base = { from: 'audit', auditId, step: 2 as const };
   const isRecSeo = rec.primaryService === 'seo' || rec.primaryService === 'growth';
   const isRecAds = rec.primaryService === 'ads' || rec.primaryService === 'growth';
   const isRecGrowth = rec.primaryService === 'growth';

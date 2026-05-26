@@ -292,7 +292,7 @@ export function recommendPlan(input: RecommendPlanInput): PlanRecommendation {
     goal,
     industry,
     auditId: input.auditId,
-    step: 1,
+    step: 2,
   });
 
   return rec;

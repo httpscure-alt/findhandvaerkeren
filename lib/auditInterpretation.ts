@@ -23,16 +23,14 @@ export interface AuditInterpretation {
 
 export function buildAuditInterpretation(
   scores: AuditScores,
-  engine: 'toprank' | 'mock' = 'mock'
+  _engine: 'toprank' | 'mock' = 'mock'
 ): AuditInterpretation {
   const weakest = (['search', 'local', 'ai', 'web'] as const).reduce((a, b) =>
     scores[a] <= scores[b] ? a : b
   );
 
-  const engineLabel = engine === 'toprank' ? 'TopRank' : 'Advero';
-
-  const executiveSummaryDa = `Baseret på ${engineLabel}-analysen ligger jeres samlede synlighed på et niveau hvor målrettet SEO, lokal tilstedeværelse og AI-læsbar struktur kan give mærkbare henvendelser. Størst gap lige nu: ${channelDa(weakest)}.`;
-  const executiveSummaryEn = `Based on the ${engineLabel} analysis, your overall visibility can improve meaningfully with focused SEO, local presence, and AI-readable structure. Biggest gap right now: ${channelEn(weakest)}.`;
+  const executiveSummaryDa = `Baseret på Adveros analyse af jeres synlighed ligger I på et niveau hvor målrettet SEO, lokal tilstedeværelse og AI-læsbar struktur kan give mærkbare henvendelser. Størst gap lige nu: ${channelDa(weakest)}.`;
+  const executiveSummaryEn = `Based on Advero's visibility analysis, you can improve meaningfully with focused SEO, local presence, and AI-readable structure. Biggest gap right now: ${channelEn(weakest)}.`;
 
   const opportunitiesDa = [
     scores.local < 70
