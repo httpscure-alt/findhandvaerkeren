@@ -1,15 +1,12 @@
 import React from 'react';
 import { useMarketplace } from '../../../contexts/MarketplaceContext';
 
-type ActiveNav = 'blog' | null;
-
 const COPY = {
   da: {
     homeAria: 'Advero forside',
     overview: 'Sådan arbejder vi',
     howWeWork: 'I praksis',
     plans: 'Pakker',
-    insights: 'Indsigt',
     contact: 'Kontakt',
     getStartedNav: 'Kom i gang',
     login: 'Log ind',
@@ -21,7 +18,6 @@ const COPY = {
     overview: 'How we work',
     howWeWork: 'In practice',
     plans: 'Plans',
-    insights: 'Insights',
     contact: 'Contact',
     getStartedNav: 'Get started',
     login: 'Log in',
@@ -31,10 +27,11 @@ const COPY = {
 } as const;
 
 type Props = {
-  activeNav?: ActiveNav;
+  /** Blog/article pages: logo + actions only (no centre nav tray). */
+  variant?: 'full' | 'compact';
 };
 
-const AdveroMarketingHeader: React.FC<Props> = ({ activeNav = null }) => {
+const AdveroMarketingHeader: React.FC<Props> = ({ variant = 'full' }) => {
   const { lang, setLang } = useMarketplace();
   const isDa = lang === 'da';
   const t = COPY[isDa ? 'da' : 'en'];
@@ -67,39 +64,38 @@ const AdveroMarketingHeader: React.FC<Props> = ({ activeNav = null }) => {
           </a>
         </div>
 
-        <nav
-          className="order-3 flex flex-1 basis-full justify-center lg:order-none lg:basis-auto"
-          aria-label={isDa ? 'Primær navigation' : 'Primary navigation'}
-        >
-          <div className="advero-nav-tray">
-            <a href="/overview" className={pillClass(false)}>
-              {t.overview}
-            </a>
-            <a href="/how-it-works" className={pillClass(false)}>
-              {t.howWeWork}
-            </a>
-            <a href="/pricing" className={pillClass(false)}>
-              {t.plans}
-            </a>
-            {activeNav === 'blog' ? (
-              <span className={pillClass(true)} aria-current="page">
-                {t.insights}
-              </span>
-            ) : (
-              <a href="/blog" className={pillClass(false)}>
-                {t.insights}
+        {variant === 'full' ? (
+          <nav
+            className="order-3 flex flex-1 basis-full justify-center lg:order-none lg:basis-auto"
+            aria-label={isDa ? 'Primær navigation' : 'Primary navigation'}
+          >
+            <div className="advero-nav-tray">
+              <a href="/overview" className={pillClass(false)}>
+                {t.overview}
               </a>
-            )}
-            <a href="/contact" className={pillClass(false)}>
-              {t.contact}
-            </a>
-            <a href="/advero/audit" className={pillClass(false)}>
-              {t.getStartedNav}
-            </a>
-          </div>
-        </nav>
+              <a href="/how-it-works" className={pillClass(false)}>
+                {t.howWeWork}
+              </a>
+              <a href="/pricing" className={pillClass(false)}>
+                {t.plans}
+              </a>
+              <a href="/contact" className={pillClass(false)}>
+                {t.contact}
+              </a>
+              <a href="/advero/audit" className={pillClass(false)}>
+                {t.getStartedNav}
+              </a>
+            </div>
+          </nav>
+        ) : (
+          <div className="order-3 hidden flex-1 lg:order-none lg:block" aria-hidden />
+        )}
 
-        <div className="order-2 flex flex-1 items-center justify-end gap-3 lg:order-none lg:min-w-[14rem]">
+        <div
+          className={`order-2 flex flex-1 items-center justify-end gap-3 lg:order-none ${
+            variant === 'compact' ? '' : 'lg:min-w-[14rem]'
+          }`}
+        >
           <div className="advero-lang-toggle" role="group" aria-label={t.lang}>
             <button type="button" aria-pressed={lang === 'da'} onClick={() => setLanguage('da')}>
               DK

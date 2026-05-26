@@ -8,7 +8,7 @@ const AdveroBlogLayout: React.FC = () => {
   return (
     <div className="advero-ds advero-blog-shell">
       <div className="advero-dot-grid pointer-events-none absolute inset-0 -z-10" aria-hidden />
-      <AdveroMarketingHeader activeNav="blog" />
+      <AdveroMarketingHeader variant="compact" />
       <Outlet />
     </div>
   );
