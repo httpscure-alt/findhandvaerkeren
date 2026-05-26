@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, getMe, verifyOtp, resendOtp, logout, updateProfile, loginWithSupabase, forgotPassword, resetPassword } from '../controllers/authController';
+import { register, login, getMe, verifyOtp, resendOtp, logout, updateProfile, loginWithSupabase, forgotPassword, resetPassword, bootstrapAdmin } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import {
@@ -15,6 +15,7 @@ import { authLimiter } from '../middleware/rateLimiter';
 const router = Router();
 
 router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/bootstrap-admin', authLimiter, bootstrapAdmin);
 router.post('/login', authLimiter, validate(loginSchema), login);
 router.post('/verify-otp', authLimiter, validate(verifyOtpSchema), verifyOtp);
 router.post('/resend-otp', authLimiter, validate(resendOtpSchema), resendOtp);

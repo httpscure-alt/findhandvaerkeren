@@ -3,6 +3,21 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+function logDbTarget(): void {
+    const url = process.env.DATABASE_URL || '';
+    if (!url) {
+        console.warn('⚠️  DATABASE_URL is not set');
+        return;
+    }
+    try {
+        const normalized = url.replace(/^postgresql:/, 'https:').replace(/^postgres:/, 'https:');
+        const host = new URL(normalized).hostname;
+        console.log(`📦 Database host: ${host}`);
+    } catch {
+        console.log('📦 DATABASE_URL is set');
+    }
+}
+
 async function createAdmin(email: string, name: string) {
     const password = 'admin123';
     console.log(`🚀 Creating/Resetting Admin account: ${email}...`);
@@ -36,6 +51,7 @@ async function createAdmin(email: string, name: string) {
 }
 
 async function main() {
+    logDbTarget();
     await createAdmin('admin@advero.dk', 'Advero Admin');
     await createAdmin('hello@advero.dk', 'Advero Team');
     

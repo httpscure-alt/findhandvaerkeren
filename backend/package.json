@@ -15,7 +15,8 @@
     "test:connection": "tsx test-connection.ts",
     "stripe:seed-products": "tsx scripts/stripeSeedProducts.ts",
     "stripe:seed": "tsx scripts/stripeSeedProducts.ts",
-    "test:advero-audit": "tsx scripts/test-advero-audit-e2e.ts"
+    "test:advero-audit": "tsx scripts/test-advero-audit-e2e.ts",
+    "admin:create": "tsx scripts/create-admins.ts"
   },
   "keywords": [],
   "author": "",

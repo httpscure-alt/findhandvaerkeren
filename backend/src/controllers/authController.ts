@@ -530,3 +530,62 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'Failed to reset password', details: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
+
+/** One-time production admin setup when ADMIN_BOOTSTRAP_SECRET is set. Remove secret after use. */
+export const bootstrapAdmin = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const configured = process.env.ADMIN_BOOTSTRAP_SECRET?.trim();
+    if (!configured) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    const { secret, email, password, name } = req.body as {
+      secret?: string;
+      email?: string;
+      password?: string;
+      name?: string;
+    };
+
+    if (!secret || secret !== configured) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
+    const normalizedEmail = email?.trim();
+    if (!normalizedEmail || !password || password.length < 8) {
+      res.status(400).json({ error: 'email and password (min 8 characters) are required' });
+      return;
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const user = await prisma.user.upsert({
+      where: { email: normalizedEmail },
+      update: {
+        password: hashedPassword,
+        role: 'ADMIN',
+        isVerified: true,
+        name: name?.trim() || 'Advero Admin',
+      },
+      create: {
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: 'ADMIN',
+        isVerified: true,
+        name: name?.trim() || 'Advero Admin',
+      },
+      select: { id: true, email: true, role: true },
+    });
+
+    res.json({
+      ok: true,
+      message: 'Admin ready. Remove ADMIN_BOOTSTRAP_SECRET from Render and redeploy.',
+      user,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      error: 'Bootstrap failed',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
