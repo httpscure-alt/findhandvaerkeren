@@ -4,7 +4,7 @@ import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useAdveroLang } from '../../../lib/adveroLocale';
 import { api } from '../../../services/api';
 import { buildAuditInterpretation } from '../../../lib/auditInterpretation';
-import { buildPackageCards } from '../../../lib/auditPackages';
+import { recommendedPackageForResults } from '../../../lib/auditPackages';
 import { explainRecommendation, recommendPlan } from '../../../lib/recommendPlan';
 import type { GrowthGoal, IndustryCategory } from '../../../lib/recommendPlan';
 import { persistAuditSnapshot } from '../../../lib/adveroDashboardIntelligence';
@@ -65,7 +65,10 @@ const AdveroAuditResultsPage: React.FC = () => {
     return audit.interpretation ?? buildAuditInterpretation(audit.scores, audit.engine ?? 'mock');
   }, [audit]);
 
-  const packages = useMemo(() => (rec && audit ? buildPackageCards(rec, audit.id) : []), [rec, audit]);
+  const recommendedPkg = useMemo(
+    () => (rec && audit ? recommendedPackageForResults(rec, audit.id) : null),
+    [rec, audit]
+  );
 
   const getStartedPath = useMemo(() => {
     if (!rec) return '/advero/get-started?step=2';
@@ -219,25 +222,25 @@ const AdveroAuditResultsPage: React.FC = () => {
                 </section>
               ) : null}
 
-              <section>
-                <h2 className="text-sm font-semibold text-slate-900">{isDa ? 'Anbefalet pakke' : 'Recommended package'}</h2>
-                <p className="mt-1 text-sm text-slate-600">{copy.headline}</p>
-                <p className="mt-1 text-sm text-slate-500">{copy.reason}</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {packages.map((pkg) => (
-                    <article
-                      key={pkg.id}
-                      className={`advero-pick-tile px-3 py-3.5 text-left ${pkg.recommended ? 'advero-pick-tile--on' : ''}`}
-                    >
-                      {pkg.recommended ? (
-                        <span className="advero-pick-tile-badge-rec">{isDa ? 'Anbefalet' : 'Recommended'}</span>
-                      ) : null}
-                      <h3 className="text-sm font-semibold text-slate-900">{isDa ? pkg.nameDa : pkg.nameEn}</h3>
-                      <p className="mt-1 text-xs text-slate-500">{isDa ? pkg.descDa : pkg.descEn}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
+              {recommendedPkg ? (
+                <section>
+                  <h2 className="text-sm font-semibold text-slate-900">{isDa ? 'Anbefalet pakke' : 'Recommended package'}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{copy.headline}</p>
+                  <p className="mt-1 text-sm text-slate-500">{copy.reason}</p>
+                  <article className="advero-pick-tile advero-pick-tile--on mt-4 px-4 py-4 text-left">
+                    <span className="advero-pick-tile-badge-rec">{isDa ? 'Anbefalet til jer' : 'Recommended for you'}</span>
+                    <h3 className="mt-2 text-base font-semibold text-slate-900">
+                      {isDa ? recommendedPkg.nameDa : recommendedPkg.nameEn}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-600">{isDa ? recommendedPkg.descDa : recommendedPkg.descEn}</p>
+                    <p className="mt-3 text-xs text-slate-500">
+                      {isDa
+                        ? 'Priser og andre planer vises, når I fortsætter — ikke på den gratis rapport.'
+                        : 'Pricing and other plans are shown when you continue — not on the free report.'}
+                    </p>
+                  </article>
+                </section>
+              ) : null}
 
               <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-5 text-center">
                 <p className="text-sm text-slate-600">{resultsNextCopy(isDa)}</p>
@@ -245,7 +248,7 @@ const AdveroAuditResultsPage: React.FC = () => {
                   to={getStartedPath}
                   className="advero-btn-slate-solid mt-4 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em]"
                 >
-                  {isDa ? 'Se anbefalet plan' : 'View recommended plan'}
+                  {isDa ? 'Fortsæt med anbefalet plan' : 'Continue with recommended plan'}
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
                 <p className="mt-3 text-xs text-slate-500">

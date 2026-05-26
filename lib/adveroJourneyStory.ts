@@ -95,8 +95,8 @@ export function getStartedJourneyPhase(step: number): AdveroJourneyPhase {
 
 export function resultsNextCopy(isDa: boolean): string {
   return isDa
-    ? 'Næste: gennemse den anbefalede plan. Konto og betaling kommer bagefter.'
-    : 'Next: review your recommended plan. Account and payment come after.';
+    ? 'Fortsæt for at se priser, bekræfte plan og oprette konto.'
+    : 'Continue to see pricing, confirm your plan, and create an account.';
 }
 
 export function getStartedIntroCopy(isDa: boolean, hasAudit: boolean): { title: string; subtitle: string } {

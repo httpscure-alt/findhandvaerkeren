@@ -13,6 +13,24 @@ export interface PackageCard {
   ctaPath: string;
 }
 
+/** One package for the free audit results page (no full pricing matrix). */
+export function recommendedPackageForResults(
+  rec: PlanRecommendation,
+  auditId?: string
+): PackageCard {
+  const cards = buildPackageCards(rec, auditId);
+  const flagged = cards.filter((c) => c.recommended);
+  if (flagged.length === 1) return flagged[0];
+
+  const byService: Record<string, PackageCardId> = {
+    growth: 'growth',
+    ads: 'ads',
+    seo: rec.primaryTierId.includes('basic') ? 'starter' : 'seo',
+  };
+  const preferId = byService[rec.primaryService] ?? 'seo';
+  return flagged.find((c) => c.id === preferId) ?? cards.find((c) => c.id === preferId) ?? cards[0];
+}
+
 /** Display packages for results screen — recommendation highlighted. */
 export function buildPackageCards(rec: PlanRecommendation, auditId?: string): PackageCard[] {
   const base = { from: 'audit', auditId, step: 2 as const };
