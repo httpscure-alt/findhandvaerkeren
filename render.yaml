@@ -84,7 +84,7 @@ services:
       - key: SENTRY_DSN
         sync: false
       - key: CORS_ORIGINS
-        sync: false
+        value: "https://advero.dk,https://www.advero.dk"
       - key: UPLOAD_DIR
         value: uploads
 

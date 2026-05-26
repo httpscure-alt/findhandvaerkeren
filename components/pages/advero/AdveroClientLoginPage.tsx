@@ -116,12 +116,17 @@ const AdveroClientLoginPage: React.FC = () => {
         goAfterLogin();
         return;
       }
+      const raw = String(err.message || '');
       const msg =
-        err.message === 'API_NOT_AVAILABLE'
+        raw === 'API_NOT_AVAILABLE'
           ? isDa
             ? 'Backend svarer ikke. Start `npm run dev:all` eller fjern VITE_API_URL for mock-login.'
             : 'Backend is unavailable. Run `npm run dev:all` or remove VITE_API_URL for mock login.'
-          : err.message || (isDa ? 'Login mislykkedes' : 'Login failed');
+          : raw.includes('Failed to fetch') || raw.includes('CORS')
+            ? isDa
+              ? 'Kan ikke kontakte serveren. Prøv igen om et øjeblik — eller kontakt support hvis det fortsætter.'
+              : 'Cannot reach the server. Try again shortly — or contact support if it persists.'
+            : raw || (isDa ? 'Login mislykkedes' : 'Login failed');
       setError(msg);
       toast.error(msg);
     } finally {

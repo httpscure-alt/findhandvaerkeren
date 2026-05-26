@@ -84,8 +84,15 @@ app.get('/health', (req, res) => {
 
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',')
-  : ['http://localhost:5174', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:3000'];
+  ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  : [
+      'http://localhost:5174',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://advero.dk',
+      'https://www.advero.dk',
+    ];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -96,11 +103,13 @@ app.use(cors({
     const isAllowed = allowedOrigins.some(ao => origin.includes(ao.trim()));
     
     // Special check for our specific domains (Super Permissive for launch)
-    const isOwnDomain = origin.includes('findha') || 
-                       origin.includes('findhå') || 
-                       origin.includes('xn--findhndvrkeren') ||
-                       origin.includes('vercel.app') ||
-                       origin.includes('onrender.com');
+    const isOwnDomain =
+      origin.includes('advero.dk') ||
+      origin.includes('findha') ||
+      origin.includes('findhå') ||
+      origin.includes('xn--findhndvrkeren') ||
+      origin.includes('vercel.app') ||
+      origin.includes('onrender.com');
     
     if (isAllowed || isOwnDomain || process.env.NODE_ENV === 'development') {
       callback(null, true);
