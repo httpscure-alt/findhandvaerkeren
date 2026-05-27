@@ -7,6 +7,13 @@ import type { PublicVisibilityAudit } from './adveroAuditTypes';
 import { getVisibilityAuditById } from './adveroAuditService';
 import { mapAuditToPublic as mapRow } from './adveroAuditMapper';
 import { buildCanonicalIntelligence } from './adveroIntelligenceService';
+import {
+  entitlementsFromItems,
+  entitlementsFromSubscription,
+  resolveWorkspaceEntitlements,
+  type SubscriptionItemRecord,
+  type WorkspaceEntitlements,
+} from '../../lib/workspaceEntitlements';
 
 export interface AdveroDashboardPayload {
   workspace: {
@@ -25,6 +32,8 @@ export interface AdveroDashboardPayload {
     serviceLine: string;
     status: string;
   } | null;
+  /** Package feature flags — drives dashboard modules and ops queues. */
+  entitlements: WorkspaceEntitlements;
   /** Post-checkout onboarding status shown in the client dashboard. */
   manualFulfillment: {
     status: string;
@@ -74,12 +83,18 @@ export async function initializeWorkspaceAfterPayment(opts: {
   billingCycle?: string;
   currentPeriodEnd?: Date;
   auditId?: string;
+  subscriptionItems?: SubscriptionItemRecord[];
 }): Promise<string> {
   const workspace = await getOrCreateWorkspaceForUser(
     opts.userId,
     opts.companyName,
     opts.contactEmail
   );
+
+  const entitlements =
+    opts.subscriptionItems && opts.subscriptionItems.length > 0
+      ? entitlementsFromItems(opts.subscriptionItems)
+      : entitlementsFromSubscription(opts.tierId, opts.serviceLine);
 
   const subscription = await prisma.adveroSubscription.upsert({
     where: { stripeSubscriptionId: opts.stripeSubscriptionId },
@@ -110,6 +125,14 @@ export async function initializeWorkspaceAfterPayment(opts: {
         dashboardInit: true,
         paid: true,
         tierId: opts.tierId,
+        packageId: entitlements.packageId,
+        combinedPlan: Boolean(opts.subscriptionItems && opts.subscriptionItems.length >= 2),
+        subscriptionItems: opts.subscriptionItems ?? undefined,
+        entitlements: {
+          seo: entitlements.seo,
+          ads: entitlements.ads,
+          aiVisibility: entitlements.aiVisibility,
+        },
       },
       initializedAt: workspace.initializedAt ?? new Date(),
     },
@@ -132,12 +155,15 @@ export async function initializeWorkspaceAfterPayment(opts: {
     },
   });
 
+  const fulfillmentLine =
+    opts.subscriptionItems && opts.subscriptionItems.length >= 2 ? 'growth' : opts.serviceLine;
+
   const { recordFulfillmentAfterPayment } = await import('./adveroFulfillmentService');
   await recordFulfillmentAfterPayment({
     workspaceId: workspace.id,
     subscriptionId: subscription.id,
     tierId: opts.tierId,
-    serviceLine: opts.serviceLine,
+    serviceLine: fulfillmentLine,
     stripeSubscriptionId: opts.stripeSubscriptionId,
     stripeCustomerId: opts.stripeCustomerId,
     auditId: opts.auditId,
@@ -162,6 +188,7 @@ export async function buildDashboardPayload(
       googleAds: { connected: false, source: 'unavailable' },
       activity: [],
       subscription: null,
+      entitlements: entitlementsFromSubscription(null, null),
       manualFulfillment: null,
     };
   }
@@ -249,6 +276,17 @@ export async function buildDashboardPayload(
     ? await getGoogleAdsSnapshot(workspace.id)
     : { connected: false, source: 'unavailable' as const };
 
+  const setupState =
+    workspace?.setupState && typeof workspace.setupState === 'object'
+      ? (workspace.setupState as Record<string, unknown>)
+      : null;
+
+  const entitlements = resolveWorkspaceEntitlements({
+    tierId: sub?.tierId,
+    serviceLine: sub?.serviceLine,
+    setupState,
+  });
+
   return {
     workspace: workspace
       ? {
@@ -272,6 +310,7 @@ export async function buildDashboardPayload(
     subscription: sub
       ? { tierId: sub.tierId, serviceLine: sub.serviceLine, status: sub.status }
       : null,
+    entitlements,
     manualFulfillment,
   };
 }

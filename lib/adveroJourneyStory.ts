@@ -116,10 +116,10 @@ export function getStartedIntroCopy(isDa: boolean, hasAudit: boolean): { title: 
   return isDa
     ? {
         title: 'Konto og betaling',
-        subtitle: 'Vælg ydelser og plan. Kør en gratis audit først for en personlig anbefaling.',
+        subtitle: 'Vælg ydelser og plan. Kør en gratis analyse først for en personlig anbefaling.',
       }
     : {
         title: 'Account and payment',
-        subtitle: 'Pick services and plans. Run a free audit first for a personalized recommendation.',
+        subtitle: 'Pick services and plans. Run a free analysis first for a personalized recommendation.',
       };
 }

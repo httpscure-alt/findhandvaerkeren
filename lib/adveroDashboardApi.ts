@@ -1,5 +1,6 @@
 import type { VisibilityAuditResult } from './mockAnalyzeVisibility';
 import type { GoogleAdsSnapshot, SearchConsoleSnapshot, VisibilityIntelligence } from './visibilityIntelligence';
+import type { WorkspaceEntitlements } from './workspaceEntitlements';
 
 export interface AdveroDashboardApiPayload {
   workspace: {
@@ -15,6 +16,7 @@ export interface AdveroDashboardApiPayload {
   googleAds: GoogleAdsSnapshot;
   activity: { type: string; titleDa: string; titleEn: string; createdAt: string }[];
   subscription: { tierId: string; serviceLine: string; status: string } | null;
+  entitlements: WorkspaceEntitlements;
   manualFulfillment: {
     status: string;
     serviceLine: string;

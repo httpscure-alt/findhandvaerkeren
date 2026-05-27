@@ -25,7 +25,7 @@ const AdveroAuditIntakePage: React.FC = () => {
   const story = getJourneyStoryCopy();
 
   const t = {
-    kicker: isDa ? 'Gratis synlighedsaudit' : 'Free visibility audit',
+    kicker: isDa ? 'Gratis synlighedsanalyse' : 'Free visibility analysis',
     title: isDa ? 'Fortæl om jeres virksomhed' : 'Tell us about your business',
     subtitle: isDa
       ? 'Vi analyserer jeres synlighed online og viser resultater med en anbefalet pakke.'
@@ -38,7 +38,7 @@ const AdveroAuditIntakePage: React.FC = () => {
     email: isDa ? 'E-mail' : 'Email',
     emailHint: isDa ? 'Vi sender et link til resultaterne.' : 'We will email you a link to your results.',
     goal: isDa ? 'Primært mål' : 'Primary goal',
-    submit: isDa ? 'Få gratis synlighedsaudit' : 'Get free visibility audit',
+    submit: isDa ? 'Få gratis synlighedsanalyse' : 'Get free visibility analysis',
     back: isDa ? 'Til forsiden' : 'Back to home',
     needName: isDa ? 'Angiv virksomhedsnavn.' : 'Enter a business name.',
     needEmail: isDa ? 'Angiv en gyldig e-mail.' : 'Enter a valid email.',

@@ -138,6 +138,20 @@ async function main() {
     'Growth+ bundle'
   );
 
+  console.log('\n--- Combined plan coupon (5% off when SEO + Ads in one subscription) ---\n');
+
+  const existingCoupons = await stripe.coupons.list({ limit: 100 });
+  const combinedCoupon =
+    existingCoupons.data.find((c) => c.metadata?.advero === 'combined_plan') ??
+    (await stripe.coupons.create({
+      percent_off: 5,
+      duration: 'forever',
+      name: 'Advero — SEO + Google Ads bundle (5%)',
+      metadata: { advero: 'combined_plan', app: 'advero' },
+    }));
+  out.STRIPE_COUPON_COMBINED_PLAN = combinedCoupon.id;
+  console.log(`  STRIPE_COUPON_COMBINED_PLAN=${combinedCoupon.id}  (5% off, forever)`);
+
   console.log('\n--- Copy into backend/.env (and API host env) ---\n');
   const keys = [
     'STRIPE_PRICE_ADS_BASIC',
@@ -147,6 +161,7 @@ async function main() {
     'STRIPE_PRICE_SEO_STANDARD',
     'STRIPE_PRICE_SEO_PRO',
     'STRIPE_PRICE_GROWTH_BUNDLE',
+    'STRIPE_COUPON_COMBINED_PLAN',
   ];
   for (const k of keys) {
     console.log(`${k}=${out[k]}`);

@@ -3,7 +3,14 @@ import Stripe from 'stripe';
 import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
-import { getPlanDetails, getMarketingPlanDetails, isMarketingPriceId } from '../config/stripePlans';
+import {
+  getPlanDetails,
+  getMarketingPlanDetails,
+  getMarketingPriceId,
+  isMarketingPriceId,
+  type MarketingServiceType,
+  type MarketingTier,
+} from '../config/stripePlans';
 import { logger } from '../config/logger';
 import { emailService } from '../services/emailService';
 
@@ -329,6 +336,213 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response): Pr
   }
 };
 
+type CombinedCheckoutItem = { serviceType: 'seo' | 'ads'; tierId: string };
+
+function resolveMarketingPriceIdFromTierId(tierId: string): string | null {
+  if (tierId === 'growth_bundle') {
+    return process.env.STRIPE_PRICE_GROWTH_BUNDLE || null;
+  }
+  const parts = tierId.split('_');
+  if (parts.length !== 2) return null;
+  const [serviceType, tier] = parts;
+  if (serviceType !== 'seo' && serviceType !== 'ads') return null;
+  if (tier !== 'basic' && tier !== 'standard' && tier !== 'pro') return null;
+  return getMarketingPriceId(serviceType as MarketingServiceType, tier as MarketingTier);
+}
+
+/**
+ * Advero combined checkout — one subscription, multiple line items, optional 5% bundle discount.
+ * POST /api/stripe/create-combined-checkout-session
+ */
+export const createCombinedCheckoutSession = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!isStripeConfigured() || !stripe) {
+      res.status(500).json({ error: 'Stripe is not configured.' });
+      return;
+    }
+
+    const {
+      items,
+      checkoutContext,
+      returnQuery,
+      auditId,
+      contactEmail,
+      billingName,
+      companyName,
+    } = req.body as {
+      items?: CombinedCheckoutItem[];
+      checkoutContext?: string;
+      returnQuery?: string;
+      auditId?: string;
+      contactEmail?: string;
+      billingName?: string;
+      companyName?: string;
+    };
+
+    if (!Array.isArray(items) || items.length < 1 || items.length > 3) {
+      res.status(400).json({ error: 'items must be a non-empty array (max 3).' });
+      return;
+    }
+
+    if (checkoutContext !== 'advero') {
+      res.status(400).json({ error: 'Combined checkout is only supported for checkoutContext=advero.' });
+      return;
+    }
+
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+    const normalizedItems: CombinedCheckoutItem[] = [];
+
+    for (const raw of items) {
+      const tierId = String(raw?.tierId || '').trim();
+      const serviceType = raw?.serviceType;
+      if (serviceType !== 'seo' && serviceType !== 'ads') {
+        res.status(400).json({ error: `Invalid serviceType in item: ${tierId}` });
+        return;
+      }
+      if (!tierId.startsWith(`${serviceType}_`)) {
+        res.status(400).json({ error: `tierId does not match serviceType: ${tierId}` });
+        return;
+      }
+      const priceId = resolveMarketingPriceIdFromTierId(tierId);
+      if (!priceId) {
+        res.status(500).json({
+          error: `Stripe price configuration missing for ${tierId}. Run stripeSeedProducts or set env.`,
+        });
+        return;
+      }
+      lineItems.push({ price: priceId, quantity: 1 });
+      normalizedItems.push({ serviceType, tierId });
+    }
+
+    const seen = new Set<string>();
+    for (const item of normalizedItems) {
+      if (seen.has(item.tierId)) {
+        res.status(400).json({ error: 'Duplicate tier in combined checkout.' });
+        return;
+      }
+      seen.add(item.tierId);
+    }
+
+    let resolvedContactEmail = typeof contactEmail === 'string' ? contactEmail.trim() : '';
+    let resolvedCompanyName =
+      (typeof billingName === 'string' ? billingName.trim() : '') ||
+      (typeof companyName === 'string' ? companyName.trim() : '');
+
+    const auditIdTrim = String(auditId || '').trim();
+    if (auditIdTrim) {
+      try {
+        const { isAdveroPrismaReady, prisma: adveroPrisma } = await import('../prisma/client');
+        if (isAdveroPrismaReady()) {
+          const auditRow = await adveroPrisma.adveroAudit.findUnique({ where: { id: auditIdTrim } });
+          if (auditRow) {
+            if (!resolvedContactEmail) resolvedContactEmail = auditRow.contactEmail || '';
+            if (!resolvedCompanyName) resolvedCompanyName = auditRow.companyName;
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (!resolvedContactEmail || !resolvedContactEmail.includes('@')) {
+      res.status(400).json({
+        error: 'contactEmail is required for Advero checkout (from audit or request body).',
+      });
+      return;
+    }
+
+    const clientUrl = (
+      process.env.ADVERO_SITE_URL ||
+      process.env.FRONTEND_URL ||
+      (process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : 'https://advero.dk')
+    ).replace(/\/$/, '');
+
+    const returnQs =
+      typeof returnQuery === 'string' && returnQuery.trim()
+        ? returnQuery.trim().replace(/^\?/, '')
+        : '';
+    const appendReturnQs = (base: string) => (returnQs ? `${base}${base.includes('?') ? '&' : '?'}${returnQs}` : base);
+
+    const paidParam = encodeURIComponent(normalizedItems.map((i) => i.tierId).join(','));
+    const successUrl = appendReturnQs(
+      `${clientUrl}/advero/get-started?step=4&session_id={CHECKOUT_SESSION_ID}&paid=${paidParam}`
+    );
+    const cancelUrl = appendReturnQs(`${clientUrl}/advero/get-started?step=3`);
+
+    const taxRateId = process.env.STRIPE_TAX_RATE_ID?.trim();
+    const validTaxRate =
+      !!taxRateId && taxRateId.startsWith('txr_') && !/placeholder|example|your_/i.test(taxRateId);
+
+    const isCombined = normalizedItems.length >= 2;
+    const combinedCouponId = process.env.STRIPE_COUPON_COMBINED_PLAN?.trim();
+    const discounts =
+      isCombined && combinedCouponId
+        ? [{ coupon: combinedCouponId }]
+        : undefined;
+
+    if (isCombined && !combinedCouponId) {
+      logger.warn(
+        'Combined checkout without STRIPE_COUPON_COMBINED_PLAN — no 5% discount applied. Run stripeSeedProducts.'
+      );
+    }
+
+    const subscriptionItemsJson = JSON.stringify(normalizedItems);
+    const planTier = isCombined ? 'combined' : normalizedItems[0].tierId;
+    const serviceTypeMeta = isCombined ? 'combined' : normalizedItems[0].serviceType;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      ...(discounts ? { discounts } : {}),
+      customer_email: resolvedContactEmail,
+      metadata: {
+        userId: req.userId || 'test-user',
+        companyId: 'test-company',
+        planType: 'Marketing Service',
+        serviceType: serviceTypeMeta,
+        planTier,
+        billingCycle: 'monthly',
+        checkoutContext: 'advero',
+        adveroCombined: isCombined ? 'true' : 'false',
+        subscriptionItems: subscriptionItemsJson,
+        auditId: auditIdTrim,
+        contactEmail: resolvedContactEmail,
+        companyName: resolvedCompanyName,
+        guestCheckout: (!req.userId || req.userId === 'test-user-id').toString(),
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      subscription_data: {
+        default_tax_rates: validTaxRate ? [taxRateId!] : [],
+        metadata: {
+          userId: req.userId || 'test-user',
+          companyId: 'test-company',
+          planType: 'Marketing Service',
+          serviceType: serviceTypeMeta,
+          planTier,
+          billingCycle: 'monthly',
+          checkoutContext: 'advero',
+          adveroCombined: isCombined ? 'true' : 'false',
+          subscriptionItems: subscriptionItemsJson,
+        },
+      },
+    });
+
+    logger.info('✅ Combined Stripe checkout session created', {
+      itemCount: normalizedItems.length,
+      discounted: Boolean(discounts),
+    });
+    res.json({ url: session.url });
+  } catch (error: any) {
+    logger.error('❌ Combined Stripe checkout error:', error.message, error);
+    throw new AppError(error.message || 'Failed to create combined checkout session', 500);
+  }
+};
+
 /**
  * Handle Stripe Webhook Events
  * POST /api/stripe/webhook
@@ -411,7 +625,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   const metadata = session.metadata;
-  if (!metadata || !metadata.companyId || metadata.companyId === 'test-company') {
+  if (!metadata) {
     return;
   }
 
@@ -420,24 +634,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  // Get subscription details from Stripe
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const customerId = subscription.customer as string;
-
-  // Get price ID from subscription
   const priceId = subscription.items.data[0]?.price?.id || '';
 
-  // Check if this is a marketing service
+  const isAdveroCheckout = metadata.checkoutContext === 'advero';
+  const hasRealCompany = Boolean(metadata.companyId && metadata.companyId !== 'test-company');
+
+  const isCombinedCheckout = metadata.adveroCombined === 'true';
   const isMarketingService =
     metadata.serviceType === 'ads' ||
     metadata.serviceType === 'seo' ||
     metadata.serviceType === 'growth' ||
     metadata.serviceType === 'growth_bundle' ||
-    metadata.planTier === 'growth_bundle';
+    metadata.serviceType === 'combined' ||
+    metadata.planTier === 'growth_bundle' ||
+    isCombinedCheckout;
 
-  if (isMarketingService) {
-    // Handle marketing subscription
-    const [service, tierLevel] = (metadata.planTier || '').split('_');
+  if (isMarketingService && hasRealCompany) {
+    const planTier = metadata.planTier || '';
+    const [service, tierLevel] = planTier === 'growth_bundle' ? ['growth', 'bundle'] : planTier.split('_');
 
     logger.info(`📊 Creating marketing subscription: ${service} ${tierLevel}`);
 
@@ -473,8 +689,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
 
     logger.info(`✅ Marketing subscription created: ${marketingSubscription.id}`);
+  }
 
-    if (metadata.checkoutContext === 'advero') {
+  if (isMarketingService && isAdveroCheckout) {
       try {
         const { initializeWorkspaceAfterPayment } = await import('../services/advero/adveroWorkspaceService');
         const { provisionAdveroAccountAfterPayment } = await import(
@@ -506,8 +723,30 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
         if (adveroUserId && adveroUserId !== 'test-user' && adveroUserId !== 'test-user-id') {
           const user = await prisma.user.findUnique({ where: { id: adveroUserId } });
-          const tierId = metadata.planTier || 'seo_standard';
-          const serviceLine = (metadata.serviceType as string) || 'seo';
+
+          let subscriptionItems: { serviceType: 'seo' | 'ads'; tierId: string }[] = [];
+          try {
+            const parsed = JSON.parse(metadata.subscriptionItems || '[]');
+            if (Array.isArray(parsed)) {
+              subscriptionItems = parsed.filter(
+                (x: { serviceType?: string; tierId?: string }) =>
+                  (x?.serviceType === 'seo' || x?.serviceType === 'ads') && Boolean(x?.tierId)
+              ) as { serviceType: 'seo' | 'ads'; tierId: string }[];
+            }
+          } catch {
+            /* ignore */
+          }
+
+          const tierId =
+            metadata.planTier ||
+            (subscriptionItems.length === 1 ? subscriptionItems[0].tierId : 'combined');
+          const serviceLine =
+            isCombinedCheckout || tierId === 'combined'
+              ? 'combined'
+              : tierId === 'growth_bundle' || metadata.serviceType === 'growth'
+                ? 'growth'
+                : (metadata.serviceType as string) || 'seo';
+
           await initializeWorkspaceAfterPayment({
             userId: adveroUserId,
             companyName:
@@ -524,15 +763,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
             billingCycle: metadata.billingCycle,
             currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             auditId: metadata.auditId || undefined,
+            subscriptionItems: subscriptionItems.length > 0 ? subscriptionItems : undefined,
           });
           logger.info('Advero workspace initialized after Stripe checkout', { userId: adveroUserId });
         }
       } catch (adveroErr) {
         logger.error('Advero workspace init failed', adveroErr);
       }
-    }
+  }
 
-    return; // Exit early for marketing services
+  if (isMarketingService) {
+    return;
+  }
+
+  if (!hasRealCompany) {
+    return;
   }
 
   const planDetails = getPlanDetails(priceId);

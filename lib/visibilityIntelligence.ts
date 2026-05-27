@@ -256,8 +256,8 @@ export function buildVisibilityIntelligence(input: BuildIntelligenceInput): Visi
           ? 'Forbind Search Console og Google Ads under Integrationer for at se jeres data her.'
           : 'Connect Search Console and Google Ads under Integrations to see your data here.'
         : isDa
-          ? 'Kør en gratis synlighedsaudit for personlige anbefalinger.'
-          : 'Run a free visibility audit for personalized recommendations.',
+          ? 'Kør en gratis synlighedsanalyse for personlige anbefalinger.'
+          : 'Run a free visibility analysis for personalized recommendations.',
     opportunities,
     history,
     leads: {
@@ -332,8 +332,8 @@ export function buildVisibilityIntelligence(input: BuildIntelligenceInput): Visi
               ? 'Forbind datakilder'
               : 'Connect data sources'
             : isDa
-              ? 'Kør gratis audit'
-              : 'Run free audit'),
+              ? 'Kør gratis analyse'
+              : 'Run free analysis'),
         href: audit?.id
           ? `/advero/audit/results?id=${audit.id}`
           : context === 'client'

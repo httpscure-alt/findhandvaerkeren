@@ -1,3 +1,4 @@
+import { RESULTS_DEFAULT_SEO_TIER, seoTierFromRecommendation } from './auditPackages';
 import type { GrowthGoal, IndustryCategory, PlanRecommendation } from './recommendPlan';
 import { recommendPlan } from './recommendPlan';
 import {
@@ -54,21 +55,16 @@ export function wizardPatchFromAudit(
           ? 'ads_standard'
           : null;
 
-  const seoTier =
-    rec.wantSeo && rec.primaryTierId.startsWith('seo')
-      ? rec.primaryTierId
-      : rec.wantSeo && rec.secondaryTierId?.startsWith('seo')
-        ? rec.secondaryTierId
-        : rec.wantSeo
-          ? 'seo_standard'
-          : null;
+  const seoFromRec = seoTierFromRecommendation(rec);
+  const seoTier = seoFromRec ?? RESULTS_DEFAULT_SEO_TIER;
+  const wantSeo = rec.wantSeo || !seoFromRec;
 
   return {
     fromReport: true,
     growthGoal: audit.growthGoal,
     industry: audit.industry,
     wantAds: rec.wantAds,
-    wantSeo: rec.wantSeo,
+    wantSeo,
     adsTier,
     seoTier,
     billingName: audit.companyName,

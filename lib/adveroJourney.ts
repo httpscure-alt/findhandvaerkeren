@@ -14,6 +14,13 @@ export function markTierPaid(tierId: string): void {
   }
 }
 
+/** Mark multiple tiers paid (e.g. combined checkout return URL). */
+export function markTiersPaid(tierIds: string[]): void {
+  for (const id of tierIds) {
+    if (id.trim()) markTierPaid(id.trim());
+  }
+}
+
 export function getPaidTiers(): Set<string> {
   try {
     const raw = sessionStorage.getItem(ADVERO_PAID_TIERS_KEY);

@@ -130,7 +130,7 @@ const AdveroBlogPostPage: React.FC = () => {
           href="/advero/audit"
           className="advero-btn-slate-solid mt-4 inline-flex rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-wider"
         >
-          {isDa ? 'Start gratis audit' : 'Start free audit'}
+          {isDa ? 'Start gratis analyse' : 'Start free analysis'}
         </a>
       </div>
     </article>

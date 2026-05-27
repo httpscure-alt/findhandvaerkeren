@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../services/api';
-import type { AdveroDashboardApiPayload } from '../lib/adveroDashboardApi';
 import {
   getAdveroCrispWebsiteId,
   hasAdveroPaidSupport,
@@ -9,35 +7,17 @@ import {
   loadAdveroCrisp,
   showAdveroSupportWidget,
 } from '../lib/adveroCrisp';
+import { useAdveroDashboard } from './useAdveroDashboard';
 
 /** Loads Crisp for active subscribers; hides duplicate FAB on dashboard. */
 export function useAdveroPaidSupport(enabled: boolean): {
   hasPaidSupport: boolean;
   loading: boolean;
+  payload: ReturnType<typeof useAdveroDashboard>['payload'];
+  entitlements: ReturnType<typeof useAdveroDashboard>['entitlements'];
 } {
   const { user } = useAuth();
-  const [payload, setPayload] = useState<AdveroDashboardApiPayload | null>(null);
-  const [loading, setLoading] = useState(enabled);
-
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-    setLoading(true);
-    api
-      .getAdveroDashboard(undefined, 'da')
-      .then((data) => {
-        if (!cancelled) setPayload(data);
-      })
-      .catch(() => {
-        if (!cancelled) setPayload(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
+  const { payload, entitlements, loading } = useAdveroDashboard(enabled);
 
   const hasPaidSupport = hasAdveroPaidSupport(payload?.subscription);
 
@@ -63,5 +43,5 @@ export function useAdveroPaidSupport(enabled: boolean): {
     };
   }, [enabled]);
 
-  return { hasPaidSupport, loading };
+  return { hasPaidSupport, loading, payload, entitlements };
 }

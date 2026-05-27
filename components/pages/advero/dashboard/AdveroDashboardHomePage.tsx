@@ -10,9 +10,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useMarketplace } from '../../../../contexts/MarketplaceContext';
-import { api } from '../../../../services/api';
-import type { AdveroDashboardApiPayload } from '../../../../lib/adveroDashboardApi';
-import { buildDashboardIntelligence, getLastDashboardAudit } from '../../../../lib/adveroDashboardIntelligence';
+import { useAdveroDashboardData } from '../../../../hooks/useAdveroDashboardData';
+import { buildDashboardIntelligence } from '../../../../lib/adveroDashboardIntelligence';
 import { markSetupComplete } from '../../../../lib/adveroSetupProgress';
 import { getDashboardHomeCopy } from './adveroDashboardHomeCopy';
 import AdveroDashboardPageHeader from './AdveroDashboardPageHeader';
@@ -37,16 +36,15 @@ function TrendIcon({ trend }: { trend: 'up' | 'flat' | 'down' }) {
 const AdveroDashboardHomePage: React.FC = () => {
   const { lang } = useMarketplace();
   const isDa = lang === 'da';
-  const [apiPayload, setApiPayload] = useState<AdveroDashboardApiPayload | null>(null);
+  const { payload: apiPayload } = useAdveroDashboardData(lang === 'da' ? 'da' : 'en');
+  const entitlements = apiPayload?.entitlements;
+  const showSeo = Boolean(entitlements?.seo);
+  const showAds = Boolean(entitlements?.ads);
+  const showAi = Boolean(entitlements?.aiVisibility);
 
   useEffect(() => {
     markSetupComplete('dashboard');
-    const last = getLastDashboardAudit();
-    api
-      .getAdveroDashboard(last?.id, lang === 'da' ? 'da' : 'en')
-      .then(setApiPayload)
-      .catch(() => setApiPayload(null));
-  }, [lang]);
+  }, []);
 
   const intel = useMemo(() => buildDashboardIntelligence(lang, apiPayload), [lang, apiPayload]);
 
@@ -90,11 +88,26 @@ const AdveroDashboardHomePage: React.FC = () => {
 
         <AdveroDashboardSetupChecklist intel={intel} isDa={isDa} />
         <AdveroDashboardPriorityBlock intel={intel} isDa={isDa} />
-        <AdveroDashboardConnectedFlow intel={intel} isDa={isDa} />
+        <AdveroDashboardConnectedFlow
+          intel={{
+            ...intel,
+            connectedFlow: intel.connectedFlow.filter(
+              (step) => step.key !== 'campaigns' || showAds
+            ),
+          }}
+          isDa={isDa}
+        />
         <AdveroDashboardWorkspaceHealth intel={intel} isDa={isDa} />
 
         <div className="advero-home-metrics">
-          {intel.metrics.map((m, i) => (
+          {intel.metrics
+            .filter((m) => {
+              if (m.key === 'leads') return showAds;
+              if (m.key === 'ai') return showAi;
+              if (m.key === 'search') return showSeo;
+              return true;
+            })
+            .map((m, i) => (
             <article
               key={m.key}
               className={`advero-home-metric advero-home-metric--${m.tone} advero-home-enter ${
@@ -113,7 +126,27 @@ const AdveroDashboardHomePage: React.FC = () => {
           ))}
         </div>
 
-        <AdveroDashboardVisibilityHistory intel={intel} isDa={isDa} />
+        <AdveroDashboardVisibilityHistory
+          intel={{
+            ...intel,
+            visibilityCategories: intel.visibilityCategories.filter((cat) => {
+              const n = cat.name.toLowerCase();
+              if (!showAi && n.includes('ai')) return false;
+              if (
+                !showSeo &&
+                (n.includes('search') ||
+                  n.includes('local') ||
+                  n.includes('søg') ||
+                  n.includes('søge') ||
+                  n.includes('lokal'))
+              ) {
+                return false;
+              }
+              return true;
+            }),
+          }}
+          isDa={isDa}
+        />
 
         <section className="advero-home-panel advero-home-enter" style={{ animationDelay: '220ms' }}>
           <div className="advero-home-panel-head">
@@ -136,7 +169,23 @@ const AdveroDashboardHomePage: React.FC = () => {
               </p>
             </div>
             <ul className="advero-home-visibility-list">
-              {intel.visibilityCategories.map((cat) => (
+              {intel.visibilityCategories
+                .filter((cat) => {
+                  const n = cat.name.toLowerCase();
+                  if (!showAi && n.includes('ai')) return false;
+                  if (
+                    !showSeo &&
+                    (n.includes('search') ||
+                      n.includes('local') ||
+                      n.includes('søg') ||
+                      n.includes('søge') ||
+                      n.includes('lokal'))
+                  ) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((cat) => (
                 <li key={cat.name} className="advero-home-visibility-row">
                   <div className="advero-home-visibility-row-top">
                     <span className="advero-home-visibility-name">{cat.name}</span>
@@ -190,63 +239,85 @@ const AdveroDashboardHomePage: React.FC = () => {
           </section>
 
           <div className="advero-home-stack">
-            <section className="advero-home-panel advero-home-enter" style={{ animationDelay: '320ms' }}>
-              <div className="advero-home-panel-head">
-                <div>
-                  <h2 className="advero-home-section-title">{c.leadsSection.title}</h2>
-                  <p className="advero-home-section-sub">{c.leadsSection.subtitle}</p>
-                </div>
-                <Link to="/advero/dashboard/campaigns" className="advero-dash-btn-ghost !mt-0 text-xs">
-                  {isDa ? 'Kampagner' : 'Campaigns'}
-                </Link>
-              </div>
-              <div className="advero-home-leads-grid">
-                {intel.leads.stats.map((s) => (
-                  <div key={s.label} className="advero-home-lead-stat">
-                    <p className="advero-home-lead-label mono-label">{s.label}</p>
-                    <p className="advero-home-lead-value">{s.value}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="mono-label mt-2 text-[10px] text-white/40">{intel.leads.deltaLabel}</p>
-              <div className="advero-home-mini-chart">
-                <AdveroHomeSparkline points={intel.leads.trendPoints} />
-              </div>
-            </section>
-
-            <section className="advero-home-panel advero-home-panel--ai advero-home-enter" style={{ animationDelay: '360ms' }}>
-              <div className="advero-home-panel-head">
-                <div className="advero-home-ai-title-row">
-                  <Sparkles size={18} className="text-sky-200/80 shrink-0" aria-hidden />
+            {showAds ? (
+              <section className="advero-home-panel advero-home-enter" style={{ animationDelay: '320ms' }}>
+                <div className="advero-home-panel-head">
                   <div>
-                    <h2 className="advero-home-section-title">{c.aiSection.title}</h2>
-                    <p className="advero-home-section-sub">{c.aiSection.subtitle}</p>
+                    <h2 className="advero-home-section-title">{c.leadsSection.title}</h2>
+                    <p className="advero-home-section-sub">{c.leadsSection.subtitle}</p>
+                  </div>
+                  <Link
+                    to="/advero/dashboard/campaigns"
+                    className="advero-dash-btn-ghost !mt-0 text-xs"
+                  >
+                    {isDa ? 'Kampagner' : 'Campaigns'}
+                  </Link>
+                </div>
+                <div className="advero-home-leads-grid">
+                  {intel.leads.stats.map((s) => (
+                    <div key={s.label} className="advero-home-lead-stat">
+                      <p className="advero-home-lead-label mono-label">{s.label}</p>
+                      <p className="advero-home-lead-value">{s.value}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mono-label mt-2 text-[10px] text-white/40">{intel.leads.deltaLabel}</p>
+                <div className="advero-home-mini-chart">
+                  <AdveroHomeSparkline points={intel.leads.trendPoints} />
+                </div>
+              </section>
+            ) : null}
+
+            {showAi ? (
+              <section
+                className="advero-home-panel advero-home-panel--ai advero-home-enter"
+                style={{ animationDelay: '360ms' }}
+              >
+                <div className="advero-home-panel-head">
+                  <div className="advero-home-ai-title-row">
+                    <Sparkles size={18} className="text-sky-200/80 shrink-0" aria-hidden />
+                    <div>
+                      <h2 className="advero-home-section-title">{c.aiSection.title}</h2>
+                      <p className="advero-home-section-sub">{c.aiSection.subtitle}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <p className="advero-home-ai-headline">{intel.aiSection.headline}</p>
-              <MetricBusinessImpact text={intel.aiSection.businessImpact} />
-              <div className="advero-home-ai-score">
-                <p className="mono-label advero-home-ai-score-label">
-                  {isDa ? 'AI-score' : 'AI score'} · {intel.aiSection.readinessLabel}
-                </p>
-                <p className="advero-home-ai-score-value">
-                  {intel.aiSection.opportunityValue}
-                  <span className="advero-home-ai-score-max">/ 100</span>
-                </p>
-              </div>
-              <div className="advero-home-mini-chart advero-home-mini-chart--glow">
-                <AdveroHomeSparkline points={[48, 52, 54, 58, 62, 65, 68, 70, intel.history[intel.history.length - 1]?.score ?? 72]} />
-              </div>
-              <div className="advero-home-ai-suggestions">
-                <p className="mono-label advero-home-ai-suggestions-label">{c.aiSection.suggestionsTitle}</p>
-                <ul>
-                  {intel.aiSection.suggestions.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ul>
-              </div>
-            </section>
+                <p className="advero-home-ai-headline">{intel.aiSection.headline}</p>
+                <MetricBusinessImpact text={intel.aiSection.businessImpact} />
+                <div className="advero-home-ai-score">
+                  <p className="mono-label advero-home-ai-score-label">
+                    {isDa ? 'AI-score' : 'AI score'} · {intel.aiSection.readinessLabel}
+                  </p>
+                  <p className="advero-home-ai-score-value">
+                    {intel.aiSection.opportunityValue}
+                    <span className="advero-home-ai-score-max">/ 100</span>
+                  </p>
+                </div>
+                <div className="advero-home-mini-chart advero-home-mini-chart--glow">
+                  <AdveroHomeSparkline
+                    points={[
+                      48,
+                      52,
+                      54,
+                      58,
+                      62,
+                      65,
+                      68,
+                      70,
+                      intel.history[intel.history.length - 1]?.score ?? 72,
+                    ]}
+                  />
+                </div>
+                <div className="advero-home-ai-suggestions">
+                  <p className="mono-label advero-home-ai-suggestions-label">{c.aiSection.suggestionsTitle}</p>
+                  <ul>
+                    {intel.aiSection.suggestions.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            ) : null}
           </div>
         </div>
 

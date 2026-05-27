@@ -3,13 +3,16 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useMarketplace } from '../../../../contexts/MarketplaceContext';
 import { buildDashboardIntelligence } from '../../../../lib/adveroDashboardIntelligence';
+import { useAdveroDashboardData } from '../../../../hooks/useAdveroDashboardData';
 import AdveroDashboardPageHeader from './AdveroDashboardPageHeader';
 import { AdveroDashboardConnectedFlow, MetricBusinessImpact } from './AdveroDashboardIntelligenceBlocks';
 
 const AdveroDashboardVisibilityPage: React.FC = () => {
   const { lang } = useMarketplace();
   const isDa = lang === 'da';
-  const intel = useMemo(() => buildDashboardIntelligence(lang), [lang]);
+  const { payload: apiPayload } = useAdveroDashboardData(lang === 'da' ? 'da' : 'en');
+  const showAds = Boolean(apiPayload?.entitlements?.ads);
+  const intel = useMemo(() => buildDashboardIntelligence(lang, apiPayload), [lang, apiPayload]);
 
   return (
     <>
@@ -42,7 +45,13 @@ const AdveroDashboardVisibilityPage: React.FC = () => {
           </section>
         ) : null}
 
-        <AdveroDashboardConnectedFlow intel={intel} isDa={isDa} />
+        <AdveroDashboardConnectedFlow
+          intel={{
+            ...intel,
+            connectedFlow: intel.connectedFlow.filter((step) => step.key !== 'campaigns' || showAds),
+          }}
+          isDa={isDa}
+        />
 
         {!intel.hasAudit ? (
           <section className="advero-dash-cta-card">

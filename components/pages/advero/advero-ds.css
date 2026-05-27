@@ -150,6 +150,8 @@
 }
 
 .advero-ds .advero-nav-pill {
+  display: inline-flex;
+  align-items: center;
   border-radius: 9999px;
   padding: 0.625rem 1rem;
   font-size: 14px;
@@ -159,12 +161,24 @@
   background: transparent;
   border: none;
   cursor: pointer;
+  text-decoration: none;
   transition: background 0.15s ease;
+}
+
+.advero-ds .advero-nav-tray > .advero-nav-pill + .advero-nav-pill {
+  margin-left: 1px;
+  padding-left: calc(1rem + 1px);
+  border-left: 1px solid rgb(255 255 255 / 0.32);
 }
 
 @media (min-width: 1024px) {
   .advero-ds .advero-nav-pill {
     padding: 0.625rem 1.15rem;
+  }
+
+  .advero-ds .advero-nav-tray > .advero-nav-pill + .advero-nav-pill {
+    padding-left: calc(1.15rem + 1px);
+    border-left-color: rgb(255 255 255 / 0.38);
   }
 }
 

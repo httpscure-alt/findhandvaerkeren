@@ -1460,6 +1460,50 @@ class ApiService {
     }
   }
 
+  async createCombinedCheckoutSession(data: {
+    items: { serviceType: 'seo' | 'ads'; tierId: string }[];
+    checkoutContext?: 'advero';
+    returnQuery?: string;
+    auditId?: string;
+    contactEmail?: string;
+    billingName?: string;
+    companyName?: string;
+  }) {
+    const {
+      items,
+      checkoutContext = 'advero',
+      returnQuery,
+      auditId,
+      contactEmail,
+      billingName,
+      companyName,
+    } = data;
+
+    if (!API_BASE_URL) {
+      throw new Error('API URL is not configured. Please check your environment settings.');
+    }
+
+    const result = await this.request<{ url: string }>('/stripe/create-combined-checkout-session', {
+      method: 'POST',
+      body: {
+        items,
+        checkoutContext,
+        returnQuery,
+        auditId: auditId?.trim() || undefined,
+        contactEmail: contactEmail?.trim() || undefined,
+        billingName: billingName?.trim() || undefined,
+        companyName: companyName?.trim() || undefined,
+      },
+      requiresAuth: false,
+    });
+
+    if (!result.url || (!result.url.startsWith('https://checkout.stripe.com') && !result.url.includes('stripe.com'))) {
+      throw new Error('Invalid checkout URL received from server.');
+    }
+
+    return result;
+  }
+
   // Get subscription details
   async getSubscription() {
     try {

@@ -4,8 +4,12 @@ import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useAdveroLang } from '../../../lib/adveroLocale';
 import { api } from '../../../services/api';
 import { buildAuditInterpretation } from '../../../lib/auditInterpretation';
-import { recommendedPackageForResults } from '../../../lib/auditPackages';
-import { explainRecommendation, recommendPlan } from '../../../lib/recommendPlan';
+import {
+  buildResultsContinuePath,
+  recommendedPackageForResults,
+  resultsPackageCopy,
+} from '../../../lib/auditPackages';
+import { recommendPlan } from '../../../lib/recommendPlan';
 import type { GrowthGoal, IndustryCategory } from '../../../lib/recommendPlan';
 import { persistAuditSnapshot } from '../../../lib/adveroDashboardIntelligence';
 import { resultsNextCopy } from '../../../lib/adveroJourneyStory';
@@ -70,11 +74,15 @@ const AdveroAuditResultsPage: React.FC = () => {
     [rec, audit]
   );
 
-  const getStartedPath = useMemo(() => {
-    if (!rec) return '/advero/get-started?step=2';
-    const gs = rec.ctaPath.replace(/step=\d+/, 'step=2');
-    return gs.includes('step=') ? gs : `${gs}${gs.includes('?') ? '&' : '?'}step=2`;
-  }, [rec]);
+  const getStartedPath = useMemo(
+    () => (rec && audit ? buildResultsContinuePath(rec, audit.id) : '/advero/get-started?step=2'),
+    [rec, audit]
+  );
+
+  const packageCopy = useMemo(
+    () => (rec ? resultsPackageCopy(rec, isDa) : null),
+    [rec, isDa]
+  );
 
   const loginNext = useMemo(
     () => `/advero/login?next=${encodeURIComponent(getStartedPath)}`,
@@ -135,7 +143,6 @@ const AdveroAuditResultsPage: React.FC = () => {
     );
   }
 
-  const copy = explainRecommendation(rec, isDa ? 'da' : 'en');
   const opportunities = (isDa ? interpretation.opportunitiesDa : interpretation.opportunitiesEn).slice(0, 4);
   const summary = isDa ? interpretation.executiveSummaryDa : interpretation.executiveSummaryEn;
 
@@ -220,8 +227,12 @@ const AdveroAuditResultsPage: React.FC = () => {
               {recommendedPkg ? (
                 <section>
                   <h2 className="text-sm font-semibold text-slate-900">{isDa ? 'Anbefalet pakke' : 'Recommended package'}</h2>
-                  <p className="mt-1 text-sm text-slate-600">{copy.headline}</p>
-                  <p className="mt-1 text-sm text-slate-500">{copy.reason}</p>
+                  {packageCopy ? (
+                    <>
+                      <p className="mt-1 text-sm text-slate-600">{packageCopy.headline}</p>
+                      <p className="mt-1 text-sm text-slate-500">{packageCopy.reason}</p>
+                    </>
+                  ) : null}
                   <article className="advero-pick-tile advero-pick-tile--on mt-4 px-4 py-4 text-left">
                     <span className="advero-pick-tile-badge-rec">{isDa ? 'Anbefalet til jer' : 'Recommended for you'}</span>
                     <h3 className="mt-2 text-base font-semibold text-slate-900">

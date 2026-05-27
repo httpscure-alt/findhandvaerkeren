@@ -3,6 +3,7 @@ import { useMarketplace } from '../../../../contexts/MarketplaceContext';
 import { api } from '../../../../services/api';
 import AdveroAdminPageHeader from './AdveroAdminPageHeader';
 import { formatAdminDate } from './adveroAdminFormat';
+import { entitlementsFromSubscription, packageLabel } from '../../../../lib/workspaceEntitlements';
 
 const AdveroAdminWorkspacesPage: React.FC = () => {
   const { lang } = useMarketplace();
@@ -71,6 +72,7 @@ const AdveroAdminWorkspacesPage: React.FC = () => {
               <th>{isDa ? 'Kontakt' : 'Contact'}</th>
               <th>{isDa ? 'Bruger' : 'User'}</th>
               <th>{isDa ? 'Plan' : 'Plan'}</th>
+              <th>{isDa ? 'Moduler' : 'Modules'}</th>
               <th>Audits</th>
               <th>{isDa ? 'Oprettet' : 'Created'}</th>
             </tr>
@@ -78,13 +80,16 @@ const AdveroAdminWorkspacesPage: React.FC = () => {
           <tbody>
             {rows.length === 0 && !loading ? (
               <tr>
-                <td colSpan={6} className="text-white/50">
+                <td colSpan={7} className="text-white/50">
                   {isDa ? 'Ingen kunder fundet' : 'No customers found'}
                 </td>
               </tr>
             ) : (
               rows.map((w) => {
                 const sub = w.subscriptions?.[0];
+                const ent = sub
+                  ? entitlementsFromSubscription(sub.tierId, sub.serviceLine)
+                  : null;
                 return (
                   <tr key={w.id}>
                     <td className="font-medium text-white">{w.companyName}</td>
@@ -93,7 +98,25 @@ const AdveroAdminWorkspacesPage: React.FC = () => {
                     <td>
                       {sub ? (
                         <span className="advero-admin-pill">
-                          {sub.tierId} · {sub.status}
+                          {packageLabel(ent!, isDa ? 'da' : 'en')} · {sub.status}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td>
+                      {ent ? (
+                        <span className="flex flex-wrap gap-1">
+                          {ent.seo ? (
+                            <span className="advero-admin-pill text-[10px]">SEO</span>
+                          ) : null}
+                          {ent.ads ? (
+                            <span className="advero-admin-pill text-[10px]">Ads</span>
+                          ) : null}
+                          {ent.aiVisibility ? (
+                            <span className="advero-admin-pill text-[10px]">AI</span>
+                          ) : null}
+                          {!ent.seo && !ent.ads && !ent.aiVisibility ? '—' : null}
                         </span>
                       ) : (
                         '—'

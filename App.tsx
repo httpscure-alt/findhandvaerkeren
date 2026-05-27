@@ -36,6 +36,7 @@ import AdveroBlogLayout from './components/pages/advero/blog/AdveroBlogLayout';
 import AdveroBlogListPage from './components/pages/advero/blog/AdveroBlogListPage';
 import AdveroBlogPostPage from './components/pages/advero/blog/AdveroBlogPostPage';
 import GrowthPricingPreviewPage from './components/pages/mock/GrowthPricingPreviewPage';
+import AdveroDashboardPreviewShell from './components/pages/advero/dashboard/AdveroDashboardPreviewShell';
 
 /** Marketing pages live as static HTML under `public/site/` (served at `/` and `/contact` on Vercel). */
 function NavigateToStaticSite({ path }: { path: string }) {
@@ -77,7 +78,8 @@ const App: React.FC = () => {
     location.pathname.startsWith('/blog') ||
     location.pathname.startsWith('/auth') ||
     location.pathname.startsWith('/billing') ||
-    location.pathname.startsWith('/brand-v2/growth-pricing');
+    location.pathname.startsWith('/brand-v2/growth-pricing') ||
+    location.pathname.startsWith('/advero/dev/');
 
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
@@ -120,6 +122,17 @@ const App: React.FC = () => {
         <Route path="/advero/dashboard" element={<AdveroDashboardRoute />}>
           <Route index element={<AdveroDashboardHomePage />} />
           <Route path="visibility" element={<AdveroDashboardVisibilityPage />} />
+          <Route
+            path="ai-visibility"
+            element={
+              <AdveroDashboardPlaceholderPage
+                titleDa="AI-synlighed"
+                titleEn="AI visibility"
+                bodyDa="AI-readiness, semantisk struktur og conversational search — aktiveres med AI Visibility eller Growth+."
+                bodyEn="AI readiness, semantic structure, and conversational search — included with AI Visibility or Growth+."
+              />
+            }
+          />
           <Route path="reports" element={<AdveroDashboardReportsPage />} />
           <Route
             path="calendar"
@@ -185,6 +198,52 @@ const App: React.FC = () => {
         <Route path="/billing/success" element={<BillingSuccessRoute />} />
         <Route path="/billing/cancel" element={<BillingCancelRoute />} />
         <Route path="/brand-v2/growth-pricing" element={<GrowthPricingPreviewPage />} />
+
+        {/* Local-only: compare customer dashboard per subscription (not linked in prod nav). */}
+        <Route
+          path="/advero/dev/dashboard-preview"
+          element={<Navigate to="/advero/dev/dashboard-preview/growth" replace />}
+        />
+        <Route path="/advero/dev/dashboard-preview/:mode" element={<AdveroDashboardPreviewShell />}>
+          <Route index element={<AdveroDashboardHomePage />} />
+          <Route path="visibility" element={<AdveroDashboardVisibilityPage />} />
+          <Route
+            path="ai-visibility"
+            element={
+              <AdveroDashboardPlaceholderPage
+                titleDa="AI-synlighed"
+                titleEn="AI visibility"
+                bodyDa="AI-readiness, semantisk struktur og conversational search."
+                bodyEn="AI readiness, semantic structure, and conversational search."
+              />
+            }
+          />
+          <Route path="reports" element={<AdveroDashboardReportsPage />} />
+          <Route path="campaigns" element={<AdveroGoogleAdsPerformancePage />} />
+          <Route
+            path="calendar"
+            element={
+              <AdveroDashboardPlaceholderPage
+                titleDa="Kalender"
+                titleEn="Calendar"
+                bodyDa="Møder og deadlines — kommer snart."
+                bodyEn="Meetings and deadlines — coming soon."
+              />
+            }
+          />
+          <Route
+            path="billing"
+            element={
+              <AdveroDashboardPlaceholderPage
+                titleDa="Abonnement"
+                titleEn="Billing"
+                bodyDa="Abonnementsstyring i preview."
+                bodyEn="Subscription management in preview."
+              />
+            }
+          />
+          <Route path="settings" element={<AdveroDashboardIntegrationsPage />} />
+        </Route>
 
         <Route path="/platform" element={<Navigate to="/" replace />} />
         <Route path="/browse" element={<Navigate to="/" replace />} />

@@ -17,7 +17,7 @@ const AdveroDashboardLayout: React.FC<AdveroDashboardLayoutProps> = ({ getCompan
   const navigate = useNavigate();
   const toast = useToast();
   const isDa = lang === 'da';
-  const { hasPaidSupport } = useAdveroPaidSupport(true);
+  const { hasPaidSupport, entitlements } = useAdveroPaidSupport(true);
 
   const workspaceName = useMemo(() => {
     const fromCompany = getCompanyName?.();
@@ -46,6 +46,7 @@ const AdveroDashboardLayout: React.FC<AdveroDashboardLayoutProps> = ({ getCompan
           workspaceInitial={workspaceInitial}
           onLogout={handleLogout}
           showContactSupport={!hasPaidSupport}
+          entitlements={entitlements}
         />
         <div className="advero-dash-main">
           <Outlet />

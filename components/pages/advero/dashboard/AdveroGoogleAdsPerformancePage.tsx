@@ -1,31 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Megaphone, Sparkles, TrendingUp } from 'lucide-react';
 import { useMarketplace } from '../../../../contexts/MarketplaceContext';
-import { api } from '../../../../services/api';
-import type { AdveroDashboardApiPayload } from '../../../../lib/adveroDashboardApi';
+import { useAdveroDashboardData } from '../../../../hooks/useAdveroDashboardData';
 import AdveroDashboardPageHeader from './AdveroDashboardPageHeader';
 import AdveroHomeSparkline from './AdveroHomeSparkline';
-import { buildDashboardIntelligence, getLastDashboardAudit } from '../../../../lib/adveroDashboardIntelligence';
+import { buildDashboardIntelligence } from '../../../../lib/adveroDashboardIntelligence';
 import { AdveroDashboardConnectedFlow } from './AdveroDashboardIntelligenceBlocks';
 import { getGoogleAdsCopy } from './adveroGoogleAdsCopy';
 
 const AdveroGoogleAdsPerformancePage: React.FC = () => {
   const { lang } = useMarketplace();
   const c = useMemo(() => getGoogleAdsCopy(lang), [lang]);
-  const [apiPayload, setApiPayload] = useState<AdveroDashboardApiPayload | null>(null);
-  const intel = useMemo(() => buildDashboardIntelligence(lang, apiPayload), [lang, apiPayload]);
   const isDa = lang === 'da';
+  const { payload: apiPayload } = useAdveroDashboardData(isDa ? 'da' : 'en');
+  const intel = useMemo(() => buildDashboardIntelligence(lang, apiPayload), [lang, apiPayload]);
   const ads = apiPayload?.googleAds;
-  const liveAds = ads?.connected && ads.source === 'google';
-
-  useEffect(() => {
-    const last = getLastDashboardAudit();
-    api
-      .getAdveroDashboard(last?.id, isDa ? 'da' : 'en')
-      .then(setApiPayload)
-      .catch(() => setApiPayload(null));
-  }, [isDa]);
+  const liveAds = ads?.connected && (ads.source === 'google' || ads.source === 'demo');
 
   const metrics = useMemo(() => {
     if (!liveAds || !ads) return c.metrics;

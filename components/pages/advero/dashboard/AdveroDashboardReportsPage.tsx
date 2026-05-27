@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { api } from '../../../../services/api';
+import React, { useMemo } from 'react';
+import { useAdveroDashboardData } from '../../../../hooks/useAdveroDashboardData';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useMarketplace } from '../../../../contexts/MarketplaceContext';
@@ -11,15 +11,8 @@ import { buildDashboardIntelligence } from '../../../../lib/adveroDashboardIntel
 const AdveroDashboardReportsPage: React.FC = () => {
   const { lang } = useMarketplace();
   const isDa = lang === 'da';
-  const [apiPayload, setApiPayload] = useState<import('../../../../lib/adveroDashboardApi').AdveroDashboardApiPayload | null>(null);
-
-  useEffect(() => {
-    const lastId = sessionStorage.getItem('advero.lastAuditId');
-    api
-      .getAdveroDashboard(lastId || undefined, lang === 'da' ? 'da' : 'en')
-      .then(setApiPayload)
-      .catch(() => setApiPayload(null));
-  }, [lang]);
+  const { payload: apiPayload } = useAdveroDashboardData(lang === 'da' ? 'da' : 'en');
+  const showAds = Boolean(apiPayload?.entitlements?.ads);
 
   const reports = useMemo(() => buildReportsPageNarrative(lang, apiPayload), [lang, apiPayload]);
   const intel = useMemo(() => buildDashboardIntelligence(lang, apiPayload), [lang, apiPayload]);
@@ -38,7 +31,13 @@ const AdveroDashboardReportsPage: React.FC = () => {
           ) : null}
         </section>
 
-        <AdveroDashboardConnectedFlow intel={intel} isDa={isDa} />
+        <AdveroDashboardConnectedFlow
+          intel={{
+            ...intel,
+            connectedFlow: intel.connectedFlow.filter((step) => step.key !== 'campaigns' || showAds),
+          }}
+          isDa={isDa}
+        />
 
         {reports.auditId ? (
           <section className="advero-dash-cta-card">

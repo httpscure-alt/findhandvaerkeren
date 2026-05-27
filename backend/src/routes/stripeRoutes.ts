@@ -1,5 +1,15 @@
 import express from 'express';
-import { createCheckoutSession, handleWebhook, getSessionDetails, createPortalSession, getTransactions, cancelSubscription, updateSubscription, verifyStripeConfig } from '../controllers/stripeController';
+import {
+  createCheckoutSession,
+  createCombinedCheckoutSession,
+  handleWebhook,
+  getSessionDetails,
+  createPortalSession,
+  getTransactions,
+  cancelSubscription,
+  updateSubscription,
+  verifyStripeConfig,
+} from '../controllers/stripeController';
 import { authenticate, optionalAuthenticate, requireRole, requireAdmin } from '../middleware/auth';
 import { asyncHandler } from '../middleware/asyncHandler';
 
@@ -30,6 +40,12 @@ router.post(
   '/create-checkout-session',
   optionalAuthenticate,
   asyncHandler(createCheckoutSession)
+);
+
+router.post(
+  '/create-combined-checkout-session',
+  optionalAuthenticate,
+  asyncHandler(createCombinedCheckoutSession)
 );
 
 export default router;

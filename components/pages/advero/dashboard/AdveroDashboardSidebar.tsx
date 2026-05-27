@@ -18,6 +18,11 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { Language } from '../../../../types';
 import AdveroLangToggle from '../AdveroLangToggle';
+import {
+  isDashboardNavModuleEnabled,
+  type DashboardNavModule,
+  type WorkspaceEntitlements,
+} from '../../../../lib/workspaceEntitlements';
 
 const STORAGE_KEY = 'advero.dashboard.sidebarCollapsed';
 
@@ -28,6 +33,8 @@ export type AdveroDashboardNavItem = {
   labelEn: string;
   badgeDa?: string;
   badgeEn?: string;
+  /** When set, item is shown only if the package entitlement allows it. */
+  module?: DashboardNavModule;
 };
 
 const NAV_ITEMS: AdveroDashboardNavItem[] = [
@@ -35,14 +42,28 @@ const NAV_ITEMS: AdveroDashboardNavItem[] = [
   {
     path: '/advero/dashboard/visibility',
     icon: FileSearch,
-    labelDa: 'Synlighedsanalyse',
-    labelEn: 'Visibility audit',
+    labelDa: 'SEO-synlighed',
+    labelEn: 'SEO visibility',
     badgeDa: 'Ny',
     badgeEn: 'New',
+    module: 'visibility',
+  },
+  {
+    path: '/advero/dashboard/ai-visibility',
+    icon: Sparkles,
+    labelDa: 'AI-synlighed',
+    labelEn: 'AI visibility',
+    module: 'aiVisibility',
   },
   { path: '/advero/dashboard/calendar', icon: Calendar, labelDa: 'Kalender', labelEn: 'Calendar' },
   { path: '/advero/dashboard/reports', icon: LineChart, labelDa: 'Rapporter', labelEn: 'Reports' },
-  { path: '/advero/dashboard/campaigns', icon: Megaphone, labelDa: 'Kampagner', labelEn: 'Campaigns' },
+  {
+    path: '/advero/dashboard/campaigns',
+    icon: Megaphone,
+    labelDa: 'Google Ads',
+    labelEn: 'Google Ads',
+    module: 'campaigns',
+  },
 ];
 
 const FOOTER_ITEMS: AdveroDashboardNavItem[] = [
@@ -58,6 +79,9 @@ interface AdveroDashboardSidebarProps {
   onLogout: () => void;
   /** Link to /contact when user has no active subscription (no Crisp). */
   showContactSupport?: boolean;
+  entitlements?: WorkspaceEntitlements;
+  /** Override nav targets (e.g. `/advero/dev/dashboard-preview/growth`). */
+  dashboardBasePath?: string;
 }
 
 function isActivePath(pathname: string, path: string): boolean {
@@ -74,10 +98,19 @@ const AdveroDashboardSidebar: React.FC<AdveroDashboardSidebarProps> = ({
   workspaceInitial,
   onLogout,
   showContactSupport = false,
+  entitlements,
+  dashboardBasePath = '/advero/dashboard',
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isDa = lang === 'da';
+
+  const toDashboardPath = (itemPath: string) =>
+    itemPath.replace(/^\/advero\/dashboard/, dashboardBasePath);
+
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => !item.module || !entitlements || isDashboardNavModuleEnabled(item.module, entitlements)
+  );
 
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -99,14 +132,15 @@ const AdveroDashboardSidebar: React.FC<AdveroDashboardSidebarProps> = ({
 
   const renderNavButton = (item: AdveroDashboardNavItem) => {
     const Icon = item.icon;
-    const active = isActivePath(location.pathname, item.path);
+    const path = toDashboardPath(item.path);
+    const active = isActivePath(location.pathname, path);
     const label = isDa ? item.labelDa : item.labelEn;
 
     return (
       <button
         key={item.path}
         type="button"
-        onClick={() => navigate(item.path)}
+        onClick={() => navigate(path)}
         title={collapsed ? label : undefined}
         className={`advero-dash-nav-item ${active ? 'advero-dash-nav-item--active' : ''}`}
         aria-current={active ? 'page' : undefined}
@@ -136,7 +170,7 @@ const AdveroDashboardSidebar: React.FC<AdveroDashboardSidebarProps> = ({
           <button
             type="button"
             className="advero-dash-brand"
-            onClick={() => navigate('/advero/dashboard')}
+            onClick={() => navigate(dashboardBasePath)}
             aria-label="Advero"
           >
             {!collapsed ? (
@@ -189,7 +223,7 @@ const AdveroDashboardSidebar: React.FC<AdveroDashboardSidebarProps> = ({
           )}
         </button>
 
-        <nav className="advero-dash-nav">{NAV_ITEMS.map(renderNavButton)}</nav>
+        <nav className="advero-dash-nav">{visibleNavItems.map(renderNavButton)}</nav>
 
         <div className="advero-dash-nav-footer">
           <div className={`advero-dash-lang-wrap ${collapsed ? 'advero-dash-lang-wrap--collapsed' : ''}`}>

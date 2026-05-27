@@ -2167,6 +2167,46 @@
       .site-header > div {
         overflow: visible;
       }
+      /* Primary nav pill bar — dividers via box-shadow (works without Tailwind JIT). */
+      .site-nav-pills {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        padding: 3px;
+        border-radius: 9999px;
+        background: rgb(51 65 85 / 0.48);
+        box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(24px);
+      }
+      .site-nav-pills > a.coreon-navpill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 9999px;
+        white-space: nowrap;
+        text-decoration: none;
+      }
+      /* Adjacent-sibling dividers (visible on slate pill bar). */
+      .site-nav-pills > a.coreon-navpill + a.coreon-navpill {
+        margin-left: 1px;
+        padding-left: calc(1rem + 1px);
+        border-left: 1px solid rgb(255 255 255 / 0.32);
+      }
+      .site-nav-pills > a.coreon-navpill:hover {
+        background: rgb(255 255 255 / 0.12);
+      }
+      @media (min-width: 640px) {
+        .site-nav-pills {
+          padding: 4px;
+        }
+        .site-nav-pills > a.coreon-navpill + a.coreon-navpill {
+          padding-left: calc(1.15rem + 1px);
+          border-left-color: rgb(255 255 255 / 0.38);
+        }
+      }
       .hero-v3-cinematic-heat {
         background:
           radial-gradient(ellipse 92% 58% at 50% -12%, rgba(255, 255, 255, 0.2), transparent 52%),
@@ -3345,7 +3385,7 @@
         </div>
 
         <nav class="order-3 flex flex-1 basis-full justify-center lg:order-none lg:basis-auto" aria-label="Primary">
-          <div class="inline-flex flex-wrap justify-center gap-0 rounded-full bg-slate-blue/48 p-[3px] ring-1 ring-white/[0.12] backdrop-blur-2xl">
+          <div class="site-nav-pills">
             <a
               href="/overview"
               class="coreon-navpill rounded-full px-[1rem] py-2.5 text-[14px] font-semibold tracking-tight text-white hover:bg-white/[0.1] lg:px-[1.15rem]"
@@ -3447,7 +3487,7 @@
                 href="/advero/audit"
                 class="advero-btn-slate-solid inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold tracking-[-0.01em] shadow-none transition"
                 data-i18n="hero.ctaPrimary"
-                >Få gratis synlighedsaudit</a
+                >Få gratis synlighedsanalyse</a
               >
               <a
                 href="#tiers"
@@ -4054,19 +4094,22 @@
               hidden
               data-ds-reveal
             >
-              <div class="ds-pricing-category-head sr-only">
-                <h3 data-i18n="strategy.seoCategoryTitle">SEO · organisk søgning</h3>
+              <div class="ds-pricing-category-head mb-4 max-w-2xl">
+                <h3 class="sr-only" data-i18n="strategy.seoCategoryTitle">SEO · organisk søgning</h3>
+                <p class="text-[13px] leading-relaxed text-white/55" data-i18n="strategy.seoDeliveryNote">
+                  Månedlig SEO-leverance med menneskelig kvalitetssikring. Gratis analysen kan bruge TopRank til scoring — abonnementet er løbende arbejde, ikke fuld autopilot.
+                </p>
               </div>
               <div class="ds-pricing-tier-grid">
                 <article class="ds-card-surface ds-card-bang ds-strategy-card ds-strategy-card--seo ds-plan-card ds-pricing-tier-card relative flex flex-col overflow-hidden p-stack-lg">
                   <p class="mono-label text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55" data-i18n="strategy.seoBasic.name">Starter</p>
-                  <p class="mt-1 text-[13px] font-medium text-white/55" data-i18n="strategy.seoBasic.label">AI-indhold + basics</p>
+                  <p class="mt-1 text-[13px] font-medium text-white/55" data-i18n="strategy.seoBasic.label">Grundlag + månedlig rytme</p>
                   <hr class="ds-pricing-divider mt-4" />
                   <ul class="ds-pricing-feature-list mt-4">
-                    <li><span data-i18n="strategy.seoBasic.f1">4 AI-genererede SEO-artikler / md.</span></li>
-                    <li><span data-i18n="strategy.seoBasic.f2">Søgeordsanalyse</span></li>
-                    <li><span data-i18n="strategy.seoBasic.f3">Basal SEO-optimering</span></li>
-                    <li><span data-i18n="strategy.seoBasic.f4">Auto publishing (hvis muligt)</span></li>
+                    <li><span data-i18n="strategy.seoBasic.f1">Prioriteringer fra synlighedsanalyse</span></li>
+                    <li><span data-i18n="strategy.seoBasic.f2">Søgeords- og on-page anbefalinger</span></li>
+                    <li><span data-i18n="strategy.seoBasic.f3">Hjælp til Search Console og Google Business Profile</span></li>
+                    <li><span data-i18n="strategy.seoBasic.f4">Teknisk SEO-gennemgang (baseline)</span></li>
                   </ul>
                   <div class="mt-auto border-t border-white/[0.08] pt-5">
                     <p class="mono-label text-[10px] tracking-[0.14em] text-white/45" data-i18n="strategy.priceLabel">Styring</p>
@@ -4078,14 +4121,14 @@
                   <div class="advero-btn-slate-solid ds-pricing-tier-popular-chip font-mono text-[10px] font-semibold uppercase tracking-[0.14em]" data-i18n="strategy.popularBadge">Mest populær</div>
                   <article class="ds-tier-popular ds-card-surface ds-card-bang ds-strategy-card ds-strategy-card--seo ds-plan-card ds-pricing-tier-card relative mt-2 flex flex-1 flex-col overflow-hidden p-stack-lg pt-8">
                     <p class="mono-label text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55" data-i18n="strategy.seoStandard.name">Growth</p>
-                    <p class="mt-1 text-[13px] font-medium text-white/55" data-i18n="strategy.seoStandard.label">Automation + mere dækning</p>
+                    <p class="mt-1 text-[13px] font-medium text-white/55" data-i18n="strategy.seoStandard.label">Mere dækning + løbende optimering</p>
                     <hr class="ds-pricing-divider mt-4" />
                     <ul class="ds-pricing-feature-list mt-4">
-                      <li><span data-i18n="strategy.seoStandard.f1">12 AI-artikler / md.</span></li>
-                      <li><span data-i18n="strategy.seoStandard.f2">Intern linkbuilding automation</span></li>
-                      <li><span data-i18n="strategy.seoStandard.f3">SEO scoring / optimering</span></li>
+                      <li><span data-i18n="strategy.seoStandard.f1">Alt i Starter</span></li>
+                      <li><span data-i18n="strategy.seoStandard.f2">Udvidet søgeord og landingssider</span></li>
+                      <li><span data-i18n="strategy.seoStandard.f3">Intern linking og struktur (udført af team)</span></li>
                       <li><span data-i18n="strategy.seoStandard.f4">Google Business-optimering</span></li>
-                      <li><span data-i18n="strategy.seoStandard.f5">Mere keyword targeting</span></li>
+                      <li><span data-i18n="strategy.seoStandard.f5">Månedlig rapport i dashboard</span></li>
                     </ul>
                     <div class="mt-auto border-t border-white/[0.08] pt-5">
                       <p class="mono-label text-[10px] tracking-[0.14em] text-white/45" data-i18n="strategy.priceLabel">Styring</p>
@@ -4096,14 +4139,14 @@
                 </div>
                 <article class="ds-card-surface ds-card-bang ds-strategy-card ds-strategy-card--seo ds-plan-card ds-pricing-tier-card relative flex flex-col overflow-hidden p-stack-lg" data-ds-reveal data-ds-reveal-delay="0.1">
                   <p class="mono-label text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55" data-i18n="strategy.seoPro.name">Pro</p>
-                  <p class="mt-1 text-[13px] font-medium text-white/55" data-i18n="strategy.seoPro.label">Autopilot + fair use</p>
+                  <p class="mt-1 text-[13px] font-medium text-white/55" data-i18n="strategy.seoPro.label">Prioriteret leverance</p>
                   <hr class="ds-pricing-divider mt-4" />
                   <ul class="ds-pricing-feature-list mt-4">
-                    <li><span data-i18n="strategy.seoPro.f1">Unlimited AI content (fair use)</span></li>
-                    <li><span data-i18n="strategy.seoPro.f2">Full SEO autopilot</span></li>
-                    <li><span data-i18n="strategy.seoPro.f3">Content + keyword expansion</span></li>
-                    <li><span data-i18n="strategy.seoPro.f4">Multi-site support</span></li>
-                    <li><span data-i18n="strategy.seoPro.f5">Priority features / support</span></li>
+                    <li><span data-i18n="strategy.seoPro.f1">Alt i Growth</span></li>
+                    <li><span data-i18n="strategy.seoPro.f2">Udvidet indholds- og søgeordsplan</span></li>
+                    <li><span data-i18n="strategy.seoPro.f3">Flere websites / lokationer (efter aftale)</span></li>
+                    <li><span data-i18n="strategy.seoPro.f4">Prioriteret support og gennemgang</span></li>
+                    <li><span data-i18n="strategy.seoPro.f5">Tidlig adgang til automation, når live</span></li>
                   </ul>
                   <div class="mt-auto border-t border-white/[0.08] pt-5">
                     <p class="mono-label text-[10px] tracking-[0.14em] text-white/45" data-i18n="strategy.priceLabel">Styring</p>
@@ -4453,7 +4496,7 @@
             'hero.rankLine': 'Derefter en fast månedlig rytme I kan plansætte ud fra',
             'hero.ctaPlans': 'Pakker og priser',
             'hero.ctaHi': 'Skriv til os',
-            'hero.ctaPrimary': 'Få gratis synlighedsaudit',
+            'hero.ctaPrimary': 'Få gratis synlighedsanalyse',
             'hero.ctaSecondary': 'Se pakker',
             'hero.cardHint': 'Historien og AI-eksemplet længere nede.',
             'hero.modeAria': 'Vælg fokus for illustrationen',
@@ -4532,29 +4575,31 @@
             'strategy.popularBadge': 'Mest populær',
             'strategy.priceLabel': 'Styring',
             'strategy.seoBasic.name': 'Starter',
-            'strategy.seoBasic.label': 'AI-indhold + basics',
-            'strategy.seoBasic.f1': '4 AI-genererede SEO-artikler / md.',
-            'strategy.seoBasic.f2': 'Søgeordsanalyse',
-            'strategy.seoBasic.f3': 'Basal SEO-optimering',
-            'strategy.seoBasic.f4': 'Auto publishing (hvis muligt)',
+            'strategy.seoDeliveryNote':
+              'Månedlig SEO-leverance med menneskelig kvalitetssikring. Gratis analysen kan bruge TopRank til scoring — abonnementet er løbende arbejde, ikke fuld autopilot.',
+            'strategy.seoBasic.label': 'Grundlag + månedlig rytme',
+            'strategy.seoBasic.f1': 'Prioriteringer fra synlighedsanalyse',
+            'strategy.seoBasic.f2': 'Søgeords- og on-page anbefalinger',
+            'strategy.seoBasic.f3': 'Hjælp til Search Console og Google Business Profile',
+            'strategy.seoBasic.f4': 'Teknisk SEO-gennemgang (baseline)',
             'strategy.seoBasic.price': '299 kr./md.',
             'strategy.seoBasic.cta': 'Vælg Starter',
             'strategy.seoStandard.name': 'Growth',
-            'strategy.seoStandard.label': 'Automation + mere dækning',
-            'strategy.seoStandard.f1': '12 AI-artikler / md.',
-            'strategy.seoStandard.f2': 'Intern linkbuilding automation',
-            'strategy.seoStandard.f3': 'SEO scoring / optimering',
+            'strategy.seoStandard.label': 'Mere dækning + løbende optimering',
+            'strategy.seoStandard.f1': 'Alt i Starter',
+            'strategy.seoStandard.f2': 'Udvidet søgeord og landingssider',
+            'strategy.seoStandard.f3': 'Intern linking og struktur (udført af team)',
             'strategy.seoStandard.f4': 'Google Business-optimering',
-            'strategy.seoStandard.f5': 'Mere keyword targeting',
+            'strategy.seoStandard.f5': 'Månedlig rapport i dashboard',
             'strategy.seoStandard.price': '599 kr./md.',
             'strategy.seoStandard.cta': 'Vælg Growth',
             'strategy.seoPro.name': 'Pro',
-            'strategy.seoPro.label': 'Autopilot + fair use',
-            'strategy.seoPro.f1': 'Unlimited AI content (fair use)',
-            'strategy.seoPro.f2': 'Full SEO autopilot',
-            'strategy.seoPro.f3': 'Content + keyword expansion',
-            'strategy.seoPro.f4': 'Multi-site support',
-            'strategy.seoPro.f5': 'Priority features / support',
+            'strategy.seoPro.label': 'Prioriteret leverance',
+            'strategy.seoPro.f1': 'Alt i Growth',
+            'strategy.seoPro.f2': 'Udvidet indholds- og søgeordsplan',
+            'strategy.seoPro.f3': 'Flere websites / lokationer (efter aftale)',
+            'strategy.seoPro.f4': 'Prioriteret support og gennemgang',
+            'strategy.seoPro.f5': 'Tidlig adgang til automation, når live',
             'strategy.seoPro.price': '999 kr./md.',
             'strategy.seoPro.cta': 'Vælg Pro',
             'strategy.adsBasic.name': 'Starter',
@@ -4816,7 +4861,7 @@
             'hero.rankLine': 'Then a calm monthly rhythm you can plan around',
             'hero.ctaPlans': 'Plans & pricing',
             'hero.ctaHi': 'Send a message',
-            'hero.ctaPrimary': 'Get free visibility audit',
+            'hero.ctaPrimary': 'Get free visibility analysis',
             'hero.ctaSecondary': 'See plans',
             'hero.cardHint': 'The story and the AI example further down.',
             'hero.modeAria': 'Choose illustration focus',
@@ -4895,29 +4940,31 @@
             'strategy.popularBadge': 'Most popular',
             'strategy.priceLabel': 'Management',
             'strategy.seoBasic.name': 'Starter',
-            'strategy.seoBasic.label': 'AI content + basics',
-            'strategy.seoBasic.f1': '4 AI SEO articles / month',
-            'strategy.seoBasic.f2': 'Keyword research',
-            'strategy.seoBasic.f3': 'Basic SEO optimization',
-            'strategy.seoBasic.f4': 'Auto publishing (if available)',
+            'strategy.seoDeliveryNote':
+              'Monthly SEO delivery with human quality review. The free analysis may use TopRank for scoring — subscriptions are ongoing team work, not full autopilot.',
+            'strategy.seoBasic.label': 'Foundation + monthly rhythm',
+            'strategy.seoBasic.f1': 'Priorities from your visibility analysis',
+            'strategy.seoBasic.f2': 'Keyword and on-page recommendations',
+            'strategy.seoBasic.f3': 'Search Console and Google Business Profile setup support',
+            'strategy.seoBasic.f4': 'Technical SEO review (baseline)',
             'strategy.seoBasic.price': '299 DKK/mo',
             'strategy.seoBasic.cta': 'Choose Starter',
             'strategy.seoStandard.name': 'Growth',
-            'strategy.seoStandard.label': 'Automation + more coverage',
-            'strategy.seoStandard.f1': '12 AI articles / month',
-            'strategy.seoStandard.f2': 'Internal linking automation',
-            'strategy.seoStandard.f3': 'SEO scoring / optimization',
+            'strategy.seoStandard.label': 'More coverage + ongoing optimization',
+            'strategy.seoStandard.f1': 'Everything in Starter',
+            'strategy.seoStandard.f2': 'Expanded keywords and landing pages',
+            'strategy.seoStandard.f3': 'Internal linking and structure (done by our team)',
             'strategy.seoStandard.f4': 'Google Business optimization',
-            'strategy.seoStandard.f5': 'More keyword targeting',
+            'strategy.seoStandard.f5': 'Monthly report in the dashboard',
             'strategy.seoStandard.price': '599 DKK/mo',
             'strategy.seoStandard.cta': 'Choose Growth',
             'strategy.seoPro.name': 'Pro',
-            'strategy.seoPro.label': 'Autopilot + fair use',
-            'strategy.seoPro.f1': 'Unlimited AI content (fair use)',
-            'strategy.seoPro.f2': 'Full SEO autopilot',
-            'strategy.seoPro.f3': 'Content + keyword expansion',
-            'strategy.seoPro.f4': 'Multi-site support',
-            'strategy.seoPro.f5': 'Priority features / support',
+            'strategy.seoPro.label': 'Priority delivery',
+            'strategy.seoPro.f1': 'Everything in Growth',
+            'strategy.seoPro.f2': 'Expanded content and keyword roadmap',
+            'strategy.seoPro.f3': 'Multiple sites / locations (by agreement)',
+            'strategy.seoPro.f4': 'Priority support and reviews',
+            'strategy.seoPro.f5': 'Early access to automation when live',
             'strategy.seoPro.price': '999 DKK/mo',
             'strategy.seoPro.cta': 'Choose Pro',
             'strategy.adsBasic.name': 'Starter',

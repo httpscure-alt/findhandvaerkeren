@@ -21,7 +21,9 @@ import {
   getPaidTiers,
   getStartedPathWithQuery,
   markTierPaid,
+  markTiersPaid,
 } from '../../../lib/adveroJourney';
+import { calculateCombinedCheckoutPricing } from '../../../lib/adveroCheckoutPricing';
 import type { VisibilityAuditResult } from '../../../lib/mockAnalyzeVisibility';
 import type { PlanRecommendation } from '../../../lib/recommendPlan';
 import {
@@ -202,8 +204,13 @@ const AdveroClientGetStartedPage: React.FC = () => {
       payAds: isDa ? 'Betal Google Ads' : 'Pay for Google Ads',
       paySeo: isDa ? 'Betal SEO' : 'Pay for SEO',
       payBothHint: isDa
-        ? 'Hvis du vælger begge dele, gennemfør én betaling ad gangen. Du kan komme tilbage til denne side bagefter.'
-        : 'If you pick both, complete one payment at a time. You can return to this page for the second.',
+        ? 'Ét abonnement med begge ydelser — 5% rabat på den samlede månedlige pris.'
+        : 'One subscription for both services — 5% off the combined monthly price.',
+      payCombined: isDa ? 'Gå til betaling' : 'Continue to checkout',
+      subtotal: isDa ? 'Subtotal' : 'Subtotal',
+      discount: isDa ? 'Kombinationsrabat (5%)' : 'Bundle discount (5%)',
+      totalMonthly: isDa ? 'I alt pr. måned' : 'Total per month',
+      exclVat: isDa ? 'Priser ekskl. moms' : 'Prices excl. VAT',
       redirecting: isDa ? 'Sender dig til betaling…' : 'Redirecting to checkout…',
       postTitle: isDa ? 'Efter betaling' : 'After payment',
       postBody: isDa
@@ -231,8 +238,8 @@ const AdveroClientGetStartedPage: React.FC = () => {
       recFromAudit: isDa ? 'Anbefalet fra audit' : 'Recommended from audit',
       noAuditYet: isDa
         ? 'Kør en gratis synlighedsanalyse først for en personlig plan og forklaring.'
-        : 'Run a free visibility audit first for a personalized plan and explanation.',
-      runAudit: isDa ? 'Start gratis audit' : 'Start free audit',
+        : 'Run a free visibility analysis first for a personalized plan and explanation.',
+      runAudit: isDa ? 'Start gratis analyse' : 'Start free analysis',
       whyBuying: isDa ? 'Hvorfor denne plan?' : 'Why this plan?',
       growthGoalLabel: isDa ? 'Primært mål' : 'Primary goal',
       goalLeads: isDa ? 'Flere henvendelser nu' : 'More leads now',
@@ -259,6 +266,19 @@ const AdveroClientGetStartedPage: React.FC = () => {
     if (persist.wantSeo && persist.seoTier && !paidTiers.has(persist.seoTier)) pending.push(persist.seoTier);
     return pending;
   }, [persist, paidTiers]);
+
+  const combinedPricing = useMemo(
+    () =>
+      calculateCombinedCheckoutPricing(
+        persist.wantSeo,
+        persist.seoTier,
+        persist.wantAds,
+        persist.adsTier
+      ),
+    [persist.wantSeo, persist.seoTier, persist.wantAds, persist.adsTier]
+  );
+
+  const useCombinedCheckout = pendingPaymentTiers.length >= 2;
   const [journeySheetOpen, setJourneySheetOpen] = useState(true);
   const [hideSetupHints, setHideSetupHints] = useState(() => {
     try {
@@ -366,7 +386,8 @@ const AdveroClientGetStartedPage: React.FC = () => {
     const paidTier = searchParams.get('paid');
 
     if (paidTier) {
-      markTierPaid(paidTier);
+      if (paidTier.includes(',')) markTiersPaid(paidTier.split(','));
+      else markTierPaid(paidTier);
       setPaidTiers(getPaidTiers());
     }
 
@@ -451,6 +472,45 @@ const AdveroClientGetStartedPage: React.FC = () => {
     const row = all.find((x) => x.id === id);
     if (!row) return id;
     return isDa ? row.labelDa : row.labelEn;
+  };
+
+  const runCombinedCheckout = async () => {
+    const name = persist.billingName.trim();
+    if (!name) {
+      toast.error(isDa ? 'Udfyld navn til faktura.' : 'Enter a billing name.');
+      return;
+    }
+    const checkoutEmail = (user?.email || auditContext?.contactEmail || '').trim();
+    if (!checkoutEmail.includes('@')) {
+      toast.error(isDa ? 'Mangler e-mail fra audit. Kør analysen igen.' : 'Missing audit email. Run the analysis again.');
+      return;
+    }
+    if (combinedPricing.items.length === 0) {
+      toast.error(isDa ? 'Vælg mindst én plan.' : 'Select at least one plan.');
+      return;
+    }
+
+    setCheckoutLoading('combined');
+    try {
+      toast.info(t.redirecting);
+      const checkoutAuditId =
+        persist.auditId || resolveGetStartedAuditId(searchParams.get('auditId')) || undefined;
+      const { url } = await api.createCombinedCheckoutSession({
+        items: combinedPricing.items,
+        checkoutContext: 'advero',
+        returnQuery: journeyQuery,
+        auditId: checkoutAuditId,
+        contactEmail: checkoutEmail,
+        billingName: name,
+        companyName: auditContext?.companyName || name,
+      });
+      if (url) window.location.href = url;
+      else toast.error(isDa ? 'Ingen betalings-URL.' : 'No checkout URL.');
+    } catch (e: any) {
+      toast.error(e?.message || (isDa ? 'Betaling kunne ikke startes.' : 'Could not start checkout.'));
+    } finally {
+      setCheckoutLoading(null);
+    }
   };
 
   const runCheckoutForTier = async (tierId: string) => {
@@ -869,18 +929,45 @@ const AdveroClientGetStartedPage: React.FC = () => {
                       <p className="mono-label text-[10px] text-slate-500">{isDa ? 'Opsummering' : 'Summary'}</p>
                       <ul className="mt-2 space-y-2 text-sm text-slate-700">
                         {persist.wantAds && persist.adsTier ? (
-                          <li>
-                            {t.ads}: <span className="font-medium text-slate-900">{tierLabel(persist.adsTier)}</span>{' '}
-                            <span className="text-slate-400">({persist.adsTier})</span>
+                          <li className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                            <span>
+                              {t.ads}:{' '}
+                              <span className="font-medium text-slate-900">{tierLabel(persist.adsTier)}</span>
+                            </span>
+                            {paidTiers.has(persist.adsTier) ? (
+                              <span className="text-xs font-medium text-emerald-700">{t.paidLabel}</span>
+                            ) : null}
                           </li>
                         ) : null}
                         {persist.wantSeo && persist.seoTier ? (
-                          <li>
-                            {t.seo}: <span className="font-medium text-slate-900">{tierLabel(persist.seoTier)}</span>{' '}
-                            <span className="text-slate-400">({persist.seoTier})</span>
+                          <li className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                            <span>
+                              {t.seo}:{' '}
+                              <span className="font-medium text-slate-900">{tierLabel(persist.seoTier)}</span>
+                            </span>
+                            {paidTiers.has(persist.seoTier) ? (
+                              <span className="text-xs font-medium text-emerald-700">{t.paidLabel}</span>
+                            ) : null}
                           </li>
                         ) : null}
                       </ul>
+                      {useCombinedCheckout && combinedPricing.isCombined ? (
+                        <dl className="mt-4 space-y-1.5 border-t border-slate-200 pt-3 text-sm">
+                          <div className="flex justify-between text-slate-600">
+                            <dt>{t.subtotal}</dt>
+                            <dd className="tabular-nums">{fmtKr(combinedPricing.subtotalKr)} kr.</dd>
+                          </div>
+                          <div className="flex justify-between text-emerald-800">
+                            <dt>{t.discount}</dt>
+                            <dd className="tabular-nums">−{fmtKr(combinedPricing.discountKr)} kr.</dd>
+                          </div>
+                          <div className="flex justify-between font-semibold text-slate-900">
+                            <dt>{t.totalMonthly}</dt>
+                            <dd className="tabular-nums">{fmtKr(combinedPricing.totalKr)} kr.</dd>
+                          </div>
+                        </dl>
+                      ) : null}
+                      <p className="mt-3 text-[11px] text-slate-500">{t.exclVat}</p>
                     </div>
                     <div>
                       <label className="mono-label block text-[10px] text-slate-500">{t.billingLabel}</label>
@@ -899,19 +986,22 @@ const AdveroClientGetStartedPage: React.FC = () => {
                         </p>
                       ) : null}
                     </div>
-                    <p className="text-xs text-slate-500">{t.payBothHint}</p>
+                    {useCombinedCheckout ? (
+                      <p className="text-xs text-slate-500">{t.payBothHint}</p>
+                    ) : null}
                     <div className="flex flex-col gap-3">
-                      {persist.wantAds && persist.adsTier && paidTiers.has(persist.adsTier) ? (
-                        <p className="text-sm font-medium text-emerald-700">
-                          {t.ads}: {tierLabel(persist.adsTier)} — {t.paidLabel}
-                        </p>
+                      {useCombinedCheckout && pendingPaymentTiers.length > 0 ? (
+                        <button
+                          type="button"
+                          disabled={!!checkoutLoading}
+                          onClick={runCombinedCheckout}
+                          className="advero-btn-slate-solid inline-flex items-center justify-center gap-2 rounded-full px-[1.75rem] py-[0.8125rem] text-[13px] font-semibold uppercase tracking-[0.14em] sm:text-[14px]"
+                        >
+                          <CreditCard className="h-4 w-4" aria-hidden />
+                          {checkoutLoading === 'combined' ? t.redirecting : t.payCombined}
+                        </button>
                       ) : null}
-                      {persist.wantSeo && persist.seoTier && paidTiers.has(persist.seoTier) ? (
-                        <p className="text-sm font-medium text-emerald-700">
-                          {t.seo}: {tierLabel(persist.seoTier)} — {t.paidLabel}
-                        </p>
-                      ) : null}
-                      {persist.wantAds && persist.adsTier && !paidTiers.has(persist.adsTier) ? (
+                      {!useCombinedCheckout && persist.wantAds && persist.adsTier && !paidTiers.has(persist.adsTier) ? (
                         <button
                           type="button"
                           disabled={!!checkoutLoading}
@@ -922,7 +1012,7 @@ const AdveroClientGetStartedPage: React.FC = () => {
                           {checkoutLoading === persist.adsTier ? t.redirecting : t.payAds}
                         </button>
                       ) : null}
-                      {persist.wantSeo && persist.seoTier && !paidTiers.has(persist.seoTier) ? (
+                      {!useCombinedCheckout && persist.wantSeo && persist.seoTier && !paidTiers.has(persist.seoTier) ? (
                         <button
                           type="button"
                           disabled={!!checkoutLoading}
@@ -953,7 +1043,11 @@ const AdveroClientGetStartedPage: React.FC = () => {
                       <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
                         {t.paymentSuccess}
                         {searchParams.get('paid')
-                          ? ` (${tierLabel(searchParams.get('paid')!)})`
+                          ? ` (${searchParams
+                              .get('paid')!
+                              .split(',')
+                              .map((id) => tierLabel(id.trim()))
+                              .join(', ')})`
                           : ''}
                       </p>
                     ) : null}
