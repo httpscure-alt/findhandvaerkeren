@@ -97,12 +97,17 @@ const AdveroAdminSeoPage: React.FC = () => {
 
         <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
           <h2 className="mb-2 font-semibold text-white">
-            {isDa ? 'Omdirigeringer' : 'Redirects'}
+            {isDa ? 'Omdirigeringer & Search Console' : 'Redirects & Search Console'}
           </h2>
           <p className="text-white/55">
             {isDa
-              ? 'Marketing-redirects styres i vercel.json. Ved behov for nye 301’er: opdater vercel.json og deploy.'
-              : 'Marketing redirects live in vercel.json. For new 301s: update vercel.json and redeploy.'}
+              ? 'http://advero.dk/ omdirigerer permanent til https://advero.dk/ — det er korrekt. I GSC under “Side med omdirigering” for http-URL’en: vælg “Færdig med rettelse”. Brug kun https-URL’er i sitemap og canonical.'
+              : 'http://advero.dk/ permanently redirects to https://advero.dk/ — that is correct. In GSC “Page with redirect” for the http URL: mark “Done fixing”. Use only https URLs in sitemap and canonicals.'}
+          </p>
+          <p className="mt-2 text-white/55">
+            {isDa
+              ? 'www.advero.dk og øvrige marketing-redirects styres i vercel.json.'
+              : 'www.advero.dk and other marketing redirects are configured in vercel.json.'}
           </p>
         </section>
       </div>
