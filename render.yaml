@@ -65,6 +65,8 @@ services:
         sync: false
       - key: STRIPE_PRICE_GROWTH_BUNDLE
         sync: false
+      - key: STRIPE_COUPON_COMBINED_PLAN
+        sync: false
       - key: ADVERO_SITE_URL
         sync: false
 
@@ -74,7 +76,7 @@ services:
       - key: MOONSHOT_MODEL
         value: kimi-k2.6
       - key: ADVERO_LLM_INTERPRETATION
-        value: "true"
+        value: "false"
 
       # Google (Search Console + Ads OAuth)
       - key: GOOGLE_CLIENT_ID

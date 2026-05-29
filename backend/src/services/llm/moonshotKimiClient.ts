@@ -22,8 +22,9 @@ export function kimiBaseUrl(): string {
   return (process.env.MOONSHOT_API_BASE_URL || 'https://api.moonshot.ai/v1').replace(/\/$/, '');
 }
 
+/** Template copy is default; set ADVERO_LLM_INTERPRETATION=true to enable Kimi narrative. */
 export function llmInterpretationEnabled(): boolean {
-  if (process.env.ADVERO_LLM_INTERPRETATION === 'false') return false;
+  if (process.env.ADVERO_LLM_INTERPRETATION !== 'true') return false;
   return isKimiConfigured();
 }
 
