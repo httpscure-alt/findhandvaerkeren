@@ -68,10 +68,43 @@ const AdveroBlogPostPage: React.FC = () => {
     }
     canonical.setAttribute('href', `${SITE}/blog/${post.slug}`);
 
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute('content', 'index,follow');
+
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', post.title);
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute('content', desc);
+
+    const scriptId = 'advero-blog-article-jsonld';
+    document.getElementById(scriptId)?.remove();
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: post.title,
+      description: desc,
+      datePublished: post.publishedAt,
+      author: { '@type': 'Organization', name: post.authorName || 'Advero' },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Advero',
+        logo: { '@type': 'ImageObject', url: `${SITE}/brand/advero-logo.png` },
+      },
+      mainEntityOfPage: `${SITE}/blog/${post.slug}`,
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      document.getElementById(scriptId)?.remove();
+    };
   }, [post, isDa]);
 
   if (loading) {

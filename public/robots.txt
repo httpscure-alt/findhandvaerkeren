@@ -1,5 +1,23 @@
+# https://advero.dk
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /blog/
+Allow: /contact
+Allow: /advero/audit
+
+Disallow: /advero/admin
+Disallow: /advero/dashboard
+Disallow: /advero/dev/
+Disallow: /advero/login
+Disallow: /advero/signup
+Disallow: /advero/get-started
+Disallow: /advero/audit/analyzing
+Disallow: /advero/audit/results
+Disallow: /auth/
+Disallow: /billing/
+Disallow: /admin/
+Disallow: /dashboard/
 
 Sitemap: https://advero.dk/sitemap.xml
 Sitemap: https://advero.dk/blog/sitemap.xml

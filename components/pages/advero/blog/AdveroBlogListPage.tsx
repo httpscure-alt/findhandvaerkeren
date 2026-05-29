@@ -4,6 +4,7 @@ import { useMarketplace } from '../../../../contexts/MarketplaceContext';
 import { api } from '../../../../services/api';
 import type { BlogPost } from '../../../../lib/blogTypes';
 import { BLOG_CATEGORIES, categoryLabel, formatBlogDate } from '../../../../lib/blogTypes';
+import { applyAdveroPageSeo } from '../../../../lib/adveroPageSeo';
 
 const AdveroBlogListPage: React.FC = () => {
   const { lang } = useMarketplace();
@@ -13,9 +14,7 @@ const AdveroBlogListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = isDa
-      ? 'Indsigt | SEO, Google Ads og AI-synlighed | Advero'
-      : 'Insights | SEO, Google Ads & AI visibility | Advero';
+    applyAdveroPageSeo('/blog', isDa ? 'da' : 'en');
   }, [isDa]);
 
   useEffect(() => {

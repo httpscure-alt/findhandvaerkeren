@@ -35,13 +35,19 @@ const AdveroAdminSeoPage: React.FC = () => {
               <a href="/sitemap.xml" className="underline" target="_blank" rel="noreferrer">
                 {SITE}/sitemap.xml
               </a>{' '}
-              — {isDa ? 'statiske sider' : 'static pages'}
+              — {isDa ? 'sitemap-indeks' : 'sitemap index'}
+            </li>
+            <li>
+              <a href="/sitemap-pages.xml" className="underline" target="_blank" rel="noreferrer">
+                {SITE}/sitemap-pages.xml
+              </a>{' '}
+              — {isDa ? 'forside, kontakt, blog, audit' : 'home, contact, blog, audit'}
             </li>
             <li>
               <a href={BLOG_SITEMAP_URL} className="underline" target="_blank" rel="noreferrer">
                 {BLOG_SITEMAP_URL}
               </a>{' '}
-              — {isDa ? 'blogartikler (dynamisk)' : 'blog posts (dynamic)'}
+              — {isDa ? 'blogartikler' : 'blog posts'}
             </li>
           </ul>
           <p className="mt-3 text-white/55">

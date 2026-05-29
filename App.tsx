@@ -37,6 +37,7 @@ import AdveroBlogListPage from './components/pages/advero/blog/AdveroBlogListPag
 import AdveroBlogPostPage from './components/pages/advero/blog/AdveroBlogPostPage';
 import GrowthPricingPreviewPage from './components/pages/mock/GrowthPricingPreviewPage';
 import AdveroDashboardPreviewShell from './components/pages/advero/dashboard/AdveroDashboardPreviewShell';
+import { applyAdveroPageSeo } from './lib/adveroPageSeo';
 
 /** Marketing pages live as static HTML under `public/site/` (served at `/` and `/contact` on Vercel). */
 function NavigateToStaticSite({ path }: { path: string }) {
@@ -73,6 +74,7 @@ function BillingCancelRoute() {
 
 const App: React.FC = () => {
   const location = useLocation();
+  const { lang } = useMarketplace();
   const isAdveroSpa =
     location.pathname.startsWith('/advero') ||
     location.pathname.startsWith('/blog') ||
@@ -84,6 +86,10 @@ const App: React.FC = () => {
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [location.pathname]);
+
+  useLayoutEffect(() => {
+    applyAdveroPageSeo(location.pathname, lang);
+  }, [location.pathname, lang]);
 
   return (
     <div
