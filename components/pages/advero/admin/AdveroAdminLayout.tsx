@@ -4,11 +4,12 @@ import { FileText, LogOut } from 'lucide-react';
 import { useMarketplace } from '../../../../contexts/MarketplaceContext';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { ADVERO_ADMIN_NAV } from '../../../../lib/adveroAdminNav';
+import AdveroLangToggle from '../AdveroLangToggle';
 import '../advero-ds.css';
 import './advero-admin.css';
 
 const AdveroAdminLayout: React.FC = () => {
-  const { lang } = useMarketplace();
+  const { lang, setLang } = useMarketplace();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const isDa = lang === 'da';
@@ -56,6 +57,7 @@ const AdveroAdminLayout: React.FC = () => {
             <span className="advero-admin-badge">{isDa ? 'Internt' : 'Internal'}</span>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+            <AdveroLangToggle lang={lang} onChange={(next) => setLang(next)} />
             <span>{user?.email}</span>
             <Link to="/blog" className="hover:text-white" target="_blank" rel="noreferrer">
               {isDa ? 'Se blog' : 'View blog'}

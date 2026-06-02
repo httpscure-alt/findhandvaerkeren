@@ -13,9 +13,13 @@ const AdveroAdminSeoPage: React.FC = () => {
   const [published, setPublished] = useState<BlogPost[]>([]);
 
   useEffect(() => {
-    api.adminGetAllBlogPosts({ status: 'published' }).then(({ posts }) => {
-      setPublished(posts as BlogPost[]);
-    }).catch(() => setPublished([]));
+    // Use public endpoint for published posts so this page still works even if admin auth is not loaded yet.
+    api
+      .getBlogPosts({ limit: 200 })
+      .then(({ posts }) => {
+        setPublished(posts as BlogPost[]);
+      })
+      .catch(() => setPublished([]));
   }, []);
 
   return (

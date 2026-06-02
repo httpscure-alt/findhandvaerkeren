@@ -33,6 +33,18 @@ const AdveroAdminPostEditorPage: React.FC = () => {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiPrimaryKeyword, setAiPrimaryKeyword] = useState('');
+  const [aiSecondaryKeywords, setAiSecondaryKeywords] = useState('');
+  const [aiAudience, setAiAudience] = useState('');
+  const [aiBusinessType, setAiBusinessType] = useState('');
+  const [aiLocation, setAiLocation] = useState('');
+  const [aiTone, setAiTone] = useState<'practical' | 'expert' | 'friendly'>('practical');
+  const [aiLength, setAiLength] = useState<'short' | 'medium' | 'long'>('medium');
+  const [enPreview, setEnPreview] = useState<string | null>(null);
+  const [enLoading, setEnLoading] = useState(false);
 
   useEffect(() => {
     if (isNew) return;
@@ -110,6 +122,72 @@ const AdveroAdminPostEditorPage: React.FC = () => {
     }
   };
 
+  const runAi = async () => {
+    if (!aiTopic.trim()) {
+      window.alert(isDa ? 'Skriv et emne først' : 'Enter a topic first');
+      return;
+    }
+    setAiLoading(true);
+    setError(null);
+    try {
+      const secondaryKeywords = aiSecondaryKeywords
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean);
+      const { draft } = await api.adminGenerateBlogPostDraft({
+        lang: form.lang,
+        topic: aiTopic.trim(),
+        primaryKeyword: aiPrimaryKeyword.trim() || undefined,
+        secondaryKeywords: secondaryKeywords.length ? secondaryKeywords : undefined,
+        audience: aiAudience.trim() || undefined,
+        businessType: aiBusinessType.trim() || undefined,
+        location: aiLocation.trim() || undefined,
+        category: form.category,
+        tone: aiTone,
+        length: aiLength,
+      });
+
+      const d = draft as any;
+      setForm((f) => ({
+        ...f,
+        title: d.title || f.title,
+        excerpt: d.excerpt || f.excerpt,
+        content: d.contentMarkdown || f.content,
+        metaTitle: d.metaTitle || d.title || f.metaTitle,
+        metaDescription: d.metaDescription || d.excerpt || f.metaDescription,
+        category: d.category || f.category,
+      }));
+      if (Array.isArray(d.tags)) setTagsRaw((d.tags as any[]).join(', '));
+
+      if (d.additionalJsonLd && typeof d.additionalJsonLd === 'string') {
+        const block = `\n\n---\n\n## Schema (JSON-LD)\n\n\`\`\`json\n${d.additionalJsonLd.trim()}\n\`\`\`\n`;
+        setForm((f) => ({ ...f, content: (f.content || '').trimEnd() + block }));
+      }
+    } catch (e: any) {
+      setError(e?.message || (isDa ? 'Kunne ikke generere' : 'Could not generate'));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const translatePreview = async () => {
+    const md = String(form.content || '').trim();
+    if (!md) {
+      window.alert(isDa ? 'Der er intet indhold at oversætte endnu' : 'Nothing to translate yet');
+      return;
+    }
+    setEnLoading(true);
+    setError(null);
+    try {
+      const { translated } = await api.adminTranslateBlogMarkdown({ markdown: md });
+      setEnPreview(translated || '');
+    } catch (e: any) {
+      setError(e?.message || (isDa ? 'Kunne ikke oversætte' : 'Could not translate'));
+    } finally {
+      setEnLoading(false);
+    }
+  };
+
   if (loading) {
     return <p className="text-white/60">{isDa ? 'Indlæser…' : 'Loading…'}</p>;
   }
@@ -138,6 +216,100 @@ const AdveroAdminPostEditorPage: React.FC = () => {
       <h1 className="mb-6 text-2xl font-bold text-white">
         {isNew ? (isDa ? 'Ny artikel' : 'New article') : (isDa ? 'Rediger artikel' : 'Edit article')}
       </h1>
+
+      <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-white/85">
+            {isDa ? 'AI generator (intern)' : 'AI generator (internal)'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setAiOpen((v) => !v)}
+            className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5"
+          >
+            {aiOpen ? (isDa ? 'Skjul' : 'Hide') : (isDa ? 'Vis' : 'Show')}
+          </button>
+        </div>
+
+        {aiOpen ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <div className="advero-admin-field">
+                <label>{isDa ? 'Emne' : 'Topic'}</label>
+                <input value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder={isDa ? 'F.eks. “Lokal SEO for murere i Aarhus”' : 'e.g. “Local SEO for plumbers in Aarhus”'} />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="advero-admin-field">
+                  <label>{isDa ? 'Primært søgeord' : 'Primary keyword'}</label>
+                  <input value={aiPrimaryKeyword} onChange={(e) => setAiPrimaryKeyword(e.target.value)} placeholder="lokal seo" />
+                </div>
+                <div className="advero-admin-field">
+                  <label>{isDa ? 'Sekundære (kommasepareret)' : 'Secondary (comma-separated)'}</label>
+                  <input value={aiSecondaryKeywords} onChange={(e) => setAiSecondaryKeywords(e.target.value)} placeholder="google business profile, anmeldelser" />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="advero-admin-field">
+                  <label>{isDa ? 'Målgruppe' : 'Audience'}</label>
+                  <input value={aiAudience} onChange={(e) => setAiAudience(e.target.value)} placeholder={isDa ? 'Ejerleder i servicevirksomhed' : 'Owner-operator of a service business'} />
+                </div>
+                <div className="advero-admin-field">
+                  <label>{isDa ? 'Branche (valgfri)' : 'Business type (optional)'}</label>
+                  <input value={aiBusinessType} onChange={(e) => setAiBusinessType(e.target.value)} placeholder={isDa ? 'Murer, elektriker, VVS' : 'Plumber, electrician'} />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="advero-admin-field">
+                  <label>{isDa ? 'Lokation (valgfri)' : 'Location (optional)'}</label>
+                  <input value={aiLocation} onChange={(e) => setAiLocation(e.target.value)} placeholder="Aarhus" />
+                </div>
+                <div className="advero-admin-field">
+                  <label>{isDa ? 'Tone' : 'Tone'}</label>
+                  <select value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}>
+                    <option value="practical">{isDa ? 'Praktisk' : 'Practical'}</option>
+                    <option value="expert">{isDa ? 'Ekspert' : 'Expert'}</option>
+                    <option value="friendly">{isDa ? 'Venlig' : 'Friendly'}</option>
+                  </select>
+                </div>
+              </div>
+              <div className="advero-admin-field">
+                <label>{isDa ? 'Længde' : 'Length'}</label>
+                <select value={aiLength} onChange={(e) => setAiLength(e.target.value as any)}>
+                  <option value="short">{isDa ? 'Kort' : 'Short'}</option>
+                  <option value="medium">{isDa ? 'Mellem' : 'Medium'}</option>
+                  <option value="long">{isDa ? 'Lang' : 'Long'}</option>
+                </select>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={aiLoading}
+                  onClick={runAi}
+                  className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/15 disabled:opacity-60"
+                >
+                  {aiLoading ? (isDa ? 'Genererer…' : 'Generating…') : (isDa ? 'Generér udkast' : 'Generate draft')}
+                </button>
+                <p className="text-xs text-white/50">
+                  {isDa ? 'Udfylder felterne nedenfor. Husk menneskelig review før publicering.' : 'Auto-fills fields below. Review before publishing.'}
+                </p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/55">{isDa ? 'Hvad den gør' : 'What it does'}</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/70">
+                <li>{isDa ? 'Skriver titel, uddrag, fuld artikel (Markdown)' : 'Writes title, excerpt, full article (Markdown)'}</li>
+                <li>{isDa ? 'Genererer meta title/description + tags' : 'Generates meta title/description + tags'}</li>
+                <li>{isDa ? 'Kan tilføje JSON-LD schema (FAQPage) i indholdet' : 'Can add JSON-LD schema (FAQPage) into the content'}</li>
+              </ul>
+              <p className="mt-3 text-xs text-white/50">
+                {isDa
+                  ? 'Hvis AI ikke er tilgængelig, får du en fejlbesked — resten af CMS virker stadig.'
+                  : 'If AI is unavailable, you’ll see an error — the rest of the CMS still works.'}
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
@@ -221,6 +393,48 @@ const AdveroAdminPostEditorPage: React.FC = () => {
               placeholder={'## Overskrift\n\nBrødtekst med **fed** og [link](https://advero.dk).'}
             />
           </div>
+          {form.lang === 'da' ? (
+            <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/55">
+                  {isDa ? 'Engelsk preview (kun til intern kontrol)' : 'English preview (internal only)'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={enLoading}
+                    onClick={translatePreview}
+                    className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white hover:bg-white/15 disabled:opacity-60"
+                  >
+                    {enLoading
+                      ? (isDa ? 'Oversætter…' : 'Translating…')
+                      : (isDa ? 'Oversæt til engelsk' : 'Translate to English')}
+                  </button>
+                  {enPreview !== null ? (
+                    <button
+                      type="button"
+                      onClick={() => setEnPreview(null)}
+                      className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5"
+                    >
+                      {isDa ? 'Skjul' : 'Hide'}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              {enPreview !== null ? (
+                <div
+                  className="advero-blog-prose mt-3 max-w-none rounded-lg border border-white/10 bg-white/[0.03] p-3 text-white/85"
+                  dangerouslySetInnerHTML={{ __html: markdownToHtml(enPreview || '') }}
+                />
+              ) : (
+                <p className="mt-2 text-xs text-white/55">
+                  {isDa
+                    ? 'Dette ændrer ikke din danske artikel. Det er kun en preview-oversættelse.'
+                    : 'This does not change your Danish article. It’s preview-only.'}
+                </p>
+              )}
+            </div>
+          ) : null}
           <div>
             <p className="mono-label mb-2 text-white/50">{isDa ? 'Forhåndsvisning' : 'Preview'}</p>
             <div

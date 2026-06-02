@@ -52,6 +52,7 @@ async function createAdmin(email: string, name: string) {
 
 async function main() {
     logDbTarget();
+    await createAdmin('kontakt@advero.dk', 'Advero Kontakt');
     await createAdmin('admin@advero.dk', 'Advero Admin');
     await createAdmin('hello@advero.dk', 'Advero Team');
     

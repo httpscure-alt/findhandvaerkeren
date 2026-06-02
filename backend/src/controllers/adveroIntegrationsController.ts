@@ -15,6 +15,20 @@ import {
   syncSearchConsoleForWorkspace,
 } from '../services/google/searchConsoleService';
 import {
+  disconnectGoogleAnalytics,
+  getGoogleAnalyticsAuthUrl,
+  getGoogleAnalyticsSnapshot,
+  saveGa4RefreshToken,
+  syncGoogleAnalyticsForWorkspace,
+} from '../services/google/googleAnalyticsService';
+import {
+  disconnectGoogleBusinessProfile,
+  getGoogleBusinessProfileAuthUrl,
+  getGoogleBusinessProfileSnapshot,
+  saveGbpRefreshToken,
+  syncGoogleBusinessProfileForWorkspace,
+} from '../services/google/googleBusinessProfileService';
+import {
   disconnectGoogleAds,
   getGoogleAdsAuthUrl,
   getGoogleAdsSnapshot,
@@ -47,18 +61,26 @@ export const getIntegrationsStatus = async (req: AuthRequest, res: Response): Pr
   const oauthState = { workspaceId: ws.id, userId };
   const gscAuthUrl = getGoogleSearchConsoleAuthUrl({ ...oauthState, provider: 'gsc' });
   const adsAuthUrl = getGoogleAdsAuthUrl({ ...oauthState, provider: 'ads' });
+  const ga4AuthUrl = getGoogleAnalyticsAuthUrl({ ...oauthState, provider: 'ga4' });
+  const gbpAuthUrl = getGoogleBusinessProfileAuthUrl({ ...oauthState, provider: 'gbp' });
 
-  const [searchConsole, googleAds] = await Promise.all([
+  const [searchConsole, googleAds, ga4, gbp] = await Promise.all([
     getSearchConsoleSnapshot(ws.id),
     getGoogleAdsSnapshot(ws.id),
+    getGoogleAnalyticsSnapshot(ws.id),
+    getGoogleBusinessProfileSnapshot(ws.id),
   ]);
 
   res.json({
     searchConsole,
     googleAds,
+    ga4,
+    gbp,
     authUrls: {
       gsc: gscAuthUrl,
       ads: adsAuthUrl,
+      ga4: ga4AuthUrl,
+      gbp: gbpAuthUrl,
     },
     configured: {
       googleOAuth: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
@@ -137,6 +159,38 @@ export const postGoogleAdsDisconnect = async (req: AuthRequest, res: Response): 
   res.json({ ok: true });
 };
 
+export const postGoogleAnalyticsSync = async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.userId;
+  if (!userId) throw new AppError('Unauthorized', 401);
+  const ws = await requireWorkspace(userId);
+  const snapshot = await syncGoogleAnalyticsForWorkspace(ws.id);
+  res.json({ snapshot });
+};
+
+export const postGoogleAnalyticsDisconnect = async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.userId;
+  if (!userId) throw new AppError('Unauthorized', 401);
+  const ws = await requireWorkspace(userId);
+  await disconnectGoogleAnalytics(ws.id);
+  res.json({ ok: true });
+};
+
+export const postGoogleBusinessProfileSync = async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.userId;
+  if (!userId) throw new AppError('Unauthorized', 401);
+  const ws = await requireWorkspace(userId);
+  const snapshot = await syncGoogleBusinessProfileForWorkspace(ws.id);
+  res.json({ snapshot });
+};
+
+export const postGoogleBusinessProfileDisconnect = async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.userId;
+  if (!userId) throw new AppError('Unauthorized', 401);
+  const ws = await requireWorkspace(userId);
+  await disconnectGoogleBusinessProfile(ws.id);
+  res.json({ ok: true });
+};
+
 /** OAuth callback — Google redirects here (no JWT; state is HMAC-signed). */
 export const getGoogleOAuthCallback = async (req: AuthRequest, res: Response): Promise<void> => {
   const code = typeof req.query.code === 'string' ? req.query.code : '';
@@ -186,6 +240,20 @@ export const getGoogleOAuthCallback = async (req: AuthRequest, res: Response): P
     if (state.provider === 'ads') {
       await saveGoogleAdsRefreshToken(state.workspaceId, tokens.refresh_token);
       res.redirect(`${settingsPath}?integration=ads&status=select_account`);
+      return;
+    }
+
+    if (state.provider === 'ga4') {
+      await saveGa4RefreshToken(state.workspaceId, tokens.refresh_token);
+      await syncGoogleAnalyticsForWorkspace(state.workspaceId).catch(() => undefined);
+      res.redirect(`${settingsPath}?integration=ga4&status=connected`);
+      return;
+    }
+
+    if (state.provider === 'gbp') {
+      await saveGbpRefreshToken(state.workspaceId, tokens.refresh_token);
+      await syncGoogleBusinessProfileForWorkspace(state.workspaceId).catch(() => undefined);
+      res.redirect(`${settingsPath}?integration=gbp&status=connected`);
       return;
     }
 

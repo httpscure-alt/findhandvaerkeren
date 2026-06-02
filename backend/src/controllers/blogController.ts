@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../config/logger';
+import { generateBlogDraft } from '../services/llm/blogPostLlmService';
+import { translateDaToEnMarkdown } from '../services/llm/translateLlmService';
 
 const prisma = new PrismaClient();
 const SITE_URL = (process.env.ADVERO_SITE_URL || process.env.FRONTEND_URL || 'https://advero.dk').replace(/\/$/, '');
@@ -196,6 +198,60 @@ export const deletePost = async (req: Request, res: Response) => {
     } catch (error) {
         logger.error('Error deleting blog post:', error);
         res.status(500).json({ error: 'Failed to delete post' });
+    }
+};
+
+// POST /api/blog/admin/generate — generate draft content (admin)
+export const generatePostDraft = async (req: Request, res: Response) => {
+    try {
+        const { lang, topic, primaryKeyword, secondaryKeywords, audience, businessType, location, category, tone, length } =
+            (req.body || {}) as Record<string, unknown>;
+
+        const draft = await generateBlogDraft({
+            lang: String(lang) === 'en' ? 'en' : 'da',
+            topic: String(topic || '').trim(),
+            primaryKeyword: primaryKeyword ? String(primaryKeyword).trim() : undefined,
+            secondaryKeywords: Array.isArray(secondaryKeywords)
+                ? secondaryKeywords.map((x) => String(x || '').trim()).filter(Boolean)
+                : undefined,
+            audience: audience ? String(audience).trim() : undefined,
+            businessType: businessType ? String(businessType).trim() : undefined,
+            location: location ? String(location).trim() : undefined,
+            category: category ? String(category).trim() : undefined,
+            tone: tone === 'expert' || tone === 'friendly' ? (tone as any) : 'practical',
+            length: length === 'short' || length === 'long' ? (length as any) : 'medium',
+        });
+
+        if (!draft) {
+            return res.status(503).json({
+                error: 'Blog AI draft is unavailable.',
+            });
+        }
+
+        res.json({ draft });
+    } catch (error) {
+        logger.error('Error generating blog post draft:', error);
+        res.status(500).json({ error: 'Failed to generate draft' });
+    }
+};
+
+// POST /api/blog/admin/translate — translate Danish Markdown to English (admin preview)
+export const translatePostMarkdown = async (req: Request, res: Response) => {
+    try {
+        const { markdown } = (req.body || {}) as Record<string, unknown>;
+        const md = String(markdown || '').trim();
+        if (!md) return res.json({ translated: '' });
+
+        const translated = await translateDaToEnMarkdown(md);
+        if (translated === null) {
+            return res.status(503).json({
+                error: 'Translation is unavailable.',
+            });
+        }
+        res.json({ translated });
+    } catch (error) {
+        logger.error('Error translating blog markdown:', error);
+        res.status(500).json({ error: 'Failed to translate' });
     }
 };
 

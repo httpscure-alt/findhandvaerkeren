@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-export type GoogleIntegrationProvider = 'gsc' | 'ads';
+export type GoogleIntegrationProvider = 'gsc' | 'ads' | 'ga4' | 'gbp';
 
 export interface GoogleOAuthState {
   provider: GoogleIntegrationProvider;
@@ -29,7 +29,7 @@ export function verifyGoogleOAuthState(state: string): GoogleOAuthState | null {
   if (!crypto.timingSafeEqual(a, b)) return null;
   try {
     const parsed = JSON.parse(Buffer.from(data, 'base64url').toString('utf8')) as GoogleOAuthState;
-    if (parsed.provider !== 'gsc' && parsed.provider !== 'ads') return null;
+    if (!['gsc', 'ads', 'ga4', 'gbp'].includes(parsed.provider)) return null;
     if (!parsed.workspaceId || !parsed.userId) return null;
     return parsed;
   } catch {

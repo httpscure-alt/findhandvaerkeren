@@ -2109,6 +2109,11 @@
         /* Painted logo extends past layout box via scale(); keep breathing room before nav */
         margin-inline-end: clamp(1rem, 6vw, 4rem);
       }
+      @media (max-width: 639px) {
+        #brand-home-link {
+          margin-inline-end: 0.75rem;
+        }
+      }
       /* Wordmark paints large via scale(); layout box stays compact (same as contact page). */
       #brand-home-link .advero-logo-wordmark-light {
         height: 3rem;
@@ -2118,6 +2123,12 @@
         transform-origin: left center;
         object-fit: contain;
         object-position: left center;
+      }
+      @media (max-width: 639px) {
+        #brand-home-link .advero-logo-wordmark-light {
+          height: 2.5rem;
+          transform: scale(1.85);
+        }
       }
       @media (min-width: 640px) {
         #brand-home-link .advero-logo-wordmark-light {
@@ -2181,6 +2192,20 @@
         box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
         -webkit-backdrop-filter: blur(24px);
         backdrop-filter: blur(24px);
+      }
+      /* Mobile: keep nav as one tidy scroll row (no wrapping). */
+      @media (max-width: 639px) {
+        .site-nav-pills {
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          max-width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none; /* Firefox */
+        }
+        .site-nav-pills::-webkit-scrollbar {
+          display: none;
+        }
       }
       .site-nav-pills > a.coreon-navpill {
         position: relative;
@@ -2398,6 +2423,36 @@
         #hero-v3 .hero-intro-cta a.advero-btn-slate-solid:hover::after {
           transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
           transform: translateX(120%) skewX(-14deg);
+        }
+      }
+
+      /* CTA variant (query param: ?hero=cta). Default homepage remains unchanged. */
+      body[data-hero-variant='cta'] #hero-v3 .hero-intro-cta {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+      body[data-hero-variant='cta'] #hero-v3 .hero-intro-cta > a {
+        width: 100%;
+        justify-content: center;
+      }
+      body[data-hero-variant='cta'] #hero-v3 .hero-intro-cta a.advero-btn-slate-solid {
+        padding: 0.95rem 1.5rem;
+        font-size: 15px;
+        box-shadow: 0 22px 64px -18px rgba(51, 65, 85, 0.78);
+      }
+      body[data-hero-variant='cta'] #hero-v3 .hero-intro-cta a[data-i18n='hero.ctaSecondary'] {
+        background: rgb(255 255 255 / 0.1);
+      }
+      @media (min-width: 640px) {
+        body[data-hero-variant='cta'] #hero-v3 .hero-intro-cta {
+          grid-template-columns: auto auto;
+          justify-content: flex-start;
+          align-items: center;
+        }
+        body[data-hero-variant='cta'] #hero-v3 .hero-intro-cta > a {
+          width: auto;
         }
       }
       #hero-v3 .hero-v3-intro-col::before {
@@ -3327,6 +3382,15 @@
     </style>
   </head>
   <body class="bg-deep-graphite font-headline antialiased">
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(window.location.search || '');
+          var v = (p.get('hero') || '').trim();
+          if (v) document.body.setAttribute('data-hero-variant', v);
+        } catch (e) {}
+      })();
+    </script>
     <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
       <defs>
         <linearGradient id="brand-gemini-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3443,7 +3507,7 @@
           </div>
           <a
             href="/advero/login"
-            class="inline-flex shrink-0 items-center rounded-full border border-white/20 bg-white/5 px-4 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/10"
+            class="hidden shrink-0 items-center rounded-full border border-white/20 bg-white/5 px-4 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/10 sm:inline-flex"
             data-i18n="nav.login"
             >Log ind</a
           >
@@ -4439,6 +4503,8 @@
         <div class="flex flex-wrap justify-center gap-x-stack-lg gap-y-2 md:justify-end">
           <a class="text-[14px]" href="/blog" data-i18n="footer.insights">Indsigt</a>
           <a class="text-[14px]" href="/contact" data-i18n="footer.contact">Kontakt</a>
+          <a class="text-[14px]" href="/privacy" data-i18n="footer.privacy">Privatliv</a>
+          <a class="text-[14px]" href="/terms" data-i18n="footer.terms">Vilkår</a>
         </div>
       </div>
     </footer>
@@ -4814,6 +4880,8 @@
             'footer.system': 'System',
             'footer.insights': 'Indsigt',
             'footer.contact': 'Kontakt',
+            'footer.privacy': 'Privatliv',
+            'footer.terms': 'Vilkår',
           },
           en: {
             'meta.title': 'Advero | SEO, Google Ads & AI visibility',
@@ -5176,6 +5244,8 @@
             'footer.system': 'System',
             'footer.insights': 'Insights',
             'footer.contact': 'Contact',
+            'footer.privacy': 'Privacy',
+            'footer.terms': 'Terms',
           },
         };
 

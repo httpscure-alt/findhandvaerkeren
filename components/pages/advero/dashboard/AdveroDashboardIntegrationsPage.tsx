@@ -36,6 +36,14 @@ const AdveroDashboardIntegrationsPage: React.FC = () => {
       adsDesc: isDa
         ? 'Kampagneperformance fra kundens Ads-konto (styring betales til Advero; annoncebudget til Google).'
         : 'Campaign performance from the client Ads account (management billed to Advero; ad spend to Google).',
+      ga4Title: 'Google Analytics (GA4)',
+      ga4Desc: isDa
+        ? 'Trafik og konverteringer i Analytics. Bruges til rapportering og prioritering.'
+        : 'Traffic and conversions in Analytics. Used for reporting and prioritization.',
+      gbpTitle: isDa ? 'Google Business Profile' : 'Google Business Profile',
+      gbpDesc: isDa
+        ? 'Lokal synlighed: forbind GBP så vi kan optimere profil og opslag.'
+        : 'Local visibility: connect GBP so we can optimize profile and posts.',
       connect: isDa ? 'Forbind med Google' : 'Connect with Google',
       sync: isDa ? 'Synkroniser nu' : 'Sync now',
       disconnect: isDa ? 'Afbryd' : 'Disconnect',
@@ -95,6 +103,12 @@ const AdveroDashboardIntegrationsPage: React.FC = () => {
       toast.info(t.pendingPick);
       setShowAccountPicker(true);
       void api.getGoogleAdsAccounts().then((r) => setAccounts(r.accounts)).catch(() => undefined);
+    } else if (integration === 'ga4' && status === 'connected') {
+      toast.success(isDa ? 'GA4 forbundet.' : 'GA4 connected.');
+      markSetupComplete('ga4');
+    } else if (integration === 'gbp' && status === 'connected') {
+      toast.success(isDa ? 'GBP forbundet.' : 'GBP connected.');
+      markSetupComplete('gbp');
     } else if (integration === 'error') {
       toast.error(searchParams.get('message') || (isDa ? 'Google-forbindelse fejlede.' : 'Google connect failed.'));
     }
@@ -136,6 +150,34 @@ const AdveroDashboardIntegrationsPage: React.FC = () => {
       toast.success(isDa ? 'Forbindelse fjernet.' : 'Disconnected.');
       setShowAccountPicker(false);
       setAccounts([]);
+      await load();
+    } catch (e: unknown) {
+      toast.error((e as Error)?.message || (isDa ? 'Kunne ikke afbryde.' : 'Could not disconnect.'));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runSyncExtra = async (kind: 'ga4' | 'gbp') => {
+    setBusy(`sync-${kind}`);
+    try {
+      if (kind === 'ga4') await api.syncAdveroGa4();
+      else await api.syncAdveroGbp();
+      toast.success(isDa ? 'Synkroniseret.' : 'Synced.');
+      await load();
+    } catch (e: unknown) {
+      toast.error((e as Error)?.message || (isDa ? 'Synkronisering fejlede.' : 'Sync failed.'));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runDisconnectExtra = async (kind: 'ga4' | 'gbp') => {
+    setBusy(`disc-${kind}`);
+    try {
+      if (kind === 'ga4') await api.disconnectAdveroGa4();
+      else await api.disconnectAdveroGbp();
+      toast.success(isDa ? 'Forbindelse fjernet.' : 'Disconnected.');
       await load();
     } catch (e: unknown) {
       toast.error((e as Error)?.message || (isDa ? 'Kunne ikke afbryde.' : 'Could not disconnect.'));
@@ -384,6 +426,103 @@ const AdveroDashboardIntegrationsPage: React.FC = () => {
             {showAccountPicker && busy === 'accounts' ? (
               <p className="mt-4 text-sm text-white/50">{t.loadingAccounts}</p>
             ) : null}
+          </section>
+
+          <section className="advero-home-panel rounded-2xl border border-white/10 p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-white">{t.ga4Title}</h2>
+                <p className="mt-1 text-sm text-white/60">{t.ga4Desc}</p>
+              </div>
+              {data ? statusPill(data.ga4.connected, data.ga4.source) : null}
+            </div>
+
+            {data?.ga4.connected ? (
+              <ul className="mt-4 space-y-1 text-sm text-white/70">
+                {data.ga4.accountName ? <li>{data.ga4.accountName}</li> : null}
+                {data.ga4.propertyName ? <li>{data.ga4.propertyName}</li> : null}
+              </ul>
+            ) : null}
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {!data?.ga4.connected || data.ga4.source !== 'google' ? (
+                <button
+                  type="button"
+                  className="advero-btn-slate-solid inline-flex items-center gap-2 px-4 py-2 text-sm"
+                  onClick={() => openOAuth(data?.authUrls.ga4 ?? null)}
+                  disabled={!!busy}
+                >
+                  <ExternalLink size={14} />
+                  {t.connect}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:bg-white/5"
+                    onClick={() => runSyncExtra('ga4')}
+                    disabled={!!busy}
+                  >
+                    {busy === 'sync-ga4' ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                    {t.sync}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/55 hover:text-white/80"
+                    onClick={() => runDisconnectExtra('ga4')}
+                    disabled={!!busy}
+                  >
+                    <Unplug size={14} />
+                    {t.disconnect}
+                  </button>
+                </>
+              )}
+            </div>
+          </section>
+
+          <section className="advero-home-panel rounded-2xl border border-white/10 p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-white">{t.gbpTitle}</h2>
+                <p className="mt-1 text-sm text-white/60">{t.gbpDesc}</p>
+              </div>
+              {data ? statusPill(data.gbp.connected, data.gbp.source) : null}
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {!data?.gbp.connected || data.gbp.source !== 'google' ? (
+                <button
+                  type="button"
+                  className="advero-btn-slate-solid inline-flex items-center gap-2 px-4 py-2 text-sm"
+                  onClick={() => openOAuth(data?.authUrls.gbp ?? null)}
+                  disabled={!!busy}
+                >
+                  <ExternalLink size={14} />
+                  {t.connect}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 hover:bg-white/5"
+                    onClick={() => runSyncExtra('gbp')}
+                    disabled={!!busy}
+                  >
+                    {busy === 'sync-gbp' ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                    {t.sync}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/55 hover:text-white/80"
+                    onClick={() => runDisconnectExtra('gbp')}
+                    disabled={!!busy}
+                  >
+                    <Unplug size={14} />
+                    {t.disconnect}
+                  </button>
+                </>
+              )}
+            </div>
           </section>
         </div>
       </div>

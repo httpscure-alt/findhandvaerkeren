@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Advero Ops — AI draft mock</title>
+    <link rel="icon" href="/brand/advero-logo.png" type="image/png" />
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        background: #0b1220;
+        color: #f8fafc;
+        font-family: Inter, ui-sans-serif, system-ui;
+      }
+      .advero-blog-prose h1,
+      .advero-blog-prose h2,
+      .advero-blog-prose h3 {
+        color: rgba(255, 255, 255, 0.92);
+        font-weight: 700;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .advero-blog-prose p,
+      .advero-blog-prose li {
+        color: rgba(255, 255, 255, 0.78);
+        line-height: 1.55;
+      }
+      .advero-blog-prose ul {
+        list-style: disc;
+        padding-left: 1.25rem;
+      }
+      .advero-blog-prose code {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+        font-size: 0.9em;
+        color: rgba(255, 255, 255, 0.9);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div class="mx-auto max-w-5xl px-4 py-10">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <img
+            src="/brand/advero-logo-128.png"
+            alt="Advero"
+            class="h-9 w-9 rounded-lg border border-white/10 bg-white/[0.02]"
+          />
+          <div>
+            <p class="text-sm font-semibold text-white/90">Ops preview (no login)</p>
+            <p class="text-xs text-white/55">
+              Mock of <code>/advero/admin/fulfillment</code> → <strong>Open playbook</strong> + <strong>AI draft</strong>
+            </p>
+          </div>
+        </div>
+        <a
+          href="/advero/admin/fulfillment"
+          class="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-white/85 hover:bg-white/15"
+        >
+          Go to real page
+        </a>
+      </div>
+
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6">
+        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold text-white/90">Fulfillment #F-2391</p>
+            <p class="text-xs text-white/55">
+              <span class="font-semibold text-white/70">Company</span>: Murerfirma Jensen ApS ·
+              <span class="font-semibold text-white/70">Service</span>: SEO + Google Ads (combined) ·
+              <span class="font-semibold text-white/70">Tier</span>: standard
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5"
+            >
+              Open playbook
+            </button>
+            <button
+              type="button"
+              class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm font-semibold text-white">Ops playbooks (intern)</p>
+            <div class="flex flex-wrap gap-2">
+              <button class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5">
+                Triage
+              </button>
+              <button class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5">
+                SEO
+              </button>
+              <button class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5">
+                Google Ads
+              </button>
+              <button class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white hover:bg-white/15">
+                Combined
+              </button>
+            </div>
+          </div>
+
+          <div class="advero-blog-prose max-w-none">
+            <h3>Combined — første 48 timer</h3>
+            <ul>
+              <li>Bekræft kontaktinfo og website</li>
+              <li>Indhent adgang: GA4, Search Console, Google Ads, GBP, CMS</li>
+              <li>Lav baseline (score, top-sider, søgeord, konverteringer)</li>
+              <li>Plan: uge 1 (quick wins) + uge 2-4 (struktur + skalering)</li>
+            </ul>
+          </div>
+
+          <div class="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="text-xs font-semibold uppercase tracking-wide text-white/55">
+                AI-udkast (kræver godkendelse)
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white hover:bg-white/15"
+                >
+                  Generér
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5"
+                >
+                  Kopiér udkast
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/5"
+                >
+                  Gem i noter
+                </button>
+              </div>
+            </div>
+
+            <div class="advero-blog-prose mt-3 max-w-none rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <h3>Kort opsummering</h3>
+              <p>
+                Kunden har købt <strong>SEO + Google Ads</strong>. Målet er flere henvendelser fra lokale søgninger samt
+                stabil lead-flow via Search + Performance Max.
+              </p>
+
+              <h3>Hvad vi mangler fra kunden (adgang)</h3>
+              <ul>
+                <li>GA4 + Google Tag Manager (eller adgang til at opsætte)</li>
+                <li>Google Search Console</li>
+                <li>Google Ads-konto (admin) + fakturering bekræftet</li>
+                <li>Google Business Profile (manager)</li>
+                <li>CMS / website-login (WordPress/Webflow el. lign.)</li>
+              </ul>
+
+              <h3>Uge 1 plan (konkret)</h3>
+              <ul>
+                <li>Tracking: konverteringer + call tracking (hvis relevant)</li>
+                <li>SEO quick wins: title/meta på top-sider, interne links, lokale landingpages</li>
+                <li>Ads: struktur (brand/non-brand), negatives, annonce-tekster, geo, budstrategi</li>
+              </ul>
+
+              <h3>Uge 2–4 plan</h3>
+              <ul>
+                <li>SEO: content brief til 2–4 sider (lokale services) + teknisk oprydning</li>
+                <li>Ads: udvidelse til nye søgeord + A/B af annoncemeddelelser</li>
+                <li>Rapport: baseline + “hvad vi ændrede” + næste sprint</li>
+              </ul>
+
+              <h3>Skabelon-mail til kunden</h3>
+              <p>
+                Hej [Navn] — tak for din bestilling. For at vi kan starte i dag, skal vi bruge adgang til: GA4, Search
+                Console, Google Ads, GBP og website. Når du har sendt adgange, leverer vi en uge 1 plan inden for 24–48
+                timer. Mvh Advero
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-3 text-xs text-white/45">
+          Note: På den rigtige side bliver “Generér” knappen kaldt mod backend endpointet og udfylder udkastet live.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
+

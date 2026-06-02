@@ -29,6 +29,8 @@ import {
   listAdveroSubscriptions,
   listAdveroFulfillment,
   updateAdveroFulfillment,
+  generateAdveroFulfillmentOpsDraft,
+  translateAdveroAdminMarkdownDaToEn,
 } from '../controllers/adveroAdminController';
 
 const router = express.Router();
@@ -68,6 +70,8 @@ router.get('/advero/audits', listAdveroAudits);
 router.get('/advero/subscriptions', listAdveroSubscriptions);
 router.get('/advero/fulfillment', listAdveroFulfillment);
 router.patch('/advero/fulfillment/:id', updateAdveroFulfillment);
+router.post('/advero/fulfillment/:id/ops-draft', generateAdveroFulfillmentOpsDraft);
+router.post('/advero/translate', translateAdveroAdminMarkdownDaToEn);
 
 // Users management
 router.get('/users', getAdminUsers);

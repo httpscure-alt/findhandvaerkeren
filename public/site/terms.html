@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Vilkår | Advero</title>
+    <link rel="icon" href="/brand/advero-logo.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/brand/advero-logo.png" />
+    <meta
+      name="description"
+      content="Vilkår og betingelser for Advero. Brugsbetingelser, betaling, opsigelse, ansvar og kontakt."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://advero.dk/terms" />
+    <script id="tailwind-config">
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'slate-blue': '#334155',
+              'neutral-gray': '#64748B',
+              'deep-graphite': '#334155',
+            },
+            spacing: {
+              'margin-page': '40px',
+              'container-max': '1280px',
+              'stack-sm': '8px',
+              'stack-md': '16px',
+              'stack-lg': '32px',
+              'stack-xl': '64px',
+            },
+            fontFamily: {
+              headline: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+              mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html,
+      body {
+        background-color: #334155;
+      }
+      .mono-label {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.75rem;
+      }
+      .ds-card-surface {
+        border-radius: 1.15rem;
+        border: 1px solid rgb(255 255 255 / 0.13);
+        background: linear-gradient(
+          152deg,
+          rgb(255 255 255 / 0.11) 0%,
+          rgb(255 255 255 / 0.03) 45%,
+          rgb(15 23 42 / 0.42) 100%
+        );
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 20px 50px -34px rgb(0 0 0 / 0.55);
+      }
+      .page-stage {
+        position: relative;
+        overflow: hidden;
+      }
+      .page-stage::before {
+        content: '';
+        position: absolute;
+        inset: -20%;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse 50% 38% at 18% 18%, rgba(125, 211, 252, 0.18), transparent 60%),
+          radial-gradient(ellipse 55% 44% at 78% 22%, rgba(165, 180, 252, 0.12), transparent 62%),
+          radial-gradient(ellipse 55% 40% at 48% 72%, rgba(251, 191, 36, 0.08), transparent 62%);
+        filter: blur(10px);
+        opacity: 0.9;
+      }
+      .legal-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 9999px;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        background: rgb(255 255 255 / 0.06);
+        padding: 0.45rem 0.8rem;
+        font-size: 12px;
+        line-height: 1;
+        color: rgb(255 255 255 / 0.72);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+      }
+      .legal-toc a {
+        text-decoration: none;
+      }
+      .legal-toc a:hover {
+        color: rgb(255 255 255 / 0.92);
+      }
+      .legal-section {
+        scroll-margin-top: 110px;
+      }
+
+      /* Match `home.html` header + footer (minimal subset). */
+      #brand-home-link {
+        display: inline-flex;
+        align-items: center;
+        background: transparent;
+        padding: 0;
+        line-height: 0;
+        position: relative;
+        z-index: 2;
+        overflow: visible;
+        margin-inline-end: clamp(1rem, 6vw, 4rem);
+      }
+      @media (max-width: 639px) {
+        #brand-home-link {
+          margin-inline-end: 0.75rem;
+        }
+      }
+      #brand-home-link .advero-logo-wordmark-light {
+        height: 3rem;
+        width: auto;
+        max-width: none;
+        transform: scale(2.28);
+        transform-origin: left center;
+        object-fit: contain;
+        object-position: left center;
+      }
+      @media (max-width: 639px) {
+        #brand-home-link .advero-logo-wordmark-light {
+          height: 2.5rem;
+          transform: scale(1.85);
+        }
+      }
+      @media (min-width: 640px) {
+        #brand-home-link .advero-logo-wordmark-light {
+          height: 3.25rem;
+          transform: scale(2.22);
+        }
+      }
+      @media (min-width: 768px) {
+        #brand-home-link .advero-logo-wordmark-light {
+          height: 3.375rem;
+          transform: scale(2.16);
+        }
+      }
+      @media (min-width: 1024px) {
+        #brand-home-link .advero-logo-wordmark-light {
+          height: 3.625rem;
+          transform: scale(2.3);
+        }
+      }
+      #brand-home-link:focus-visible {
+        border-radius: 0.25rem;
+        outline: 2px solid rgb(255 255 255 / 0.55);
+        outline-offset: 3px;
+      }
+      .advero-logo-wordmark-light {
+        display: block;
+        mix-blend-mode: screen;
+      }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 70;
+        background: rgb(51 65 85 / 0.88);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        overflow: visible;
+      }
+      .site-header > div {
+        overflow: visible;
+      }
+      .site-nav-pills {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        padding: 3px;
+        border-radius: 9999px;
+        background: rgb(51 65 85 / 0.48);
+        box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(24px);
+      }
+      @media (max-width: 639px) {
+        .site-nav-pills {
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          max-width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .site-nav-pills::-webkit-scrollbar {
+          display: none;
+        }
+      }
+      .site-nav-pills > a.coreon-navpill {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 9999px;
+        white-space: nowrap;
+        text-decoration: none;
+      }
+      .site-nav-pills > a.coreon-navpill + a.coreon-navpill {
+        margin-left: 1px;
+        padding-left: calc(1rem + 1px);
+        border-left: 1px solid rgb(255 255 255 / 0.32);
+      }
+      .site-nav-pills > a.coreon-navpill:hover {
+        background: rgb(255 255 255 / 0.12);
+      }
+      @media (min-width: 640px) {
+        .site-nav-pills {
+          padding: 4px;
+        }
+        .site-nav-pills > a.coreon-navpill + a.coreon-navpill {
+          padding-left: calc(1.15rem + 1px);
+          border-left-color: rgb(255 255 255 / 0.38);
+        }
+      }
+      .ds-footer-hero {
+        background: linear-gradient(180deg, #334155 0%, #334155 100%);
+        color: rgb(255 255 255 / 0.92);
+        border-top: 1px solid rgb(255 255 255 / 0.06);
+      }
+      .ds-footer-hero a {
+        color: rgb(255 255 255 / 0.68);
+        transition: color 0.2s ease;
+      }
+      .ds-footer-hero a:hover {
+        color: rgb(255 255 255 / 0.96);
+      }
+
+      /* Legal section layout: numbered blocks (avoid ugly "1. ..." headings). */
+      .legal-article {
+        display: grid;
+        gap: 14px;
+      }
+      @media (min-width: 640px) {
+        .legal-article {
+          gap: 16px;
+        }
+      }
+      .legal-block {
+        border-radius: 1rem;
+        border: 1px solid rgb(255 255 255 / 0.12);
+        background: rgb(255 255 255 / 0.04);
+        padding: 16px;
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+      }
+      @media (min-width: 640px) {
+        .legal-block {
+          padding: 18px 18px;
+        }
+      }
+      .legal-block-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .legal-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: rgb(255 255 255 / 0.92);
+        background: linear-gradient(
+          165deg,
+          rgba(100, 116, 139, 0.55) 0%,
+          rgba(51, 65, 85, 0.9) 55%,
+          rgba(51, 65, 85, 0.9) 100%
+        );
+        border: 1px solid rgb(255 255 255 / 0.12);
+        box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        flex: 0 0 auto;
+        margin-top: 2px;
+      }
+      .legal-h {
+        font-size: 16px;
+        line-height: 1.25;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        color: rgb(255 255 255 / 0.95);
+        margin: 0;
+      }
+      @media (min-width: 640px) {
+        .legal-h {
+          font-size: 18px;
+        }
+      }
+      .legal-body {
+        font-size: 14px;
+        line-height: 1.75;
+        color: rgb(255 255 255 / 0.74);
+      }
+      .legal-body p {
+        margin: 0;
+      }
+      .legal-body p + p {
+        margin-top: 10px;
+      }
+      .legal-body ul {
+        margin: 8px 0 0 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 6px;
+      }
+      .legal-body li {
+        margin: 0;
+      }
+      .legal-body a {
+        color: rgb(186 230 253 / 0.95);
+        text-decoration: none;
+      }
+      .legal-body a:hover {
+        color: rgb(255 255 255 / 0.92);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body class="font-headline antialiased text-white/90">
+    <header class="site-header shrink-0 border-b border-white/[0.1]">
+      <div class="mx-auto flex max-w-container-max flex-wrap items-center justify-between gap-4 px-margin-page py-4 sm:py-5 lg:flex-nowrap">
+        <div class="order-1 flex min-w-0 shrink-0 items-center lg:order-none lg:min-w-0 lg:flex-1">
+          <a id="brand-home-link" href="/" class="flex items-center" aria-label="Advero forside">
+            <img
+              alt=""
+              width="800"
+              height="168"
+              decoding="async"
+              src="/brand/advero-logo-light.png"
+              class="advero-logo-wordmark-light object-contain object-left"
+            />
+          </a>
+        </div>
+
+        <nav class="order-3 flex flex-1 basis-full justify-center lg:order-none lg:basis-auto" aria-label="Primary">
+          <div class="site-nav-pills">
+            <a
+              href="/overview"
+              class="coreon-navpill rounded-full px-[1rem] py-2.5 text-[14px] font-semibold tracking-tight text-white hover:bg-white/[0.1] lg:px-[1.15rem]"
+              data-i18n="nav.overview"
+              >Sådan arbejder vi</a
+            >
+            <a
+              href="/how-it-works"
+              class="coreon-navpill rounded-full px-[1rem] py-2.5 text-[14px] font-semibold tracking-tight text-white hover:bg-white/[0.1] lg:px-[1.15rem]"
+              data-i18n="nav.howWeWork"
+              >I praksis</a
+            >
+            <a
+              href="/pricing"
+              class="coreon-navpill rounded-full px-[1rem] py-2.5 text-[14px] font-semibold tracking-tight text-white hover:bg-white/[0.1] lg:px-[1.15rem]"
+              data-i18n="nav.plans"
+              >Pakker</a
+            >
+            <a
+              href="/contact"
+              class="coreon-navpill rounded-full px-[1rem] py-2.5 text-[14px] font-semibold tracking-tight text-white hover:bg-white/[0.1] lg:px-[1.15rem]"
+              data-i18n="nav.contactMini"
+              >Kontakt</a
+            >
+            <a
+              href="/advero/audit"
+              data-advero-journey-start
+              class="coreon-navpill rounded-full px-[1rem] py-2.5 text-[14px] font-semibold tracking-tight text-white hover:bg-white/[0.1] lg:px-[1.15rem]"
+              data-i18n="nav.getStarted"
+              >Kom i gang</a
+            >
+          </div>
+        </nav>
+
+        <div class="order-2 flex flex-1 items-center justify-end gap-3 lg:order-none lg:min-w-[14rem]">
+          <a
+            href="/advero/login"
+            class="hidden shrink-0 items-center rounded-full border border-white/20 bg-white/5 px-4 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/10 sm:inline-flex"
+            data-i18n="nav.login"
+            >Log ind</a
+          >
+          <a
+            href="/advero/audit"
+            data-advero-journey-start
+            class="advero-btn-slate-solid inline-flex shrink-0 items-center rounded-full px-5 py-2.5 text-[14px] font-semibold transition"
+            data-i18n="cta.start"
+            >Kom i gang</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main class="page-stage">
+      <section class="relative mx-auto w-full max-w-container-max px-margin-page pb-stack-xl pt-[clamp(2.75rem,7vh,5rem)]">
+        <div class="mx-auto max-w-[74rem]">
+          <div class="text-center">
+            <div class="mono-label mx-auto inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.2em] text-white/55">
+              Advero
+            </div>
+            <h1
+              class="mt-6 text-pretty text-[clamp(2.1rem,6vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.05em] text-white"
+              data-i18n="title"
+            >
+              Vilkår og betingelser
+            </h1>
+            <p class="mx-auto mt-5 max-w-[44rem] text-[clamp(14px,1.25vw,18px)] leading-[1.7] text-white/70" data-i18n="lead">
+              Disse vilkår gælder for brug af Advero og beskriver betaling, opsigelse, ansvar og samarbejdsrammer.
+            </p>
+            <div class="mt-6 flex flex-wrap justify-center gap-2">
+              <span class="legal-chip" data-i18n="chip.updated">Opdateret: 02. juni 2026</span>
+              <a class="legal-chip hover:text-white/90" href="mailto:kontakt@advero.dk" data-i18n="chip.contact"
+                >Kontakt: kontakt@advero.dk</a
+              >
+            </div>
+          </div>
+
+          <div class="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,17rem)] lg:items-start">
+            <aside class="ds-card-surface legal-toc order-2 p-5 lg:sticky lg:top-24">
+              <div class="mono-label text-[9px] font-semibold tracking-[0.18em] text-white/55" data-i18n="toc.title">Indhold</div>
+              <nav class="mt-3 space-y-2 text-[14px] text-white/75">
+                <a class="block" href="#service" data-i18n="toc.a">Om tjenesten</a>
+                <a class="block" href="#access" data-i18n="toc.b">Adgang og ansvar</a>
+                <a class="block" href="#billing" data-i18n="toc.c">Betaling</a>
+                <a class="block" href="#cancel" data-i18n="toc.d">Opsigelse</a>
+                <a class="block" href="#liability" data-i18n="toc.e">Ansvar</a>
+                <a class="block" href="#contact" data-i18n="toc.f">Kontakt</a>
+                <a class="block" href="#changes" data-i18n="toc.g">Ændringer</a>
+              </nav>
+            </aside>
+
+            <article class="ds-card-surface order-1 overflow-hidden p-stack-lg sm:p-stack-xl">
+              <div class="legal-article">
+                <section id="service" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">1</span>
+                    <h2 class="legal-h" data-i18n="h2a">Om tjenesten</h2>
+                  </div>
+                  <div class="legal-body">
+                    <p data-i18n="p1">
+                      Advero leverer marketing- og synlighedsydelser (fx SEO, Google Ads og rapportering). Konkrete leverancer afhænger af den valgte pakke
+                      og aftales løbende.
+                    </p>
+                  </div>
+                </section>
+
+                <section id="access" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">2</span>
+                    <h2 class="legal-h" data-i18n="h2b">Konto, adgang og kundens ansvar</h2>
+                  </div>
+                  <div class="legal-body">
+                    <ul>
+                      <li data-i18n="li2a">Du er ansvarlig for oplysninger du giver, og for at have rettigheder til de konti/data du forbinder.</li>
+                      <li data-i18n="li2b">
+                        Hvis du giver Advero adgang til Google-konti via OAuth, må Advero hente data til rapportering og drift af tjenesten.
+                      </li>
+                    </ul>
+                  </div>
+                </section>
+
+                <section id="billing" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">3</span>
+                    <h2 class="legal-h" data-i18n="h2c">Betaling og abonnement</h2>
+                  </div>
+                  <div class="legal-body">
+                    <p data-i18n="p3">
+                      Abonnement faktureres månedligt/årligt afhængigt af valgte plan. Betaling håndteres via Stripe. Eventuelt annoncebudget betales direkte
+                      til Google.
+                    </p>
+                  </div>
+                </section>
+
+                <section id="cancel" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">4</span>
+                    <h2 class="legal-h" data-i18n="h2d">Opsigelse</h2>
+                  </div>
+                  <div class="legal-body">
+                    <p data-i18n="p4">
+                      Du kan opsige når som helst. Adgang til betalte funktioner ophører ved udløb af betalt periode, medmindre andet er aftalt.
+                    </p>
+                  </div>
+                </section>
+
+                <section id="liability" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">5</span>
+                    <h2 class="legal-h" data-i18n="h2e">Ansvarsbegrænsning</h2>
+                  </div>
+                  <div class="legal-body">
+                    <p data-i18n="p5">
+                      Vi lover ikke konkrete placeringer, leads eller omsætning. Resultater afhænger af marked, konkurrence, budget og kundens input. Advero
+                      hæfter ikke for indirekte tab.
+                    </p>
+                  </div>
+                </section>
+
+                <section id="contact" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">6</span>
+                    <h2 class="legal-h" data-i18n="h2f">Kontakt</h2>
+                  </div>
+                  <div class="legal-body">
+                    <p data-i18n="p6">
+                      Spørgsmål til vilkår: <a href="mailto:kontakt@advero.dk">kontakt@advero.dk</a>.
+                    </p>
+                  </div>
+                </section>
+
+                <section id="changes" class="legal-section legal-block">
+                  <div class="legal-block-head">
+                    <span class="legal-num" aria-hidden="true">7</span>
+                    <h2 class="legal-h" data-i18n="h2g">Ændringer</h2>
+                  </div>
+                  <div class="legal-body">
+                    <p data-i18n="p7">
+                      Vi kan opdatere vilkårene. Datoen for seneste ændring fremgår her: <strong>02. juni 2026</strong>.
+                    </p>
+                  </div>
+                </section>
+              </div>
+            </article>
+          </div>
+
+          <div class="mt-stack-lg"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="ds-footer-hero w-full px-margin-page pb-stack-lg pt-stack-xl">
+      <div class="mx-auto flex max-w-container-max flex-col items-center justify-center gap-stack-md md:flex-row md:pb-stack-sm">
+        <div class="flex flex-wrap justify-center gap-x-stack-lg gap-y-2">
+          <a class="text-[14px]" href="/blog" data-i18n="footer.insights">Indsigt</a>
+          <a class="text-[14px]" href="/contact" data-i18n="footer.contact">Kontakt</a>
+          <a class="text-[14px]" href="/privacy" data-i18n="footer.privacy">Privatliv</a>
+          <a class="text-[14px]" href="/terms" data-i18n="footer.terms">Vilkår</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var i18n = {
+          da: {
+            title: 'Vilkår og betingelser',
+            lead: 'Disse vilkår gælder for brug af Advero og beskriver betaling, opsigelse, ansvar og samarbejdsrammer.',
+            'nav.overview': 'Sådan arbejder vi',
+            'nav.howWeWork': 'I praksis',
+            'nav.plans': 'Pakker',
+            'nav.contactMini': 'Kontakt',
+            'nav.login': 'Log ind',
+            'nav.getStarted': 'Kom i gang',
+            'cta.start': 'Kom i gang',
+            'footer.insights': 'Indsigt',
+            'footer.contact': 'Kontakt',
+            'footer.privacy': 'Privatliv',
+            'footer.terms': 'Vilkår',
+            'chip.updated': 'Opdateret: 02. juni 2026',
+            'chip.contact': 'Kontakt: kontakt@advero.dk',
+            'toc.title': 'Indhold',
+            'toc.a': 'Om tjenesten',
+            'toc.b': 'Adgang og ansvar',
+            'toc.c': 'Betaling',
+            'toc.d': 'Opsigelse',
+            'toc.e': 'Ansvar',
+            'toc.f': 'Kontakt',
+            'toc.g': 'Ændringer',
+            h2a: 'Om tjenesten',
+            p1: 'Advero leverer marketing- og synlighedsydelser (fx SEO, Google Ads og rapportering). Konkrete leverancer afhænger af den valgte pakke og aftales løbende.',
+            h2b: 'Konto, adgang og kundens ansvar',
+            li2a: 'Du er ansvarlig for oplysninger du giver, og for at have rettigheder til de konti/data du forbinder.',
+            li2b: 'Hvis du giver Advero adgang til Google-konti via OAuth, må Advero hente data til rapportering og drift af tjenesten.',
+            h2c: 'Betaling og abonnement',
+            p3: 'Abonnement faktureres månedligt/årligt afhængigt af valgte plan. Betaling håndteres via Stripe. Eventuelt annoncebudget betales direkte til Google.',
+            h2d: 'Opsigelse',
+            p4: 'Du kan opsige når som helst. Adgang til betalte funktioner ophører ved udløb af betalt periode, medmindre andet er aftalt.',
+            h2e: 'Ansvarsbegrænsning',
+            p5: 'Vi lover ikke konkrete placeringer, leads eller omsætning. Resultater afhænger af marked, konkurrence, budget og kundens input. Advero hæfter ikke for indirekte tab.',
+            h2f: 'Kontakt',
+            p6: 'Spørgsmål til vilkår: kontakt@advero.dk.',
+            h2g: 'Ændringer',
+            p7: 'Vi kan opdatere vilkårene. Datoen for seneste ændring fremgår her: 02. juni 2026.',
+          },
+          en: {
+            title: 'Terms of service',
+            lead: 'These terms apply to using Advero and describe billing, cancellation, responsibility, and collaboration boundaries.',
+            'nav.overview': 'Overview',
+            'nav.howWeWork': 'How we work',
+            'nav.plans': 'Plans',
+            'nav.contactMini': 'Contact',
+            'nav.login': 'Log in',
+            'nav.getStarted': 'Get started',
+            'cta.start': 'Get started',
+            'footer.insights': 'Insights',
+            'footer.contact': 'Contact',
+            'footer.privacy': 'Privacy',
+            'footer.terms': 'Terms',
+            'chip.updated': 'Updated: 02 June 2026',
+            'chip.contact': 'Contact: kontakt@advero.dk',
+            'toc.title': 'Contents',
+            'toc.a': 'The service',
+            'toc.b': 'Access & responsibility',
+            'toc.c': 'Billing',
+            'toc.d': 'Cancellation',
+            'toc.e': 'Liability',
+            'toc.f': 'Contact',
+            'toc.g': 'Changes',
+            h2a: 'The service',
+            p1: 'Advero provides marketing and visibility services (e.g. SEO, Google Ads, reporting). Specific deliverables depend on the selected plan and are agreed over time.',
+            h2b: 'Account, access, and customer responsibility',
+            li2a: 'You are responsible for the information you provide and for having rights to the accounts/data you connect.',
+            li2b: 'If you grant Advero access to Google accounts via OAuth, Advero may fetch data to operate the service and reporting.',
+            h2c: 'Billing and subscription',
+            p3: 'Subscriptions are billed monthly/annually depending on plan. Payments are handled via Stripe. Ad spend (if any) is paid directly to Google.',
+            h2d: 'Cancellation',
+            p4: 'You can cancel anytime. Access to paid features ends at the end of the paid period unless otherwise agreed.',
+            h2e: 'Limitation of liability',
+            p5: 'We do not promise rankings, leads, or revenue. Results depend on market, competition, budget, and customer input. Advero is not liable for indirect losses.',
+            h2f: 'Contact',
+            p6: 'Questions: kontakt@advero.dk.',
+            h2g: 'Changes',
+            p7: 'We may update these terms. Last updated: 02 June 2026.',
+          },
+        };
+
+        function setLang(lang) {
+          var dict = i18n[lang] || i18n.da;
+          document.documentElement.setAttribute('lang', lang);
+          document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n');
+            if (key && typeof dict[key] === 'string') el.textContent = dict[key];
+          });
+        }
+
+        var initial = 'da';
+        try {
+          var stored = localStorage.getItem('advero.lang');
+          if (stored === 'en' || stored === 'da') initial = stored;
+        } catch (e) {}
+        setLang(initial);
+      })();
+    </script>
+  </body>
+</html>
+

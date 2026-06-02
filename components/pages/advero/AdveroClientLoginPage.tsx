@@ -138,6 +138,21 @@ const AdveroClientLoginPage: React.FC = () => {
   const inputClass =
     'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-800/12';
 
+  const devDebug = useMemo(() => {
+    if (!(import.meta as any).env?.DEV) return null;
+    const apiUrl = String((import.meta as any).env?.VITE_API_URL || '');
+    const useMock = String((import.meta as any).env?.VITE_USE_MOCK_API || '');
+    let token = '';
+    let isMockToken = false;
+    try {
+      token = localStorage.getItem('token') || '';
+      isMockToken = token.startsWith('mock-token-');
+    } catch {
+      // ignore
+    }
+    return { apiUrl, useMock, token: token ? `${token.slice(0, 14)}…` : '(none)', isMockToken };
+  }, []);
+
   return (
     <AdveroClientAuthLayout backHref={backHref}>
       <div className="w-full max-w-md">
@@ -166,6 +181,37 @@ const AdveroClientLoginPage: React.FC = () => {
 
             {error ? (
               <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>
+            ) : null}
+
+            {devDebug ? (
+              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <div>
+                      <span className="font-semibold">DEV</span> · API: <code>{devDebug.apiUrl || '(empty)'}</code> ·
+                      VITE_USE_MOCK_API: <code>{devDebug.useMock || '(unset)'}</code>
+                    </div>
+                    <div>
+                      token: <code>{devDebug.token}</code>{' '}
+                      {devDebug.isMockToken ? <span className="font-semibold text-red-700">(mock-token)</span> : null}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+                    onClick={() => {
+                      try {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        sessionStorage.removeItem('advero.lastAuditId');
+                      } catch {}
+                      window.location.reload();
+                    }}
+                  >
+                    Clear session
+                  </button>
+                </div>
+              </div>
             ) : null}
 
             {!showPasswordStep ? (

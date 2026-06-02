@@ -32,7 +32,17 @@ function canMockAuthFallback(error: unknown): boolean {
 
 function shouldRouteToMockApi(endpoint: string): boolean {
   if (endpoint.includes('/stripe/')) return false;
-  return USE_MOCK_API || (IS_DEV && hasMockSessionToken());
+  // If we explicitly run offline/mock, honor it.
+  if (USE_MOCK_API) return true;
+
+  // In dev, a previous offline session may have stored a mock token.
+  // If the real backend is configured, do NOT force mock mode just because the token exists.
+  // We'll clear the mock token on first real request attempt.
+  if (IS_DEV && hasMockSessionToken() && API_BASE_URL) {
+    return false;
+  }
+
+  return IS_DEV && hasMockSessionToken();
 }
 
 interface RequestOptions {
@@ -56,6 +66,17 @@ export class ApiError extends Error {
 }
 
 class ApiService {
+  private clearMockTokenIfPresent(): void {
+    try {
+      const token = localStorage.getItem('token');
+      if (token && token.startsWith('mock-token-')) {
+        localStorage.removeItem('token');
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   private getToken(): string | null {
     const token = localStorage.getItem('token');
     // If token is a mock token, return null to trigger mock mode
@@ -82,6 +103,9 @@ class ApiService {
       if (IS_DEV) console.error('API_BASE_URL is not set. Check your .env.local file for VITE_API_URL');
       throw new Error('API_NOT_AVAILABLE');
     }
+
+    // If we are configured to use a real backend, ensure we aren't stuck with a mock token.
+    this.clearMockTokenIfPresent();
 
     const token = this.getToken();
 
@@ -1164,6 +1188,27 @@ class ApiService {
     );
   }
 
+  async generateAdveroFulfillmentOpsDraft(
+    id: string,
+    body: {
+      lang?: 'da' | 'en';
+      playbookKey?: 'triage' | 'seo' | 'ads' | 'combined';
+      playbookMarkdown: string;
+    }
+  ) {
+    return await this.request<{ draft: string }>(
+      `/admin/advero/fulfillment/${encodeURIComponent(id)}/ops-draft`,
+      { method: 'POST', body }
+    );
+  }
+
+  async adminTranslateMarkdownDaToEn(body: { markdown: string }) {
+    return await this.request<{ translated: string }>(`/admin/advero/translate`, {
+      method: 'POST',
+      body,
+    });
+  }
+
   async getAdminUsers(params?: { role?: string; page?: number; limit?: number; search?: string }) {
     try {
       const queryParams = new URLSearchParams();
@@ -2232,6 +2277,25 @@ class ApiService {
     }
   }
 
+  async adminGenerateBlogPostDraft(body: {
+    lang: 'da' | 'en';
+    topic: string;
+    primaryKeyword?: string;
+    secondaryKeywords?: string[];
+    audience?: string;
+    businessType?: string;
+    location?: string;
+    category?: string;
+    tone?: 'practical' | 'expert' | 'friendly';
+    length?: 'short' | 'medium' | 'long';
+  }) {
+    return await this.request<{ draft: any }>('/blog/admin/generate', { method: 'POST', body });
+  }
+
+  async adminTranslateBlogMarkdown(body: { markdown: string }) {
+    return await this.request<{ translated: string }>('/blog/admin/translate', { method: 'POST', body });
+  }
+
   async createVisibilityAudit(data: {
     companyName: string;
     websiteUrl?: string;
@@ -2349,6 +2413,34 @@ class ApiService {
   async disconnectAdveroGoogleAds() {
     return await this.request<{ ok: boolean }>(
       '/advero/integrations/google-ads/disconnect',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async syncAdveroGa4() {
+    return await this.request<{ snapshot: import('../lib/visibilityIntelligence').GoogleAnalyticsSnapshot }>(
+      '/advero/integrations/ga4/sync',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async disconnectAdveroGa4() {
+    return await this.request<{ ok: boolean }>(
+      '/advero/integrations/ga4/disconnect',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async syncAdveroGbp() {
+    return await this.request<{ snapshot: import('../lib/visibilityIntelligence').GoogleBusinessProfileSnapshot }>(
+      '/advero/integrations/gbp/sync',
+      { method: 'POST', requiresAuth: true }
+    );
+  }
+
+  async disconnectAdveroGbp() {
+    return await this.request<{ ok: boolean }>(
+      '/advero/integrations/gbp/disconnect',
       { method: 'POST', requiresAuth: true }
     );
   }

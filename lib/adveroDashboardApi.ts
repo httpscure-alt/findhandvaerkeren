@@ -1,5 +1,11 @@
 import type { VisibilityAuditResult } from './mockAnalyzeVisibility';
-import type { GoogleAdsSnapshot, SearchConsoleSnapshot, VisibilityIntelligence } from './visibilityIntelligence';
+import type {
+  GoogleAdsSnapshot,
+  GoogleAnalyticsSnapshot,
+  GoogleBusinessProfileSnapshot,
+  SearchConsoleSnapshot,
+  VisibilityIntelligence,
+} from './visibilityIntelligence';
 import type { WorkspaceEntitlements } from './workspaceEntitlements';
 
 export interface AdveroDashboardApiPayload {
@@ -30,6 +36,8 @@ export interface AdveroDashboardApiPayload {
 export interface AdveroIntegrationsPayload {
   searchConsole: SearchConsoleSnapshot;
   googleAds: GoogleAdsSnapshot;
-  authUrls: { gsc: string | null; ads: string | null };
+  ga4: GoogleAnalyticsSnapshot;
+  gbp: GoogleBusinessProfileSnapshot;
+  authUrls: { gsc: string | null; ads: string | null; ga4: string | null; gbp: string | null };
   configured: { googleOAuth: boolean; googleAdsApi: boolean };
 }

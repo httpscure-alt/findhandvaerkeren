@@ -88,6 +88,20 @@ export interface GoogleAdsSnapshot {
   pendingAccountSelection?: boolean;
 }
 
+export interface GoogleAnalyticsSnapshot {
+  connected: boolean;
+  accountName?: string;
+  propertyName?: string;
+  syncedAt?: string;
+  source: 'google' | 'unavailable' | 'demo';
+}
+
+export interface GoogleBusinessProfileSnapshot {
+  connected: boolean;
+  syncedAt?: string;
+  source: 'google' | 'unavailable' | 'demo';
+}
+
 export type BuildIntelligenceInput = {
   lang: Language;
   audit: VisibilityAuditResult | null;

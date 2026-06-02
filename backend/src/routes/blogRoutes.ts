@@ -6,6 +6,8 @@ import {
   createPost,
   updatePost,
   deletePost,
+  generatePostDraft,
+  translatePostMarkdown,
   getBlogSitemap,
 } from '../controllers/blogController';
 import { authenticate, requireRole } from '../middleware/auth';
@@ -19,6 +21,8 @@ router.get('/admin/posts', ...requireBlogAdmin, getAllPosts);
 router.post('/admin/posts', ...requireBlogAdmin, createPost);
 router.put('/admin/posts/:id', ...requireBlogAdmin, updatePost);
 router.delete('/admin/posts/:id', ...requireBlogAdmin, deletePost);
+router.post('/admin/generate', ...requireBlogAdmin, generatePostDraft);
+router.post('/admin/translate', ...requireBlogAdmin, translatePostMarkdown);
 
 // ── SEO / sitemap ───────────────────────────────────────────────────────────
 router.get('/sitemap.xml', getBlogSitemap);

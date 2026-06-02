@@ -38,6 +38,7 @@ import AdveroBlogPostPage from './components/pages/advero/blog/AdveroBlogPostPag
 import GrowthPricingPreviewPage from './components/pages/mock/GrowthPricingPreviewPage';
 import AdveroDashboardPreviewShell from './components/pages/advero/dashboard/AdveroDashboardPreviewShell';
 import { applyAdveroPageSeo } from './lib/adveroPageSeo';
+import AdveroOpsPreviewPage from './components/pages/advero/dev/AdveroOpsPreviewPage';
 
 /** Marketing pages live as static HTML under `public/site/` (served at `/` and `/contact` on Vercel). */
 function NavigateToStaticSite({ path }: { path: string }) {
@@ -103,6 +104,8 @@ const App: React.FC = () => {
         {/* Fallback if SPA index.html is hit before Vercel rewrite (must not redirect to `/` — that loops). */}
         <Route path="/" element={<NavigateToStaticSite path="/site/home.html" />} />
         <Route path="/contact" element={<NavigateToStaticSite path="/site/contact.html" />} />
+        <Route path="/privacy" element={<NavigateToStaticSite path="/site/privacy.html" />} />
+        <Route path="/terms" element={<NavigateToStaticSite path="/site/terms.html" />} />
         <Route path="/pricing" element={<RedirectToHomeSection hash="#tiers" />} />
         <Route path="/plans" element={<RedirectToHomeSection hash="#tiers" />} />
         <Route path="/how-it-works" element={<RedirectToHomeSection hash="#how-we-work" />} />
@@ -118,6 +121,7 @@ const App: React.FC = () => {
         <Route path="/advero/audit/results" element={<AdveroAuditResultsPage />} />
         <Route path="/advero/get-started" element={<AdveroClientGetStartedPage />} />
         <Route path="/advero/reports/preview" element={<AdveroReportPreviewPage />} />
+        <Route path="/advero/dev/ops-preview" element={<AdveroOpsPreviewPage />} />
         <Route path="/advero/login" element={<AdveroClientLoginPage />} />
         <Route path="/advero/signup" element={<AdveroClientSignupPage />} />
         <Route path="/advero/verify-email" element={<AdveroVerifyEmailPage />} />

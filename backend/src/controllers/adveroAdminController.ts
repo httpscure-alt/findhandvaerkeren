@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { prisma } from '../prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import { generateOpsPlaybookDraft } from '../services/llm/opsPlaybookLlmService';
+import { translateDaToEnMarkdown } from '../services/llm/translateLlmService';
 
 function parsePage(query: Record<string, unknown>) {
   const page = Math.max(1, parseInt(String(query.page ?? '1'), 10) || 1);
@@ -315,4 +317,80 @@ export const updateAdveroFulfillment = async (req: AuthRequest, res: Response): 
     if (err instanceof AppError) throw err;
     throw new AppError('Failed to update fulfillment', 500);
   }
+};
+
+export const generateAdveroFulfillmentOpsDraft = async (req: AuthRequest, res: Response): Promise<void> => {
+  const id = String(req.params.id ?? '').trim();
+  if (!id) throw new AppError('Missing fulfillment id', 400);
+
+  const { lang, playbookKey, playbookMarkdown } = req.body as { lang?: 'da' | 'en'; playbookKey?: string; playbookMarkdown?: string };
+  const resolvedLang: 'da' | 'en' = lang === 'en' ? 'en' : 'da';
+  const key =
+    playbookKey === 'seo' || playbookKey === 'ads' || playbookKey === 'combined' || playbookKey === 'triage'
+      ? playbookKey
+      : 'triage';
+  const md = String(playbookMarkdown || '').trim();
+  if (!md || md.length < 20) {
+    throw new AppError('Missing playbookMarkdown', 400);
+  }
+  if (md.length > 18_000) {
+    throw new AppError('playbookMarkdown too large', 400);
+  }
+
+  const row = await prisma.adveroFulfillment.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      companyName: true,
+      websiteUrl: true,
+      contactEmail: true,
+      serviceLine: true,
+      tierId: true,
+      overallScore: true,
+      weakestChannel: true,
+      planHeadline: true,
+      notes: true,
+    },
+  });
+
+  if (!row) throw new AppError('Fulfillment not found', 404);
+
+  const draft = await generateOpsPlaybookDraft({
+    lang: resolvedLang,
+    playbookKey: key as any,
+    playbookMarkdown: md,
+    fulfillment: row,
+  });
+
+  if (!draft) {
+    res.status(503).json({
+      error:
+        'Ops AI draft is unavailable.',
+    });
+    return;
+  }
+
+  res.json({ draft });
+};
+
+export const translateAdveroAdminMarkdownDaToEn = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  const { markdown } = req.body as { markdown?: string };
+  const md = String(markdown || '').trim();
+  if (!md) {
+    res.json({ translated: '' });
+    return;
+  }
+
+  const translated = await translateDaToEnMarkdown(md);
+  if (translated === null) {
+    res.status(503).json({
+      error: 'Translation is unavailable.',
+    });
+    return;
+  }
+
+  res.json({ translated });
 };

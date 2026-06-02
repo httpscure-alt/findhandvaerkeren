@@ -11,9 +11,13 @@ import {
   getGoogleAdsAccounts,
   getGoogleOAuthCallback,
   getIntegrationsStatus,
+  postGoogleAnalyticsDisconnect,
+  postGoogleAnalyticsSync,
   postGoogleAdsDisconnect,
   postGoogleAdsSelectAccount,
   postGoogleAdsSync,
+  postGoogleBusinessProfileDisconnect,
+  postGoogleBusinessProfileSync,
   postSearchConsoleDisconnect,
 } from '../controllers/adveroIntegrationsController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
@@ -41,6 +45,14 @@ router.get('/integrations/google-ads/accounts', authenticate, asyncHandler(getGo
 router.post('/integrations/google-ads/select-account', authenticate, asyncHandler(postGoogleAdsSelectAccount));
 router.post('/integrations/google-ads/sync', authenticate, asyncHandler(postGoogleAdsSync));
 router.post('/integrations/google-ads/disconnect', authenticate, asyncHandler(postGoogleAdsDisconnect));
+
+/** Google Analytics (GA4) */
+router.post('/integrations/ga4/sync', authenticate, asyncHandler(postGoogleAnalyticsSync));
+router.post('/integrations/ga4/disconnect', authenticate, asyncHandler(postGoogleAnalyticsDisconnect));
+
+/** Google Business Profile */
+router.post('/integrations/gbp/sync', authenticate, asyncHandler(postGoogleBusinessProfileSync));
+router.post('/integrations/gbp/disconnect', authenticate, asyncHandler(postGoogleBusinessProfileDisconnect));
 
 router.post('/audits', asyncHandler(postCreateAudit));
 router.get('/audits/:id', asyncHandler(getAuditById));
