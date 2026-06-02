@@ -2391,6 +2391,61 @@
           animation: hero-v3-intro-in 1.05s cubic-bezier(0.23, 1, 0.32, 1) both;
           animation-delay: 0.42s;
         }
+        .hero-cta-valuecard {
+          width: 100%;
+          margin-top: 14px;
+          border-radius: 16px;
+          border: 1px solid rgb(255 255 255 / 0.12);
+          background: linear-gradient(152deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.04) 45%, rgb(15 23 42 / 0.36) 100%);
+          box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 26px 70px -52px rgb(0 0 0 / 0.65);
+          padding: 14px 14px;
+          color: rgb(255 255 255 / 0.8);
+        }
+        .hero-cta-valuecard__kicker {
+          font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          font-size: 10px;
+          font-weight: 700;
+          color: rgb(255 255 255 / 0.55);
+        }
+        .hero-cta-valuecard__grid {
+          margin-top: 10px;
+          display: grid;
+          gap: 8px;
+        }
+        @media (min-width: 640px) {
+          .hero-cta-valuecard__grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        .hero-cta-valuecard__item {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          font-size: 13px;
+          line-height: 1.35;
+          color: rgb(255 255 255 / 0.82);
+        }
+        .hero-cta-valuecard__item .dot {
+          margin-top: 6px;
+          width: 7px;
+          height: 7px;
+          border-radius: 9999px;
+          background: rgb(186 230 253 / 0.85);
+          box-shadow: 0 0 0 3px rgb(186 230 253 / 0.12);
+          flex: 0 0 auto;
+        }
+        .hero-cta-valuecard__note {
+          margin-top: 10px;
+          font-size: 12px;
+          color: rgb(255 255 255 / 0.68);
+        }
+        @media (max-width: 639px) {
+          .hero-cta-valuecard {
+            text-align: left;
+          }
+        }
         .hero-v3-dash-mesh {
           animation: hero-v3-mesh-drift 22s ease-in-out infinite;
         }
@@ -3556,6 +3611,25 @@
               >
             </div>
 
+            <div class="hero-cta-valuecard" aria-label="Det du får med den gratis analyse">
+              <div class="hero-cta-valuecard__kicker" data-i18n="hero.ctaValueCard.kicker">Det du får (gratis)</div>
+              <div class="hero-cta-valuecard__grid">
+                <div class="hero-cta-valuecard__item">
+                  <span class="dot" aria-hidden="true"></span>
+                  <span data-i18n="hero.ctaValueCard.item1">Synlighedsscore + top 3 muligheder</span>
+                </div>
+                <div class="hero-cta-valuecard__item">
+                  <span class="dot" aria-hidden="true"></span>
+                  <span data-i18n="hero.ctaValueCard.item2">SEO + Google Ads + AI-søgning (samlet)</span>
+                </div>
+                <div class="hero-cta-valuecard__item">
+                  <span class="dot" aria-hidden="true"></span>
+                  <span data-i18n="hero.ctaValueCard.item3">90-dages forslag du kan forklare videre</span>
+                </div>
+              </div>
+              <div class="hero-cta-valuecard__note" data-i18n="hero.ctaValueCard.note">Leveres som rapport · ingen binding</div>
+            </div>
+
             <ul class="hero-v3-trust hero-v3-trust--stagger" aria-label="Trust highlights">
               <li class="hero-v3-trust-item">
                 <span class="hero-v3-trust-icon" aria-hidden="true">✓</span>
@@ -4535,6 +4609,11 @@
             'hero.trust1': 'Ingen bindingsperiode',
             'hero.trust2': 'Opsig når som helst',
             'hero.trust3': 'Klare månedlige opdateringer',
+            'hero.ctaValueCard.kicker': 'Det du får (gratis)',
+            'hero.ctaValueCard.item1': 'Synlighedsscore + top 3 muligheder',
+            'hero.ctaValueCard.item2': 'SEO + Google Ads + AI-søgning (samlet)',
+            'hero.ctaValueCard.item3': '90-dages forslag du kan forklare videre',
+            'hero.ctaValueCard.note': 'Leveres som rapport · ingen binding',
             'hero.partnersLabel': 'Platforme vi optimerer på',
             'hero.platformsLabel': 'Platforme vi optimerer på',
             'hero.platformGoogle': 'Google Search',
@@ -4901,6 +4980,11 @@
             'hero.trust1': 'No lock-in contracts',
             'hero.trust2': 'Cancel anytime',
             'hero.trust3': 'Clear monthly updates',
+            'hero.ctaValueCard.kicker': 'What you get (free)',
+            'hero.ctaValueCard.item1': 'Visibility score + top 3 opportunities',
+            'hero.ctaValueCard.item2': 'SEO + Google Ads + AI search (combined)',
+            'hero.ctaValueCard.item3': '90-day action plan you can share',
+            'hero.ctaValueCard.note': 'Delivered as a report · no commitment',
             'hero.partnersLabel': 'Platforms we optimize on',
             'hero.platformsLabel': 'Platforms we optimize on',
             'hero.platformGoogle': 'Google Search',
