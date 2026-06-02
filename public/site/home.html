@@ -2193,40 +2193,26 @@
         -webkit-backdrop-filter: blur(24px);
         backdrop-filter: blur(24px);
       }
-      /* Mobile: centered pill grid (no horizontal scroll). */
+      /* Mobile: single pill row, centered (scroll when needed). */
       @media (max-width: 639px) {
         .site-header > div > nav[aria-label='Primary'] {
           width: 100%;
+          max-width: 100%;
           justify-content: center;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none; /* Firefox */
+        }
+        .site-header > div > nav[aria-label='Primary']::-webkit-scrollbar {
+          display: none;
         }
         .site-nav-pills {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          width: 100%;
-          max-width: 22.5rem;
-          margin-inline: auto;
-          gap: 2px;
-          padding: 4px;
+          flex-wrap: nowrap;
+          flex-shrink: 0;
+          width: max-content;
+          max-width: none;
           overflow: visible;
           justify-content: center;
-          justify-items: stretch;
-        }
-        .site-nav-pills > a.coreon-navpill {
-          justify-content: center;
-          text-align: center;
-          font-size: 12.5px;
-          line-height: 1.25;
-          padding: 0.5rem 0.55rem !important;
-          white-space: normal;
-        }
-        .site-nav-pills > a.coreon-navpill + a.coreon-navpill {
-          margin-left: 0;
-          padding-left: 0.55rem !important;
-          border-left: none;
-        }
-        /* Hide duplicate CTA — "Kom i gang" stays in the pill bar. */
-        .site-header .order-2 > a.advero-btn-slate-solid {
-          display: none;
         }
       }
       .site-nav-pills > a.coreon-navpill {
