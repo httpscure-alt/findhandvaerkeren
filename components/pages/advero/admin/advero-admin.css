@@ -363,3 +363,174 @@
   border: 1px solid rgb(248 113 113 / 0.4);
   color: #fca5a5;
 }
+
+.advero-tokens-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.advero-tokens-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.advero-tokens-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  background: transparent;
+  color: rgb(255 255 255 / 0.7);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+}
+
+.advero-tokens-pill:hover,
+.advero-tokens-pill--on {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+  border-color: rgb(255 255 255 / 0.22);
+}
+
+.advero-tokens-swatch {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.advero-tokens-client-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (min-width: 900px) {
+  .advero-tokens-client-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.advero-tokens-client {
+  text-align: left;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.03);
+  padding: 0.95rem 1rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+.advero-tokens-client:hover {
+  border-color: rgb(255 255 255 / 0.2);
+  background: rgb(255 255 255 / 0.05);
+}
+
+.advero-tokens-client--dim {
+  opacity: 0.45;
+}
+
+.advero-tokens-client-top {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.2rem;
+}
+
+.advero-tokens-client-top strong {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.advero-tokens-legal {
+  margin: 0 0 0.65rem;
+  font-size: 0.7rem;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-tokens-big {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.15;
+}
+
+.advero-tokens-usd {
+  margin: 0.15rem 0 0.4rem;
+  font-size: 0.875rem;
+  color: rgb(125 211 252 / 0.95);
+}
+
+.advero-tokens-meta {
+  margin: 0;
+  font-size: 0.7rem;
+  color: rgb(255 255 255 / 0.45);
+}
+
+.advero-tokens-panel {
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(0 0 0 / 0.12);
+  padding: 1rem 1.1rem 0.85rem;
+}
+
+.advero-tokens-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.advero-tokens-caption {
+  margin: 0;
+  font-size: 0.7rem;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.advero-tokens-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.advero-tokens-split {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 900px) {
+  .advero-tokens-split {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+.advero-tokens-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 7rem;
+}
+
+.advero-tokens-bar {
+  display: block;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgb(125 211 252 / 0.85);
+  min-width: 2px;
+}
+
+.advero-tokens-bar-wrap span:last-child {
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 0.55);
+  font-variant-numeric: tabular-nums;
+}

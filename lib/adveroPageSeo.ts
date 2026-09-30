@@ -61,6 +61,7 @@ const NOINDEX_PREFIXES = [
   '/advero/admin',
   '/advero/dashboard',
   '/advero/dev',
+  '/ops',
   '/advero/login',
   '/advero/signup',
   '/advero/get-started',

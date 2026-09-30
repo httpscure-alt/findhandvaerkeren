@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
   ClipboardList,
+  Coins,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -47,6 +48,13 @@ export const ADVERO_ADMIN_NAV: AdveroAdminNavItem[] = [
     icon: CreditCard,
     labelDa: 'Abonnementer',
     labelEn: 'Subscriptions',
+    section: 'business',
+  },
+  {
+    to: '/advero/admin/tokens',
+    icon: Coins,
+    labelDa: 'Token-forbrug',
+    labelEn: 'Token usage',
     section: 'business',
   },
   {

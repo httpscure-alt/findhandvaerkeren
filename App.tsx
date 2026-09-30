@@ -32,6 +32,8 @@ import AdveroAdminUsersPage from './components/pages/advero/admin/AdveroAdminUse
 import AdveroAdminPostsPage from './components/pages/advero/admin/AdveroAdminPostsPage';
 import AdveroAdminPostEditorPage from './components/pages/advero/admin/AdveroAdminPostEditorPage';
 import AdveroAdminSeoPage from './components/pages/advero/admin/AdveroAdminSeoPage';
+import AdveroAdminTokensPage from './components/pages/advero/admin/AdveroAdminTokensPage';
+import AdveroTokenUsagePreviewShell from './components/pages/advero/dev/AdveroTokenUsagePreviewShell';
 import AdveroBlogLayout from './components/pages/advero/blog/AdveroBlogLayout';
 import AdveroBlogListPage from './components/pages/advero/blog/AdveroBlogListPage';
 import AdveroBlogPostPage from './components/pages/advero/blog/AdveroBlogPostPage';
@@ -82,7 +84,8 @@ const App: React.FC = () => {
     location.pathname.startsWith('/auth') ||
     location.pathname.startsWith('/billing') ||
     location.pathname.startsWith('/brand-v2/growth-pricing') ||
-    location.pathname.startsWith('/advero/dev/');
+    location.pathname.startsWith('/advero/dev/') ||
+    location.pathname.startsWith('/ops');
 
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
@@ -122,6 +125,9 @@ const App: React.FC = () => {
         <Route path="/advero/get-started" element={<AdveroClientGetStartedPage />} />
         <Route path="/advero/reports/preview" element={<AdveroReportPreviewPage />} />
         <Route path="/advero/dev/ops-preview" element={<AdveroOpsPreviewPage />} />
+        <Route path="/ops" element={<Navigate to="/ops/token-usage" replace />} />
+        <Route path="/ops/token-usage" element={<AdveroTokenUsagePreviewShell />} />
+        <Route path="/advero/dev/token-usage" element={<Navigate to="/ops/token-usage" replace />} />
         <Route path="/advero/login" element={<AdveroClientLoginPage />} />
         <Route path="/advero/signup" element={<AdveroClientSignupPage />} />
         <Route path="/advero/verify-email" element={<AdveroVerifyEmailPage />} />
@@ -178,6 +184,7 @@ const App: React.FC = () => {
           <Route path="workspaces" element={<AdveroAdminWorkspacesPage />} />
           <Route path="audits" element={<AdveroAdminAuditsPage />} />
           <Route path="subscriptions" element={<AdveroAdminSubscriptionsPage />} />
+          <Route path="tokens" element={<AdveroAdminTokensPage />} />
           <Route path="fulfillment" element={<AdveroAdminFulfillmentPage />} />
           <Route path="users" element={<AdveroAdminUsersPage />} />
           <Route path="content" element={<AdveroAdminPostsPage />} />

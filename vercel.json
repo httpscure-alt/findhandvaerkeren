@@ -158,6 +158,14 @@
     {
       "source": "/brand-v2/growth-pricing",
       "destination": "/app.html"
+    },
+    {
+      "source": "/ops",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/ops/:path*",
+      "destination": "/app.html"
     }
   ]
 }
