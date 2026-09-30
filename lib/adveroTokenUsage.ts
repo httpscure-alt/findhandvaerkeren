@@ -12,7 +12,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 64,
+    remainingUsd: 800,
   },
   {
     id: 'skipjack',
