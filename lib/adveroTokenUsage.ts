@@ -12,25 +12,25 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 234,
+    remainingUsd: 64,
   },
   {
     id: 'skipjack',
     brand: 'Skipjack',
     legalName: 'PT Iklan Kreatif Bangsa',
-    remainingUsd: 40,
+    remainingUsd: 724,
   },
   {
     id: 'suitmedia',
     brand: 'Suitmedia',
     legalName: 'PT Suitmedia Kreasi Indonesia',
-    remainingUsd: 330,
+    remainingUsd: 230,
   },
   {
     id: 'artdigital',
     brand: 'Art Digital',
     legalName: 'PT. Seni Kreasi Digital',
-    remainingUsd: 60,
+    remainingUsd: 724,
   },
 ];
 
