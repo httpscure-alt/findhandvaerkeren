@@ -425,12 +425,6 @@
   background: rgb(255 255 255 / 0.03);
   padding: 0.95rem 1rem;
   color: inherit;
-  cursor: pointer;
-}
-
-.advero-tokens-client:hover {
-  border-color: rgb(255 255 255 / 0.2);
-  background: rgb(255 255 255 / 0.05);
 }
 
 .advero-tokens-client--dim {
