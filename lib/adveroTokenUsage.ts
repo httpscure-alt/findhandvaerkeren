@@ -18,7 +18,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'skipjack',
     brand: 'Skipjack',
     legalName: 'PT Iklan Kreatif Bangsa',
-    remainingUsd: 724,
+    remainingUsd: 704,
   },
   {
     id: 'suitmedia',
