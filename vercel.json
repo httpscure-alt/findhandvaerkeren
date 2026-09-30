@@ -2,7 +2,10 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "header", "key": "x-forwarded-proto", "value": "http" }],
+      "has": [
+        { "type": "header", "key": "x-forwarded-proto", "value": "http" },
+        { "type": "host", "value": "advero.dk" }
+      ],
       "destination": "https://advero.dk/:path*",
       "permanent": true
     },
@@ -22,6 +25,21 @@
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www.advero.dk" }],
       "destination": "https://advero.dk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.advero.id" }],
+      "destination": "https://advero.id/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "header", "key": "x-forwarded-proto", "value": "http" },
+        { "type": "host", "value": "advero.id" }
+      ],
+      "destination": "https://advero.id/:path*",
       "permanent": true
     },
     {
