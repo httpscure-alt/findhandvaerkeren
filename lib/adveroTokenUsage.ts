@@ -24,13 +24,13 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'suitmedia',
     brand: 'Suitmedia',
     legalName: 'PT Suitmedia Kreasi Indonesia',
-    remainingUsd: 230,
+    remainingUsd: 205,
   },
   {
     id: 'artdigital',
     brand: 'Art Digital',
     legalName: 'PT. Seni Kreasi Digital',
-    remainingUsd: 724,
+    remainingUsd: 704,
   },
 ];
 
