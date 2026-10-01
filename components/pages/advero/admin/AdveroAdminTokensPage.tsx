@@ -4,8 +4,6 @@ import {
   TOKEN_CLIENTS,
   TOKEN_CLIENT_COLOR,
   TOKEN_LEDGER,
-  TOKEN_PACK_TOKENS,
-  TOKEN_PACK_USD,
   formatTokens,
   formatUsd,
   usdToTokens,
@@ -19,11 +17,7 @@ type Props = {
 const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
   return (
     <div className={embedded ? undefined : 'advero-tokens-page'}>
-      <AdveroAdminPageHeader
-        kicker={embedded ? 'Internal' : 'Advero ops'}
-        title="Token usage"
-        description={`${formatUsd(TOKEN_PACK_USD)} = ${formatTokens(TOKEN_PACK_TOKENS)} tokens. Deductions below are tracked as usage.`}
-      />
+      <AdveroAdminPageHeader title="Token usage" />
 
       <div className="advero-tokens-client-grid">
         {TOKEN_CLIENTS.map((c) => {
