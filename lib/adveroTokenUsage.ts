@@ -42,6 +42,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     brand: 'Suitmedia',
     legalName: 'PT Suitmedia Kreasi Indonesia',
     remainingUsd: 426,
+    remainingTokens: 143_634_000,
   },
   {
     id: 'artdigital',
@@ -169,6 +170,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'topup',
     usd: 250,
+    tokens: 83_250_000,
     note: 'Top-up',
   },
   {
@@ -197,6 +199,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'usage',
     usd: 14,
+    tokens: 4_662_000,
     note: 'Usage',
   },
   {
@@ -225,6 +228,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'usage',
     usd: 14,
+    tokens: 4_662_000,
     note: 'Usage',
   },
   {
@@ -253,6 +257,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'usage',
     usd: 2,
+    tokens: 666_000,
     note: 'Usage',
   },
   {
@@ -302,6 +307,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'usage',
     usd: 2,
+    tokens: 666_000,
     note: 'Usage',
   },
   {
@@ -403,6 +409,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'usage',
     usd: 34,
+    tokens: 11_322_000,
     note: 'Usage',
   },
   {
@@ -410,6 +417,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'usage',
     usd: 24,
+    tokens: 7_992_000,
     note: 'Usage',
   },
   {
@@ -417,6 +425,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'suitmedia',
     kind: 'topup',
     usd: 250,
+    tokens: 83_250_000,
     note: 'Top-up',
   },
 ];
