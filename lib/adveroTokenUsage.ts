@@ -5,6 +5,7 @@ export type TokenClient = {
   brand: string;
   legalName: string;
   remainingUsd: number;
+  remainingTokens?: number;
 };
 
 export type TokenLedgerKind = 'topup' | 'usage';
@@ -14,6 +15,7 @@ export type TokenLedgerEntry = {
   clientId: TokenClientId;
   kind: TokenLedgerKind;
   usd: number;
+  tokens?: number;
   note: string;
 };
 
@@ -27,6 +29,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     brand: 'Juicebox',
     legalName: 'Juicebox',
     remainingUsd: 1629,
+    remainingTokens: 889_776_000,
   },
   {
     id: 'skipjack',
@@ -362,6 +365,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'juicebox',
     kind: 'topup',
     usd: 1500,
+    tokens: 832_500_000,
     note: 'Top-up',
   },
 ];
@@ -370,10 +374,24 @@ export function usdToTokens(usd: number): number {
   return usd * TOKENS_PER_USD;
 }
 
+export function entryTokens(row: TokenLedgerEntry): number {
+  return row.tokens ?? usdToTokens(row.usd);
+}
+
+export function remainingTokensFor(client: TokenClient): number {
+  return client.remainingTokens ?? usdToTokens(client.remainingUsd);
+}
+
 export function usedUsdFor(clientId: TokenClientId): number {
   return TOKEN_LEDGER
     .filter((row) => row.clientId === clientId && row.kind === 'usage')
     .reduce((sum, row) => sum + row.usd, 0);
+}
+
+export function usedTokensFor(clientId: TokenClientId): number {
+  return TOKEN_LEDGER
+    .filter((row) => row.clientId === clientId && row.kind === 'usage')
+    .reduce((sum, row) => sum + entryTokens(row), 0);
 }
 
 export function formatUsd(amount: number): string {

@@ -4,9 +4,11 @@ import {
   TOKEN_CLIENTS,
   TOKEN_CLIENT_COLOR,
   TOKEN_LEDGER,
+  entryTokens,
   formatTokens,
   formatUsd,
-  usdToTokens,
+  remainingTokensFor,
+  usedTokensFor,
   usedUsdFor,
 } from '../../../../lib/adveroTokenUsage';
 
@@ -30,9 +32,9 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
               </div>
               <p className="advero-tokens-legal">{c.legalName}</p>
               <p className="advero-tokens-big">{formatUsd(c.remainingUsd)}</p>
-              <p className="advero-tokens-meta">Remaining · {formatTokens(usdToTokens(c.remainingUsd))}</p>
+              <p className="advero-tokens-meta">Remaining · {formatTokens(remainingTokensFor(c))}</p>
               <p className="advero-tokens-used">
-                Used {formatUsd(usedUsd)} · {formatTokens(usdToTokens(usedUsd))}
+                Used {formatUsd(usedUsd)} · {formatTokens(usedTokensFor(c.id))}
               </p>
             </div>
           );
@@ -70,7 +72,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
                     </td>
                     <td className={row.kind === 'topup' ? 'advero-tokens-credit' : 'advero-tokens-debit'}>
                       {row.kind === 'topup' ? '+' : '-'}
-                      {formatTokens(usdToTokens(row.usd))}
+                      {formatTokens(entryTokens(row))}
                     </td>
                   </tr>
                 );
