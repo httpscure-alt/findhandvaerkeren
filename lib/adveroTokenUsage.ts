@@ -26,7 +26,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 301,
+    remainingUsd: 263,
   },
   {
     id: 'skipjack',
@@ -278,6 +278,13 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'juicebox',
     kind: 'usage',
     usd: 19,
+    note: 'Usage',
+  },
+  {
+    date: '1 Oct 2026',
+    clientId: 'juicebox',
+    kind: 'usage',
+    usd: 38,
     note: 'Usage',
   },
 ];
