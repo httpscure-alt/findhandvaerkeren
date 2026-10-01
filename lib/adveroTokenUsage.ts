@@ -96,7 +96,7 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     clientId: 'skipjack',
     kind: 'usage',
     usd: 20,
-    note: 'Synced with Art Digital',
+    note: 'Usage',
   },
   {
     date: '1 Oct 2026',
