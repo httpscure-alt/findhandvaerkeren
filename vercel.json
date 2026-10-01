@@ -43,6 +43,12 @@
       "permanent": true
     },
     {
+      "source": "/:path((?!ops/token-usage$|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
+      "has": [{ "type": "host", "value": "advero.id" }],
+      "destination": "/ops/token-usage",
+      "permanent": false
+    },
+    {
       "source": "/brand-v2/preview-advero-v3-design-system.html",
       "destination": "/",
       "permanent": true
@@ -130,6 +136,29 @@
   ],
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "has": [{ "type": "host", "value": "portal.juicebox.co.id" }],
+      "destination": "https://findhandvaerkeren.onrender.com/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "portal.juicebox.co.id" }],
+      "destination": "/app.html"
+    },
+    {
+      "source": "/portal",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/portal/:path*",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "advero.id" }],
+      "destination": "/site/home.html"
+    },
+    {
       "source": "/",
       "destination": "/site/home.html"
     },
@@ -144,6 +173,26 @@
     {
       "source": "/terms",
       "destination": "/site/terms.html"
+    },
+    {
+      "source": "/brand-v2/whitelabel",
+      "destination": "/brand-v2/whitelabel/index.html"
+    },
+    {
+      "source": "/enterprise-kit",
+      "destination": "/enterprise-kit/index.html"
+    },
+    {
+      "source": "/enterprise-kit/",
+      "destination": "/enterprise-kit/index.html"
+    },
+    {
+      "source": "/enterprise-kit/legal",
+      "destination": "/enterprise-kit/legal/index.html"
+    },
+    {
+      "source": "/enterprise-kit/legal/",
+      "destination": "/enterprise-kit/legal/index.html"
     },
     {
       "source": "/blog/sitemap.xml",
