@@ -4,6 +4,7 @@ import {
   TOKEN_CLIENTS,
   TOKEN_CLIENT_COLOR,
   TOKEN_LEDGER,
+  type TokenLedgerEntry,
   entryTokens,
   formatTokens,
   formatUsd,
@@ -15,6 +16,18 @@ import {
 type Props = {
   embedded?: boolean;
 };
+
+const LOG_LIMIT = 100;
+
+function recentLogByDate(): { date: string; rows: TokenLedgerEntry[] }[] {
+  const groups: { date: string; rows: TokenLedgerEntry[] }[] = [];
+  for (const row of TOKEN_LEDGER.slice(-LOG_LIMIT).reverse()) {
+    const last = groups[groups.length - 1];
+    if (last && last.date === row.date) last.rows.push(row);
+    else groups.push({ date: row.date, rows: [row] });
+  }
+  return groups;
+}
 
 const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
   return (
@@ -55,44 +68,48 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
       <div className="advero-tokens-panel" style={{ marginTop: '0.85rem' }}>
         <div className="advero-tokens-panel-head">
           <strong>Usage log</strong>
-          <p className="advero-tokens-caption">All top-ups and deductions since 30 Sep 2026</p>
+          <p className="advero-tokens-caption">Latest {LOG_LIMIT} top-ups and deductions, newest first</p>
         </div>
         <div className="advero-tokens-table-wrap">
           <table className="advero-tokens-table">
             <thead>
               <tr>
-                <th>Date</th>
                 <th>Client</th>
                 <th>Type</th>
                 <th>USD</th>
                 <th>Tokens</th>
               </tr>
             </thead>
-            <tbody>
-              {TOKEN_LEDGER.map((row, i) => {
-                const client = TOKEN_CLIENTS.find((c) => c.id === row.clientId);
-                const source = TOKEN_CLIENTS.find((c) => c.id === row.source);
-                const signed = row.kind === 'topup' ? row.usd : -row.usd;
-                return (
-                  <tr key={`${row.date}-${row.clientId}-${row.usd}-${i}`}>
-                    <td>{row.date}</td>
-                    <td>{client?.brand}</td>
-                    <td>
-                      {row.kind === 'topup' ? 'Top-up' : row.note}
-                      {source ? ` · via ${source.brand}` : ''}
-                    </td>
-                    <td className={row.kind === 'topup' ? 'advero-tokens-credit' : 'advero-tokens-debit'}>
-                      {row.kind === 'topup' ? '+' : '-'}
-                      {formatUsd(Math.abs(signed))}
-                    </td>
-                    <td className={row.kind === 'topup' ? 'advero-tokens-credit' : 'advero-tokens-debit'}>
-                      {row.kind === 'topup' ? '+' : '-'}
-                      {formatTokens(entryTokens(row))}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            {recentLogByDate().map((group) => (
+              <tbody key={group.date}>
+                <tr className="advero-tokens-date-row">
+                  <td colSpan={4}>{group.date}</td>
+                </tr>
+                {group.rows.map((row, i) => {
+                  const client = TOKEN_CLIENTS.find((c) => c.id === row.clientId);
+                  const source = TOKEN_CLIENTS.find((c) => c.id === row.source);
+                  const tone = row.kind === 'topup' ? 'advero-tokens-credit' : 'advero-tokens-debit';
+                  const sign = row.kind === 'topup' ? '+' : '-';
+                  return (
+                    <tr key={`${row.clientId}-${row.usd}-${i}`}>
+                      <td>{client?.brand}</td>
+                      <td>
+                        {row.kind === 'topup' ? 'Top-up' : row.note}
+                        {source ? ` · via ${source.brand}` : ''}
+                      </td>
+                      <td className={tone}>
+                        {sign}
+                        {formatUsd(row.usd)}
+                      </td>
+                      <td className={tone}>
+                        {sign}
+                        {formatTokens(entryTokens(row))}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            ))}
           </table>
         </div>
       </div>

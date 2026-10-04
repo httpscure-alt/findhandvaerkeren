@@ -559,6 +559,15 @@
   white-space: nowrap;
 }
 
+.advero-tokens-date-row td {
+  padding-top: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(125 211 252 / 0.9);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .advero-tokens-table th {
   font-size: 0.68rem;
   font-weight: 600;
