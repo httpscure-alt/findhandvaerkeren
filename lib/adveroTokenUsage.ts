@@ -30,8 +30,8 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 373,
-    remainingTokens: 177_378_000,
+    remainingUsd: 343,
+    remainingTokens: 164_058_000,
   },
   {
     id: 'skipjack',
@@ -1629,6 +1629,8 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 5, tokens: 2_220_000, note: 'Usage' },
   { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 12, tokens: 5_328_000, note: 'Usage' },
   { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 12, tokens: 5_328_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 18, tokens: 7_992_000, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
