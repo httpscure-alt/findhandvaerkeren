@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AdveroAdminPageHeader from './AdveroAdminPageHeader';
 import {
   TOKEN_CLIENTS,
@@ -18,10 +18,17 @@ type Props = {
 };
 
 const LOG_LIMIT = 100;
+const LATEST = 'latest';
 
-function recentLogByDate(): { date: string; rows: TokenLedgerEntry[] }[] {
+const LOG_DATES = [...new Set(TOKEN_LEDGER.map((row) => row.date))].reverse();
+
+function logByDate(selected: string): { date: string; rows: TokenLedgerEntry[] }[] {
+  const rows =
+    selected === LATEST
+      ? TOKEN_LEDGER.slice(-LOG_LIMIT)
+      : TOKEN_LEDGER.filter((row) => row.date === selected);
   const groups: { date: string; rows: TokenLedgerEntry[] }[] = [];
-  for (const row of TOKEN_LEDGER.slice(-LOG_LIMIT).reverse()) {
+  for (const row of [...rows].reverse()) {
     const last = groups[groups.length - 1];
     if (last && last.date === row.date) last.rows.push(row);
     else groups.push({ date: row.date, rows: [row] });
@@ -30,6 +37,10 @@ function recentLogByDate(): { date: string; rows: TokenLedgerEntry[] }[] {
 }
 
 const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
+  const [selectedDate, setSelectedDate] = useState(LATEST);
+  const groups = logByDate(selectedDate);
+  const rowCount = groups.reduce((sum, g) => sum + g.rows.length, 0);
+
   return (
     <div className={embedded ? undefined : 'advero-tokens-page'}>
       <AdveroAdminPageHeader title="Token usage" />
@@ -68,7 +79,26 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
       <div className="advero-tokens-panel" style={{ marginTop: '0.85rem' }}>
         <div className="advero-tokens-panel-head">
           <strong>Usage log</strong>
-          <p className="advero-tokens-caption">Latest {LOG_LIMIT} top-ups and deductions, newest first</p>
+          <div className="advero-tokens-log-filter">
+            <p className="advero-tokens-caption">
+              {selectedDate === LATEST
+                ? `Latest ${LOG_LIMIT} top-ups and deductions, newest first`
+                : `${rowCount} entries on ${selectedDate}`}
+            </p>
+            <select
+              className="advero-tokens-date-select"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              aria-label="Filter usage log by date"
+            >
+              <option value={LATEST}>Latest {LOG_LIMIT}</option>
+              {LOG_DATES.map((date) => (
+                <option key={date} value={date}>
+                  {date}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="advero-tokens-table-wrap">
           <table className="advero-tokens-table">
@@ -80,7 +110,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
                 <th>Tokens</th>
               </tr>
             </thead>
-            {recentLogByDate().map((group) => (
+            {groups.map((group) => (
               <tbody key={group.date}>
                 <tr className="advero-tokens-date-row">
                   <td colSpan={4}>{group.date}</td>
