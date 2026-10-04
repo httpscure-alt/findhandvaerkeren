@@ -28,27 +28,27 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 391,
-    remainingTokens: 202_686_000,
+    remainingUsd: 365,
+    remainingTokens: 188_256_000,
   },
   {
     id: 'skipjack',
     brand: 'Skipjack',
     legalName: 'PT Iklan Kreatif Bangsa',
-    remainingUsd: 207,
+    remainingUsd: 186,
   },
   {
     id: 'suitmedia',
     brand: 'Suitmedia',
     legalName: 'PT Suitmedia Kreasi Indonesia',
-    remainingUsd: 251,
-    remainingTokens: 85_359_000,
+    remainingUsd: 233,
+    remainingTokens: 79_365_000,
   },
   {
     id: 'artdigital',
     brand: 'Art Digital',
     legalName: 'PT. Seni Kreasi Digital',
-    remainingUsd: 207,
+    remainingUsd: 186,
   },
 ];
 
@@ -1438,6 +1438,18 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
     tokens: 5_328_000,
     note: 'Usage',
   },
+  { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 8, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 8, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 4_440_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'suitmedia', kind: 'usage', usd: 3, tokens: 999_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 7, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 7, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 12, tokens: 6_660_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'suitmedia', kind: 'usage', usd: 9, tokens: 2_997_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 6, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 6, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 3_330_000, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'suitmedia', kind: 'usage', usd: 6, tokens: 1_998_000, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
