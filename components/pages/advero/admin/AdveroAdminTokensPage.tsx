@@ -26,6 +26,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
           const usedUsd = usedUsdFor(c.id);
           const source = TOKEN_CLIENTS.find((s) => s.id === c.tokenSource);
           const fundedClients = TOKEN_CLIENTS.filter((s) => s.tokenSource === c.id);
+          const balance = source ?? c;
           return (
             <div key={c.id} className="advero-tokens-client">
               <div className="advero-tokens-client-top">
@@ -33,8 +34,8 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
                 <strong>{c.brand}</strong>
               </div>
               <p className="advero-tokens-legal">{c.legalName}</p>
-              <p className="advero-tokens-big">{formatUsd(c.remainingUsd)}</p>
-              <p className="advero-tokens-meta">Remaining · {formatTokens(remainingTokensFor(c))}</p>
+              <p className="advero-tokens-big">{formatUsd(balance.remainingUsd)}</p>
+              <p className="advero-tokens-meta">Remaining · {formatTokens(remainingTokensFor(balance))}</p>
               <p className="advero-tokens-used">
                 Used {formatUsd(usedUsd)} · {formatTokens(usedTokensFor(c.id))}
               </p>
