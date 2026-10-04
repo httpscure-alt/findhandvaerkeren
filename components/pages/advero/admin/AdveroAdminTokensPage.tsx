@@ -24,6 +24,8 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
       <div className="advero-tokens-client-grid">
         {TOKEN_CLIENTS.map((c) => {
           const usedUsd = usedUsdFor(c.id);
+          const source = TOKEN_CLIENTS.find((s) => s.id === c.tokenSource);
+          const fundedClients = TOKEN_CLIENTS.filter((s) => s.tokenSource === c.id);
           return (
             <div key={c.id} className="advero-tokens-client">
               <div className="advero-tokens-client-top">
@@ -36,6 +38,14 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
               <p className="advero-tokens-used">
                 Used {formatUsd(usedUsd)} · {formatTokens(usedTokensFor(c.id))}
               </p>
+              {source ? (
+                <p className="advero-tokens-source">Now using {source.brand} tokens</p>
+              ) : null}
+              {fundedClients.length > 0 ? (
+                <p className="advero-tokens-source">
+                  Also funds {fundedClients.map((s) => s.brand).join(' · ')}
+                </p>
+              ) : null}
             </div>
           );
         })}
@@ -60,12 +70,16 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
             <tbody>
               {TOKEN_LEDGER.map((row, i) => {
                 const client = TOKEN_CLIENTS.find((c) => c.id === row.clientId);
+                const source = TOKEN_CLIENTS.find((c) => c.id === row.source);
                 const signed = row.kind === 'topup' ? row.usd : -row.usd;
                 return (
                   <tr key={`${row.date}-${row.clientId}-${row.usd}-${i}`}>
                     <td>{row.date}</td>
                     <td>{client?.brand}</td>
-                    <td>{row.kind === 'topup' ? 'Top-up' : row.note}</td>
+                    <td>
+                      {row.kind === 'topup' ? 'Top-up' : row.note}
+                      {source ? ` · via ${source.brand}` : ''}
+                    </td>
                     <td className={row.kind === 'topup' ? 'advero-tokens-credit' : 'advero-tokens-debit'}>
                       {row.kind === 'topup' ? '+' : '-'}
                       {formatUsd(Math.abs(signed))}

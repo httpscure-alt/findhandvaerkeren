@@ -6,6 +6,7 @@ export type TokenClient = {
   legalName: string;
   remainingUsd: number;
   remainingTokens?: number;
+  tokenSource?: TokenClientId;
 };
 
 export type TokenLedgerKind = 'topup' | 'usage';
@@ -16,6 +17,7 @@ export type TokenLedgerEntry = {
   kind: TokenLedgerKind;
   usd: number;
   tokens?: number;
+  source?: TokenClientId;
   note: string;
 };
 
@@ -36,6 +38,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     brand: 'Skipjack',
     legalName: 'PT Iklan Kreatif Bangsa',
     remainingUsd: 18,
+    tokenSource: 'suitmedia',
   },
   {
     id: 'suitmedia',
@@ -49,6 +52,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     brand: 'Art Digital',
     legalName: 'PT. Seni Kreasi Digital',
     remainingUsd: 18,
+    tokenSource: 'suitmedia',
   },
 ];
 
