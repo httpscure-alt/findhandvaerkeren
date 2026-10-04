@@ -35,7 +35,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'skipjack',
     brand: 'Skipjack',
     legalName: 'PT Iklan Kreatif Bangsa',
-    remainingUsd: 117,
+    remainingUsd: 96,
   },
   {
     id: 'suitmedia',
@@ -48,7 +48,7 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'artdigital',
     brand: 'Art Digital',
     legalName: 'PT. Seni Kreasi Digital',
-    remainingUsd: 117,
+    remainingUsd: 96,
   },
 ];
 
@@ -1500,6 +1500,12 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 11, note: 'Usage' },
   { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 14, note: 'Usage' },
   { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 14, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 8, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 8, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 9, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 9, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'skipjack', kind: 'usage', usd: 4, note: 'Usage' },
+  { date: '4 Oct 2026', clientId: 'artdigital', kind: 'usage', usd: 4, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
