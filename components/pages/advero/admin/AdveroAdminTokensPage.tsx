@@ -126,7 +126,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
                       <td className="advero-tokens-time">{row.time ?? '—'}</td>
                       <td>{client?.brand}</td>
                       <td>
-                        {row.kind === 'topup' ? 'Top-up' : row.note}
+                        {row.kind === 'topup' && row.note !== 'Opening balance' ? 'Top-up' : row.note}
                         {source ? ` · via ${source.brand}` : ''}
                       </td>
                       <td className={tone}>
