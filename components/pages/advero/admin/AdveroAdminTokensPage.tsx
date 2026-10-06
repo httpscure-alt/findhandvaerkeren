@@ -104,6 +104,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
           <table className="advero-tokens-table">
             <thead>
               <tr>
+                <th>Time</th>
                 <th>Client</th>
                 <th>Type</th>
                 <th>USD</th>
@@ -113,7 +114,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
             {groups.map((group) => (
               <tbody key={group.date}>
                 <tr className="advero-tokens-date-row">
-                  <td colSpan={4}>{group.date}</td>
+                  <td colSpan={5}>{group.date}</td>
                 </tr>
                 {group.rows.map((row, i) => {
                   const client = TOKEN_CLIENTS.find((c) => c.id === row.clientId);
@@ -122,6 +123,7 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
                   const sign = row.kind === 'topup' ? '+' : '-';
                   return (
                     <tr key={`${row.clientId}-${row.usd}-${i}`}>
+                      <td className="advero-tokens-time">{row.time ?? '—'}</td>
                       <td>{client?.brand}</td>
                       <td>
                         {row.kind === 'topup' ? 'Top-up' : row.note}

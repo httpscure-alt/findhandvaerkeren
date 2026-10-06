@@ -588,6 +588,12 @@
   text-transform: uppercase;
 }
 
+.advero-tokens-time {
+  font-variant-numeric: tabular-nums;
+  color: rgb(148 163 184 / 0.85);
+  white-space: nowrap;
+}
+
 .advero-tokens-table th {
   font-size: 0.68rem;
   font-weight: 600;
