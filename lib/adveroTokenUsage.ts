@@ -31,8 +31,8 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 238,
-    remainingTokens: 117_438_000,
+    remainingUsd: 225,
+    remainingTokens: 111_666_000,
   },
   {
     id: 'skipjack',
@@ -45,8 +45,8 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'suitmedia',
     brand: 'Suitmedia',
     legalName: 'PT Suitmedia Kreasi Indonesia',
-    remainingUsd: 639,
-    remainingTokens: 278_277_000,
+    remainingUsd: 635,
+    remainingTokens: 276_501_000,
   },
   {
     id: 'artdigital',
@@ -2055,6 +2055,10 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '6 Oct 2026', time: '12:06', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
   { date: '6 Oct 2026', time: '12:13', clientId: 'skipjack', kind: 'usage', usd: 8, tokens: 3_552_000, source: 'suitmedia', note: 'Usage' },
   { date: '6 Oct 2026', time: '12:19', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
+  { date: '6 Oct 2026', time: '12:25', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
+  { date: '6 Oct 2026', time: '12:29', clientId: 'suitmedia', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
+  { date: '6 Oct 2026', time: '12:33', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
+  { date: '6 Oct 2026', time: '12:38', clientId: 'juicebox', kind: 'usage', usd: 3, tokens: 1_332_000, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
