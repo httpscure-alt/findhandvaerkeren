@@ -234,13 +234,13 @@
 
       BRANDS.advero = {
         name: "Advero",
-        product: "token usage dashboard",
+        product: location.pathname.startsWith("/ops/token-usage") ? "token usage dashboard" : "Advero platform",
         wordmark: "Advero",
         dark: true,
         vars: { "--bg": "#2b3444", "--card": "#36404f", "--border": "#465264", "--code": "#3a4556", "--muted": "#94a3b8", "--ink": "#f1f5f9" },
         accent: "#7dd3fc",
         accentSoft: "rgba(125, 211, 252, 0.14)",
-        host: "advero.id/ops/token-usage",
+        host: `advero.id${location.pathname === "/" ? "" : location.pathname.replace(/\/$/, "")}`,
         hostLabel: "Page",
         support: "hello@advero.id",
         tz: "Asia/Jakarta",
@@ -264,12 +264,9 @@
         },
       };
 
-      const tokenMatch = location.pathname.match(/^\/ops\/token-usage\/(\d{3})\/?$/);
-      const [, pathBrand, pathCode] = tokenMatch
-        ? [null, "advero", tokenMatch[1]]
-        : location.pathname.match(/^\/([a-z-]+)\/(\d{3})\/?$/) || [];
-      const brandKey = BRANDS[pathBrand] ? pathBrand : "juicebox";
-      const codeKey = CODES[pathCode] ? pathCode : "500";
+      const [, firstSegment = ""] = location.pathname.split("/");
+      const brandKey = BRANDS[firstSegment] && firstSegment !== "advero" ? firstSegment : "advero";
+      const codeKey = "500";
       const brand = BRANDS[brandKey];
       const code = CODES[codeKey];
 

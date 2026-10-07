@@ -3,50 +3,78 @@
     {
       "source": "/:path*",
       "has": [
-        { "type": "header", "key": "x-forwarded-proto", "value": "http" },
-        { "type": "host", "value": "advero.dk" }
+        {
+          "type": "header",
+          "key": "x-forwarded-proto",
+          "value": "http"
+        },
+        {
+          "type": "host",
+          "value": "advero.dk"
+        }
       ],
       "destination": "https://advero.dk/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "xn--findhndvrkeren-pibt.dk" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "xn--findhndvrkeren-pibt.dk"
+        }
+      ],
       "destination": "https://advero.dk/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.xn--findhndvrkeren-pibt.dk" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.xn--findhndvrkeren-pibt.dk"
+        }
+      ],
       "destination": "https://advero.dk/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.advero.dk" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.advero.dk"
+        }
+      ],
       "destination": "https://advero.dk/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.advero.id" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.advero.id"
+        }
+      ],
       "destination": "https://advero.id/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
       "has": [
-        { "type": "header", "key": "x-forwarded-proto", "value": "http" },
-        { "type": "host", "value": "advero.id" }
+        {
+          "type": "header",
+          "key": "x-forwarded-proto",
+          "value": "http"
+        },
+        {
+          "type": "host",
+          "value": "advero.id"
+        }
       ],
       "destination": "https://advero.id/:path*",
       "permanent": true
-    },
-    {
-      "source": "/:path((?!ops/token-usage$|ops/token-usage/50[03]$|juicebox/50[03]$|skipjack/50[03]$|suitmedia/50[03]$|artdigital/50[03]$|wl/|brand-v2/whitelabel/juicebox-logo|brand-v2/whitelabel/skipjack-logo|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
-      "has": [{ "type": "host", "value": "advero.id" }],
-      "destination": "/ops/token-usage",
-      "permanent": false
     },
     {
       "source": "/brand-v2/preview-advero-v3-design-system.html",
@@ -137,12 +165,22 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "has": [{ "type": "host", "value": "portal.juicebox.co.id" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "portal.juicebox.co.id"
+        }
+      ],
       "destination": "https://findhandvaerkeren.onrender.com/api/:path*"
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "portal.juicebox.co.id" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "portal.juicebox.co.id"
+        }
+      ],
       "destination": "/app.html"
     },
     {
@@ -155,7 +193,12 @@
     },
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "advero.id" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "advero.id"
+        }
+      ],
       "destination": "/site/home.html"
     },
     {
@@ -225,14 +268,6 @@
     {
       "source": "/brand-v2/growth-pricing",
       "destination": "/app.html"
-    },
-    {
-      "source": "/:brand(juicebox|skipjack|suitmedia|artdigital)/:code(500|503)",
-      "destination": "/wl/status.html"
-    },
-    {
-      "source": "/ops/token-usage/:code(500|503)",
-      "destination": "/wl/status.html"
     },
     {
       "source": "/ops",
