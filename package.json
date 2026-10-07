@@ -12,7 +12,8 @@
     "dev:frontend:sim": "vite --mode sim --port 3001",
     "dev:backend:sim": "cd backend && ./scripts/dev-sim.sh",
     "dev:sim": "concurrently \"npm run dev:backend:sim\" \"npm run dev:frontend:sim\" --names \"backend-sim,frontend-sim\" --prefix-colors \"blue,green\"",
-    "build": "vite build && mv dist/index.html dist/app.html",
+    "build": "npm run build:wl-data && vite build && mv dist/index.html dist/app.html",
+    "build:wl-data": "esbuild scripts/build-wl-data.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/build-wl-data.mjs && node node_modules/.cache/build-wl-data.mjs",
     "preview": "vite preview",
     "test": "vitest run"
   },
@@ -36,6 +37,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "concurrently": "^9.2.1",
     "jsdom": "^27.3.0",
+    "playwright": "^1.55.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vitest": "^4.0.16"

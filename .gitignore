@@ -51,3 +51,6 @@ test-stripe-api.js
 # Text files (often contain pasted keys/logs)
 *.txt
 .vercel
+
+# Generated per-agency portal data (served only to signed-in sessions)
+public/wl-data/

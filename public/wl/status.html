@@ -174,7 +174,7 @@
         <div class="card">
           <dl>
             <dt>Status</dt><dd id="status"></dd>
-            <dt>Reference</dt><dd><code id="ref"></code></dd>
+            <dt id="ref-label">Reference</dt><dd id="ref-row"><code id="ref" data-request-id="__REQUEST_ID__"></code></dd>
             <dt>Time</dt><dd id="time"></dd>
             <dt>Portal</dt><dd id="host"></dd>
           </dl>
@@ -254,7 +254,7 @@
           status: "500 Internal Server Error",
           pill: "Unexpected error",
           title: "Something went wrong on our side",
-          lead: "The {product} hit an unexpected error while loading this page. Our team has been notified automatically. Your data is safe — please try again in a moment.",
+          lead: "The {product} hit an unexpected error while loading this page. Your data is safe — please try again in a moment. If it keeps happening, contact support with the reference below.",
         },
         503: {
           status: "503 Service Unavailable",
@@ -304,8 +304,14 @@
       document.getElementById("status").textContent = code.status;
       document.getElementById("host").textContent = brand.host;
 
-      const ref = Array.from(crypto.getRandomValues(new Uint8Array(6)), (n) => n.toString(16).padStart(2, "0")).join("");
-      document.getElementById("ref").textContent = `${brand.ref || brandKey.slice(0, 2).toUpperCase()}-${codeKey}-${ref}`;
+      const refEl = document.getElementById("ref");
+      const requestId = refEl.dataset.requestId;
+      if (requestId && !requestId.startsWith("__")) {
+        refEl.textContent = requestId;
+      } else {
+        document.getElementById("ref-label").remove();
+        document.getElementById("ref-row").remove();
+      }
 
       const time = new Intl.DateTimeFormat("en-GB", {
         timeZone: brand.tz,

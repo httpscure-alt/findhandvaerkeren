@@ -77,6 +77,17 @@
       "permanent": true
     },
     {
+      "source": "/:path((?!ops/token-usage$|juicebox$|juicebox/|skipjack$|skipjack/|suitmedia$|suitmedia/|artdigital$|artdigital/|api/wl/|wl-data/|app\\.html$|wl/|brand-v2/whitelabel/juicebox-logo|brand-v2/whitelabel/skipjack-logo|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "advero.id"
+        }
+      ],
+      "destination": "/ops/token-usage",
+      "permanent": false
+    },
+    {
       "source": "/brand-v2/preview-advero-v3-design-system.html",
       "destination": "/",
       "permanent": true
@@ -270,12 +281,77 @@
       "destination": "/app.html"
     },
     {
+      "source": "/:brand(juicebox|skipjack|suitmedia|artdigital)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:brand(juicebox|skipjack|suitmedia|artdigital)/:path*",
+      "destination": "/app.html"
+    },
+    {
       "source": "/ops",
       "destination": "/app.html"
     },
     {
       "source": "/ops/:path*",
       "destination": "/app.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/wl-data/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/:brand(juicebox|skipjack|suitmedia|artdigital)/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        }
+      ]
+    },
+    {
+      "source": "/:brand(juicebox|skipjack|suitmedia|artdigital)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        }
+      ]
     }
   ]
 }
