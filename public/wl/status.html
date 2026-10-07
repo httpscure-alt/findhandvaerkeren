@@ -35,34 +35,10 @@
         -webkit-font-smoothing: antialiased;
       }
 
-      .preview-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 12px;
-        background: #111;
-        color: #aaa;
-        font-size: 12px;
-      }
-
-      .preview-bar strong { color: #fff; margin-right: 6px; letter-spacing: 0.04em; }
-
-      .preview-bar a {
-        padding: 4px 10px;
-        border-radius: 999px;
-        color: #ddd;
-        text-decoration: none;
-        border: 1px solid #333;
-      }
-
-      .preview-bar a.on { background: #fff; color: #111; border-color: #fff; }
-
       main {
         display: grid;
         place-items: center;
-        min-height: calc(100vh - 42px);
+        min-height: 100vh;
         padding: 32px 20px 48px;
       }
 
@@ -70,6 +46,14 @@
 
       .logo { height: 44px; margin: 0 auto 36px; display: block; }
       .logo.square { height: 96px; margin-bottom: 24px; }
+
+      .wordmark {
+        margin: 0 auto 36px;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--accent);
+      }
 
       .code {
         position: relative;
@@ -176,8 +160,6 @@
     </style>
   </head>
   <body>
-    <nav class="preview-bar" id="previewBar"><strong>PREVIEW</strong></nav>
-
     <main>
       <div class="wrap">
         <img class="logo" id="logo" alt="" />
@@ -209,7 +191,7 @@
           dark: true,
           accent: "#6863ff",
           accentSoft: "rgba(104, 99, 255, 0.16)",
-          host: "portal.juicebox.co.id",
+          host: "advero.id/juicebox",
           support: "hello@juicebox.co.id",
           tz: "Australia/Sydney",
           tzLabel: "AEDT",
@@ -221,7 +203,29 @@
           dark: false,
           accent: "#2b2b2b",
           accentSoft: "rgba(43, 43, 43, 0.07)",
-          host: "Skipjack portal (domain not set yet)",
+          host: "advero.id/skipjack",
+          support: "",
+          tz: "Asia/Jakarta",
+          tzLabel: "WIB",
+        },
+        suitmedia: {
+          name: "Suitmedia",
+          wordmark: "Suitmedia",
+          dark: false,
+          accent: "#2563eb",
+          accentSoft: "rgba(37, 99, 235, 0.09)",
+          host: "advero.id/suitmedia",
+          support: "",
+          tz: "Asia/Jakarta",
+          tzLabel: "WIB",
+        },
+        artdigital: {
+          name: "Art Digital",
+          wordmark: "Art Digital",
+          dark: false,
+          accent: "#9333ea",
+          accentSoft: "rgba(147, 51, 234, 0.09)",
+          host: "advero.id/artdigital",
           support: "",
           tz: "Asia/Jakarta",
           tzLabel: "WIB",
@@ -243,22 +247,11 @@
         },
       };
 
-      const params = new URLSearchParams(location.search);
-      const brandKey = BRANDS[params.get("brand")] ? params.get("brand") : "juicebox";
-      const codeKey = CODES[params.get("code")] ? params.get("code") : "500";
+      const [, pathBrand, pathCode] = location.pathname.match(/^\/([a-z-]+)\/(\d{3})\/?$/) || [];
+      const brandKey = BRANDS[pathBrand] ? pathBrand : "juicebox";
+      const codeKey = CODES[pathCode] ? pathCode : "500";
       const brand = BRANDS[brandKey];
       const code = CODES[codeKey];
-
-      const bar = document.getElementById("previewBar");
-      for (const b of Object.keys(BRANDS)) {
-        for (const c of Object.keys(CODES)) {
-          const a = document.createElement("a");
-          a.href = `?brand=${b}&code=${c}`;
-          a.textContent = `${BRANDS[b].name.split(" ")[0]} ${c}`;
-          if (b === brandKey && c === codeKey) a.className = "on";
-          bar.appendChild(a);
-        }
-      }
 
       document.body.classList.toggle("dark", brand.dark);
       document.documentElement.style.setProperty("--accent", brand.accent);
@@ -266,9 +259,16 @@
       document.title = `${codeKey} · ${brand.name}`;
 
       const logo = document.getElementById("logo");
-      logo.src = brand.logo;
-      logo.alt = brand.name;
-      logo.classList.toggle("square", !!brand.logoSquare);
+      if (brand.logo) {
+        logo.src = brand.logo;
+        logo.alt = brand.name;
+        logo.classList.toggle("square", !!brand.logoSquare);
+      } else {
+        const word = document.createElement("div");
+        word.className = "wordmark";
+        word.textContent = brand.wordmark;
+        logo.replaceWith(word);
+      }
 
       document.getElementById("code").textContent = codeKey;
       document.querySelector("#pill span").textContent = code.pill;

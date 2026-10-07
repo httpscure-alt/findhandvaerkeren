@@ -43,7 +43,7 @@
       "permanent": true
     },
     {
-      "source": "/:path((?!ops/token-usage$|ops/errors|brand-v2/whitelabel/|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
+      "source": "/:path((?!ops/token-usage$|juicebox/50[03]$|skipjack/50[03]$|suitmedia/50[03]$|artdigital/50[03]$|wl/|brand-v2/whitelabel/juicebox-logo|brand-v2/whitelabel/skipjack-logo|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
       "has": [{ "type": "host", "value": "advero.id" }],
       "destination": "/ops/token-usage",
       "permanent": false
@@ -227,12 +227,8 @@
       "destination": "/app.html"
     },
     {
-      "source": "/ops/errors",
-      "destination": "/ops/errors/index.html"
-    },
-    {
-      "source": "/ops/errors/",
-      "destination": "/ops/errors/index.html"
+      "source": "/:brand(juicebox|skipjack|suitmedia|artdigital)/:code(500|503)",
+      "destination": "/wl/status.html"
     },
     {
       "source": "/ops",
