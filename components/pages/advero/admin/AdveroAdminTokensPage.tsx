@@ -12,7 +12,6 @@ import {
   usedTokensFor,
   usedUsdFor,
 } from '../../../../lib/adveroTokenUsage';
-import { agencyDemoData, ledgerRun } from '../../../../lib/whitelabel/agencyDemoData';
 
 type Props = {
   embedded?: boolean;
@@ -35,11 +34,6 @@ function logByDate(selected: string): { date: string; rows: TokenLedgerEntry[] }
     else groups.push({ date: row.date, rows: [row] });
   }
   return groups;
-}
-
-function runBreakdown(clientId: string): string {
-  const k = agencyDemoData(clientId).usage.byKind;
-  return `${k.Report} reports · ${k.Audit} audits · ${k['AI visibility scan']} scans · ${k.Recommendations} recs`;
 }
 
 const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
@@ -69,7 +63,6 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
               <p className="advero-tokens-used">
                 Used {formatUsd(usedUsd)} · {formatTokens(usedTokensFor(c.id))}
               </p>
-              <p className="advero-tokens-source">{runBreakdown(c.id)}</p>
               {source ? (
                 <p className="advero-tokens-source">Now using {source.brand} tokens</p>
               ) : null}
@@ -128,22 +121,12 @@ const AdveroAdminTokensPage: React.FC<Props> = ({ embedded = true }) => {
                   const source = TOKEN_CLIENTS.find((c) => c.id === row.source);
                   const tone = row.kind === 'topup' ? 'advero-tokens-credit' : 'advero-tokens-debit';
                   const sign = row.kind === 'topup' ? '+' : '-';
-                  const run = ledgerRun(row);
                   return (
                     <tr key={`${row.clientId}-${row.usd}-${i}`}>
-                      <td className="advero-tokens-time">
-                        {row.time ?? '—'}
-                        {run && row.clientId === 'juicebox' ? (
-                          <span className="advero-tokens-time-alt"> · {run.when.split(', ')[1]}</span>
-                        ) : null}
-                      </td>
+                      <td className="advero-tokens-time">{row.time ?? '—'}</td>
                       <td>{client?.brand}</td>
                       <td>
-                        {run
-                          ? `${run.kind} · ${run.client}`
-                          : row.kind === 'topup' && row.note !== 'Opening balance'
-                            ? 'Top-up'
-                            : row.note}
+                        {row.kind === 'topup' && row.note !== 'Opening balance' ? 'Top-up' : row.note}
                         {source ? ` · via ${source.brand}` : ''}
                       </td>
                       <td className={tone}>
