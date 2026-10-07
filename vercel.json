@@ -43,7 +43,7 @@
       "permanent": true
     },
     {
-      "source": "/:path((?!ops/token-usage$|ops/errors(/.*)?$|brand-v2/whitelabel/juicebox-logo-dark\\.svg$|brand-v2/whitelabel/skipjack-logo\\.png$|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
+      "source": "/:path((?!ops/token-usage$|ops/errors|brand-v2/whitelabel/|assets/|brand/|fonts/|index\\.css$|advero-wordmark-header\\.css$|site/advero-support-widget\\.).*)",
       "has": [{ "type": "host", "value": "advero.id" }],
       "destination": "/ops/token-usage",
       "permanent": false
