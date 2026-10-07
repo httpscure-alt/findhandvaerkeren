@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Service error</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #fafafa;
+        --card: #fff;
+        --ink: #141414;
+        --muted: #737373;
+        --border: #e8e8e8;
+        --accent: #6863ff;
+        --accent-soft: rgba(104, 99, 255, 0.09);
+        --btn: #141414;
+        --btn-ink: #fff;
+        --code: #ececec;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .preview-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #111;
+        color: #aaa;
+        font-size: 12px;
+      }
+
+      .preview-bar strong { color: #fff; margin-right: 6px; letter-spacing: 0.04em; }
+
+      .preview-bar a {
+        padding: 4px 10px;
+        border-radius: 999px;
+        color: #ddd;
+        text-decoration: none;
+        border: 1px solid #333;
+      }
+
+      .preview-bar a.on { background: #fff; color: #111; border-color: #fff; }
+
+      main {
+        display: grid;
+        place-items: center;
+        min-height: calc(100vh - 42px);
+        padding: 32px 20px 48px;
+      }
+
+      .wrap { width: 100%; max-width: 520px; text-align: center; }
+
+      .logo { height: 44px; margin: 0 auto 36px; display: block; }
+      .logo.square { height: 96px; margin-bottom: 24px; }
+
+      .code {
+        position: relative;
+        margin: 0 auto 8px;
+        font-size: 104px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: var(--code);
+        user-select: none;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      .pill i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse { 50% { opacity: 0.3; } }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      p.lead {
+        margin: 0 auto 28px;
+        max-width: 440px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 18px;
+        border-radius: 10px;
+        border: 1px solid var(--btn);
+        background: var(--btn);
+        color: var(--btn-ink);
+        font: 600 14px Inter, sans-serif;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .btn.ghost { background: transparent; color: var(--ink); border-color: var(--border); }
+
+      .card {
+        margin-top: 32px;
+        padding: 16px 18px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        text-align: left;
+        font-size: 13px;
+      }
+
+      .card dl { margin: 0; display: grid; grid-template-columns: 120px 1fr; row-gap: 8px; }
+      .card dt { color: var(--muted); }
+      .card dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+      .card dd code { font: 500 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+      .powered {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .powered b { color: var(--ink); font-weight: 600; }
+
+      body.dark {
+        --bg: #121212;
+        --card: #1c1c1c;
+        --ink: #f5f5f5;
+        --muted: #9a9a9a;
+        --border: #2a2a2a;
+        --btn: #f5f5f5;
+        --btn-ink: #141414;
+        --code: #232323;
+      }
+
+      body.dark .logo { filter: brightness(0) invert(1); }
+    </style>
+  </head>
+  <body>
+    <nav class="preview-bar" id="previewBar"><strong>PREVIEW</strong></nav>
+
+    <main>
+      <div class="wrap">
+        <img class="logo" id="logo" alt="" />
+        <div class="code" id="code"></div>
+        <div class="pill" id="pill"><i></i><span></span></div>
+        <h1 id="title"></h1>
+        <p class="lead" id="lead"></p>
+        <div class="actions">
+          <button class="btn" type="button" onclick="location.reload()">Try again</button>
+          <a class="btn ghost" id="support"></a>
+        </div>
+        <div class="card">
+          <dl>
+            <dt>Status</dt><dd id="status"></dd>
+            <dt>Reference</dt><dd><code id="ref"></code></dd>
+            <dt>Time</dt><dd id="time"></dd>
+            <dt>Portal</dt><dd id="host"></dd>
+          </dl>
+        </div>
+        <div class="powered" id="powered">Powered by <b>Advero</b></div>
+      </div>
+    </main>
+
+    <script>
+      const BRANDS = {
+        juicebox: {
+          name: "Juicebox",
+          logo: "/brand-v2/whitelabel/juicebox-logo-dark.svg",
+          dark: true,
+          accent: "#6863ff",
+          accentSoft: "rgba(104, 99, 255, 0.16)",
+          host: "portal.juicebox.co.id",
+          support: "hello@juicebox.co.id",
+          tz: "Australia/Sydney",
+          tzLabel: "AEDT",
+        },
+        skipjack: {
+          name: "Skipjack Digital",
+          logo: "/brand-v2/whitelabel/skipjack-logo.png",
+          logoSquare: true,
+          dark: false,
+          accent: "#2b2b2b",
+          accentSoft: "rgba(43, 43, 43, 0.07)",
+          host: "Skipjack portal (domain not set yet)",
+          support: "",
+          tz: "Asia/Jakarta",
+          tzLabel: "WIB",
+        },
+      };
+
+      const CODES = {
+        500: {
+          status: "500 Internal Server Error",
+          pill: "Unexpected error",
+          title: "Something went wrong on our side",
+          lead: "The {name} portal hit an unexpected error while loading this page. Our team has been notified automatically. Your data is safe — please try again in a moment.",
+        },
+        503: {
+          status: "503 Service Unavailable",
+          pill: "Temporarily unavailable",
+          title: "We'll be right back",
+          lead: "The {name} portal is temporarily unavailable while we restore service. Campaign data keeps syncing in the background and will be up to date once we're back.",
+        },
+      };
+
+      const params = new URLSearchParams(location.search);
+      const brandKey = BRANDS[params.get("brand")] ? params.get("brand") : "juicebox";
+      const codeKey = CODES[params.get("code")] ? params.get("code") : "500";
+      const brand = BRANDS[brandKey];
+      const code = CODES[codeKey];
+
+      const bar = document.getElementById("previewBar");
+      for (const b of Object.keys(BRANDS)) {
+        for (const c of Object.keys(CODES)) {
+          const a = document.createElement("a");
+          a.href = `?brand=${b}&code=${c}`;
+          a.textContent = `${BRANDS[b].name.split(" ")[0]} ${c}`;
+          if (b === brandKey && c === codeKey) a.className = "on";
+          bar.appendChild(a);
+        }
+      }
+
+      document.body.classList.toggle("dark", brand.dark);
+      document.documentElement.style.setProperty("--accent", brand.accent);
+      document.documentElement.style.setProperty("--accent-soft", brand.accentSoft);
+      document.title = `${codeKey} · ${brand.name}`;
+
+      const logo = document.getElementById("logo");
+      logo.src = brand.logo;
+      logo.alt = brand.name;
+      logo.classList.toggle("square", !!brand.logoSquare);
+
+      document.getElementById("code").textContent = codeKey;
+      document.querySelector("#pill span").textContent = code.pill;
+      document.getElementById("title").textContent = code.title;
+      document.getElementById("lead").textContent = code.lead.replace("{name}", brand.name);
+      document.getElementById("status").textContent = code.status;
+      document.getElementById("host").textContent = brand.host;
+
+      const ref = Array.from(crypto.getRandomValues(new Uint8Array(6)), (n) => n.toString(16).padStart(2, "0")).join("");
+      document.getElementById("ref").textContent = `${brandKey.slice(0, 2).toUpperCase()}-${codeKey}-${ref}`;
+
+      const time = new Intl.DateTimeFormat("en-GB", {
+        timeZone: brand.tz,
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date());
+      document.getElementById("time").textContent = `${time} ${brand.tzLabel}`;
+
+      const support = document.getElementById("support");
+      if (brand.support) {
+        support.href = `mailto:${brand.support}?subject=${encodeURIComponent(`Portal error ${codeKey}`)}`;
+        support.textContent = "Contact support";
+      } else {
+        support.removeAttribute("href");
+        support.textContent = `Contact your ${brand.name} account manager`;
+      }
+    </script>
+  </body>
+</html>
