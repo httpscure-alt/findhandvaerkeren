@@ -232,22 +232,42 @@
         },
       };
 
+      BRANDS.advero = {
+        name: "Advero",
+        product: "token usage dashboard",
+        wordmark: "Advero",
+        dark: true,
+        vars: { "--bg": "#2b3444", "--card": "#36404f", "--border": "#465264", "--code": "#3a4556", "--muted": "#94a3b8", "--ink": "#f1f5f9" },
+        accent: "#7dd3fc",
+        accentSoft: "rgba(125, 211, 252, 0.14)",
+        host: "advero.id/ops/token-usage",
+        hostLabel: "Page",
+        support: "hello@advero.id",
+        tz: "Asia/Jakarta",
+        tzLabel: "WIB",
+        ref: "TU",
+        noPowered: true,
+      };
+
       const CODES = {
         500: {
           status: "500 Internal Server Error",
           pill: "Unexpected error",
           title: "Something went wrong on our side",
-          lead: "The {name} portal hit an unexpected error while loading this page. Our team has been notified automatically. Your data is safe — please try again in a moment.",
+          lead: "The {product} hit an unexpected error while loading this page. Our team has been notified automatically. Your data is safe — please try again in a moment.",
         },
         503: {
           status: "503 Service Unavailable",
           pill: "Temporarily unavailable",
           title: "We'll be right back",
-          lead: "The {name} portal is temporarily unavailable while we restore service. Campaign data keeps syncing in the background and will be up to date once we're back.",
+          lead: "The {product} is temporarily unavailable while we restore service. {sync}",
         },
       };
 
-      const [, pathBrand, pathCode] = location.pathname.match(/^\/([a-z-]+)\/(\d{3})\/?$/) || [];
+      const tokenMatch = location.pathname.match(/^\/ops\/token-usage\/(\d{3})\/?$/);
+      const [, pathBrand, pathCode] = tokenMatch
+        ? [null, "advero", tokenMatch[1]]
+        : location.pathname.match(/^\/([a-z-]+)\/(\d{3})\/?$/) || [];
       const brandKey = BRANDS[pathBrand] ? pathBrand : "juicebox";
       const codeKey = CODES[pathCode] ? pathCode : "500";
       const brand = BRANDS[brandKey];
@@ -256,6 +276,7 @@
       document.body.classList.toggle("dark", brand.dark);
       document.documentElement.style.setProperty("--accent", brand.accent);
       document.documentElement.style.setProperty("--accent-soft", brand.accentSoft);
+      Object.entries(brand.vars || {}).forEach(([k, v]) => document.body.style.setProperty(k, v));
       document.title = `${codeKey} · ${brand.name}`;
 
       const logo = document.getElementById("logo");
@@ -273,12 +294,21 @@
       document.getElementById("code").textContent = codeKey;
       document.querySelector("#pill span").textContent = code.pill;
       document.getElementById("title").textContent = code.title;
-      document.getElementById("lead").textContent = code.lead.replace("{name}", brand.name);
+      document.getElementById("lead").textContent = code.lead
+        .replace("{product}", brand.product || `${brand.name} portal`)
+        .replace(
+          "{sync}",
+          brandKey === "advero"
+            ? "Token balances and usage keep recording in the background and will be up to date once we're back."
+            : "Campaign data keeps syncing in the background and will be up to date once we're back.",
+        );
+      if (brand.hostLabel) document.querySelector("#host").previousElementSibling.textContent = brand.hostLabel;
+      if (brand.noPowered) document.getElementById("powered").remove();
       document.getElementById("status").textContent = code.status;
       document.getElementById("host").textContent = brand.host;
 
       const ref = Array.from(crypto.getRandomValues(new Uint8Array(6)), (n) => n.toString(16).padStart(2, "0")).join("");
-      document.getElementById("ref").textContent = `${brandKey.slice(0, 2).toUpperCase()}-${codeKey}-${ref}`;
+      document.getElementById("ref").textContent = `${brand.ref || brandKey.slice(0, 2).toUpperCase()}-${codeKey}-${ref}`;
 
       const time = new Intl.DateTimeFormat("en-GB", {
         timeZone: brand.tz,
