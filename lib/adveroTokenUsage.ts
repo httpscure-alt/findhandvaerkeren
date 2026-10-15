@@ -2188,10 +2188,17 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '14 Oct 2026', time: '15:26', clientId: 'juicebox', kind: 'usage', usd: 5, tokens: 2_220_000, note: 'Usage' },
   { date: '14 Oct 2026', time: '16:18', clientId: 'skipjack', kind: 'usage', usd: 6, tokens: 2_664_000, source: 'suitmedia', note: 'Usage' },
   { date: '14 Oct 2026', time: '16:41', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
-  { date: '14 Oct 2026', time: '17:52', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
-  { date: '15 Oct 2026', time: '06:24', clientId: 'juicebox', kind: 'usage', usd: 12, tokens: 5_328_000, note: 'Usage' },
-  { date: '15 Oct 2026', time: '08:57', clientId: 'juicebox', kind: 'usage', usd: 32, tokens: 14_208_000, note: 'Usage' },
-  { date: '15 Oct 2026', time: '11:13', clientId: 'juicebox', kind: 'usage', usd: 14, tokens: 6_216_000, note: 'Usage' },
+  { date: '14 Oct 2026', time: '17:19', clientId: 'juicebox', kind: 'usage', usd: 5, tokens: 2_220_000, note: 'Usage' },
+  { date: '14 Oct 2026', time: '18:06', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '05:38', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '06:24', clientId: 'juicebox', kind: 'usage', usd: 7, tokens: 3_108_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '07:11', clientId: 'juicebox', kind: 'usage', usd: 5, tokens: 2_220_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '07:58', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '08:46', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '09:33', clientId: 'juicebox', kind: 'usage', usd: 7, tokens: 3_108_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '10:21', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '11:02', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
+  { date: '15 Oct 2026', time: '11:49', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
