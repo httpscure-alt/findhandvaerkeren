@@ -45,8 +45,8 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'suitmedia',
     brand: 'Suitmedia',
     legalName: 'PT Suitmedia Kreasi Indonesia',
-    remainingUsd: 179,
-    remainingTokens: 74_037_000,
+    remainingUsd: 111,
+    remainingTokens: 43_845_000,
   },
   {
     id: 'artdigital',
@@ -2238,6 +2238,15 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '15 Oct 2026', time: '18:03', clientId: 'skipjack', kind: 'usage', usd: 7, tokens: 3_108_000, source: 'suitmedia', note: 'Usage' },
   { date: '15 Oct 2026', time: '18:21', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
   { date: '15 Oct 2026', time: '18:52', clientId: 'skipjack', kind: 'usage', usd: 6, tokens: 2_664_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '19:04', clientId: 'skipjack', kind: 'usage', usd: 8, tokens: 3_552_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '19:21', clientId: 'skipjack', kind: 'usage', usd: 7, tokens: 3_108_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '19:39', clientId: 'skipjack', kind: 'usage', usd: 9, tokens: 3_996_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '19:56', clientId: 'skipjack', kind: 'usage', usd: 6, tokens: 2_664_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '20:12', clientId: 'skipjack', kind: 'usage', usd: 8, tokens: 3_552_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '20:29', clientId: 'skipjack', kind: 'usage', usd: 7, tokens: 3_108_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '20:44', clientId: 'skipjack', kind: 'usage', usd: 9, tokens: 3_996_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '20:58', clientId: 'skipjack', kind: 'usage', usd: 6, tokens: 2_664_000, source: 'suitmedia', note: 'Usage' },
+  { date: '15 Oct 2026', time: '21:09', clientId: 'skipjack', kind: 'usage', usd: 8, tokens: 3_552_000, source: 'suitmedia', note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
