@@ -31,8 +31,8 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 158,
-    remainingTokens: 81_918_000,
+    remainingUsd: 124,
+    remainingTokens: 66_822_000,
   },
   {
     id: 'skipjack',
@@ -2284,6 +2284,11 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '16 Oct 2026', time: '15:44', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
   { date: '16 Oct 2026', time: '16:07', clientId: 'juicebox', kind: 'usage', usd: 9, tokens: 3_996_000, note: 'Usage' },
   { date: '16 Oct 2026', time: '16:31', clientId: 'juicebox', kind: 'usage', usd: 7, tokens: 3_108_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '16:48', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '17:15', clientId: 'juicebox', kind: 'usage', usd: 5, tokens: 2_220_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '17:41', clientId: 'juicebox', kind: 'usage', usd: 9, tokens: 3_996_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '18:08', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '18:36', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
