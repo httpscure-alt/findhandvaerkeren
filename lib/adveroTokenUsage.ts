@@ -31,8 +31,8 @@ export const TOKEN_CLIENTS: TokenClient[] = [
     id: 'juicebox',
     brand: 'Juicebox',
     legalName: 'Juicebox',
-    remainingUsd: 246,
-    remainingTokens: 120_990_000,
+    remainingUsd: 158,
+    remainingTokens: 81_918_000,
   },
   {
     id: 'skipjack',
@@ -2273,6 +2273,17 @@ export const TOKEN_LEDGER: TokenLedgerEntry[] = [
   { date: '16 Oct 2026', time: '12:05', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
   { date: '16 Oct 2026', time: '12:07', clientId: 'skipjack', kind: 'usage', usd: 4, tokens: 1_776_000, source: 'suitmedia', note: 'Usage' },
   { date: '16 Oct 2026', time: '12:11', clientId: 'skipjack', kind: 'usage', usd: 4, tokens: 1_776_000, source: 'suitmedia', note: 'Usage' },
+  { date: '16 Oct 2026', time: '12:28', clientId: 'juicebox', kind: 'usage', usd: 8, tokens: 3_552_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '12:51', clientId: 'juicebox', kind: 'usage', usd: 9, tokens: 3_996_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '13:17', clientId: 'juicebox', kind: 'usage', usd: 7, tokens: 3_108_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '13:42', clientId: 'juicebox', kind: 'usage', usd: 12, tokens: 5_328_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '14:08', clientId: 'juicebox', kind: 'usage', usd: 6, tokens: 2_664_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '14:33', clientId: 'juicebox', kind: 'usage', usd: 10, tokens: 4_440_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '14:56', clientId: 'juicebox', kind: 'usage', usd: 5, tokens: 2_220_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '15:19', clientId: 'juicebox', kind: 'usage', usd: 11, tokens: 4_884_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '15:44', clientId: 'juicebox', kind: 'usage', usd: 4, tokens: 1_776_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '16:07', clientId: 'juicebox', kind: 'usage', usd: 9, tokens: 3_996_000, note: 'Usage' },
+  { date: '16 Oct 2026', time: '16:31', clientId: 'juicebox', kind: 'usage', usd: 7, tokens: 3_108_000, note: 'Usage' },
 ];
 
 export function usdToTokens(usd: number): number {
