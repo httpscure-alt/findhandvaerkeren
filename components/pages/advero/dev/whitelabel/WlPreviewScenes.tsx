@@ -51,6 +51,53 @@ function useSceneContext(): WhitelabelSceneContext | undefined {
   return useContext(WhitelabelSceneContextReact);
 }
 
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+type PeriodCtxValue = {
+  period: string;
+  options: string[];
+  setPeriod: (period: string) => void;
+};
+
+const PeriodContext = createContext<PeriodCtxValue | null>(null);
+
+function useSelectedPeriod(fallback: string): PeriodCtxValue {
+  const ctx = useContext(PeriodContext);
+  return ctx ?? { period: fallback, options: [fallback], setPeriod: () => undefined };
+}
+
+function periodOptionsFrom(data: ReturnType<typeof agencyDemoData>): string[] {
+  const keys = new Set<string>([data.period]);
+  for (const r of data.reports) {
+    if (r.kind === 'monthly') keys.add(r.period.replace(/ \(.*\)$/, ''));
+  }
+  return [...keys].sort((a, b) => {
+    const [aMonth, aYear = '0'] = a.split(' ');
+    const [bMonth, bYear = '0'] = b.split(' ');
+    return Number(bYear) - Number(aYear) || MONTH_NAMES.indexOf(bMonth) - MONTH_NAMES.indexOf(aMonth);
+  });
+}
+
+const MONTH_FACTOR: Record<string, number> = { aug: 0.92, sep: 1, oct: 1.04 };
+
+function periodFactor(period: string): number {
+  const key = period.split(' ')[0]?.slice(0, 3).toLowerCase() ?? '';
+  return MONTH_FACTOR[key] ?? 1;
+}
+
 function SceneContextProvider({
   value,
   children,
@@ -198,6 +245,10 @@ function WlAppShell({
   action?: React.ReactNode;
 }) {
   const sceneContext = useSceneContext();
+  const data = agencyDemoData(theme.id);
+  const periodOptions = useMemo(() => periodOptionsFrom(data), [data]);
+  const [period, setPeriod] = useState(data.period);
+  const periodCtx = useMemo(() => ({ period, options: periodOptions, setPeriod }), [period, periodOptions]);
   const agencyLinks: NavLink[] = [
     { label: 'Dashboard', active: activeNav === 'Dashboard' },
     { label: 'Operations', active: activeNav === 'Operations' },
@@ -233,11 +284,27 @@ function WlAppShell({
               {subtitle ? <p className="wl-page-sub">{subtitle}</p> : null}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="wl-tag wl-tag--outline">{agencyDemoData(theme.id).period}</span>
+              <label className="wl-period-select" style={{ display: 'inline-flex' }}>
+                <select
+                  className="wl-tag wl-tag--outline"
+                  value={periodOptions.includes(period) ? period : data.period}
+                  onChange={(e) => setPeriod(e.target.value)}
+                  aria-label="Reporting period"
+                  style={{ cursor: 'pointer', appearance: 'auto', paddingRight: '1.5rem' }}
+                >
+                  {periodOptions.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {action}
             </div>
           </header>
-          <div className="wl-app-content">{children}</div>
+          <PeriodContext.Provider value={periodCtx}>
+            <div className="wl-app-content">{children}</div>
+          </PeriodContext.Provider>
         </div>
       </div>
     </div>
@@ -443,21 +510,18 @@ export const WlAgencyLoginScene: React.FC<SceneProps> = ({ theme }) => <LoginSce
 
 export const WlClientLoginScene: React.FC<SceneProps> = ({ theme }) => <LoginScene theme={theme} role="client" />;
 
-export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
+function AgencyDashboardBody({ theme }: SceneProps) {
   const data = agencyDemoData(theme.id);
+  const { period } = useSelectedPeriod(data.period);
+  const factor = periodFactor(period);
+  const scale = (n: number) => Math.round(n * factor);
   const { totals } = data;
+
   return (
-    <WlAppShell
-      theme={theme}
-      role="agency"
-      title="Agency dashboard"
-      subtitle={`Portfolio performance · ${data.clients.length} clients · ${data.period}`}
-      activeNav="Dashboard"
-      action={<button type="button" className="wl-btn">New client</button>}
-    >
+    <>
       <StatRow
         items={[
-          { l: 'Total ad spend', v: formatWlIdr(totals.spend) },
+          { l: 'Total ad spend', v: formatWlIdr(scale(totals.spend)) },
           { l: 'Portfolio ROAS', v: `${totals.roas.toFixed(1)}×` },
           { l: 'Avg visibility score', v: String(totals.visibility) },
           { l: 'Active clients', v: `${totals.activeClients} of ${data.clients.length}` },
@@ -467,13 +531,23 @@ export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
         <UsageSummary data={data} />
       </div>
 
-      <p className="wl-eyebrow wl-section-gap">Channel performance — all clients</p>
+      <p className="wl-eyebrow wl-section-gap">Channel performance — all clients · {period}</p>
       <div style={{ marginTop: '0.65rem' }}>
         <ChannelCards
           showCharts
           source={{
-            google: totals.google,
-            meta: totals.meta,
+            google: {
+              ...totals.google,
+              spend: scale(totals.google.spend),
+              clicks: scale(totals.google.clicks),
+              conversions: scale(totals.google.conversions),
+            },
+            meta: {
+              ...totals.meta,
+              spend: scale(totals.meta.spend),
+              reach: scale(totals.meta.reach),
+              conversions: scale(totals.meta.conversions),
+            },
             seo: totals.seo,
             ai: totals.ai,
             metaRoas: totals.meta.roas,
@@ -485,25 +559,53 @@ export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
       </div>
 
       <div className="wl-panel wl-section-gap">
-        <div className="wl-panel-head">Clients by spend</div>
+        <div className="wl-panel-head">Clients by spend · {period}</div>
         <div className="wl-panel-body">
           {data.clients.map((c) => (
             <ClientRow key={c.name} name={c.name}>
               <div>
                 <p style={{ fontWeight: 500 }}>{c.name}</p>
                 <p className="wl-muted" style={{ fontSize: 12, marginTop: 2 }}>
-                  {c.industry} · {fmtInt(c.leads)} leads
+                  {c.industry} · {fmtInt(scale(c.leads))} leads
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '1rem', fontSize: 12, alignItems: 'center' }}>
                 {c.status !== 'Active' ? <span className="wl-tag">{c.status}</span> : null}
-                <span className="wl-muted">{formatWlIdr(c.spend)}</span>
+                <span className="wl-muted">{formatWlIdr(scale(c.spend))}</span>
                 <span className="wl-channel-delta">{c.roas.toFixed(1)}×</span>
               </div>
             </ClientRow>
           ))}
         </div>
       </div>
+    </>
+  );
+}
+
+export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
+  const data = agencyDemoData(theme.id);
+  const sceneContext = useSceneContext();
+  const clientsHref = sceneContext?.navLink?.('Clients', 'agency');
+  return (
+    <WlAppShell
+      theme={theme}
+      role="agency"
+      title="Agency dashboard"
+      subtitle={`Portfolio performance · ${data.clients.length} clients`}
+      activeNav="Dashboard"
+      action={
+        clientsHref ? (
+          <Link to={clientsHref} className="wl-btn">
+            New client
+          </Link>
+        ) : (
+          <button type="button" className="wl-btn" disabled title="Sign in to manage clients">
+            New client
+          </button>
+        )
+      }
+    >
+      <AgencyDashboardBody theme={theme} />
     </WlAppShell>
   );
 };
@@ -1301,8 +1403,6 @@ function ReportRow({ row, showClient = true }: { row: DemoReport; showClient?: b
     </div>
   );
 }
-
-const MONTH_FACTOR: Record<string, number> = { aug: 0.92, sep: 1, oct: 1.04 };
 
 function reportFactor(r: DemoReport): number {
   const growth = r.kind === 'monthly' ? MONTH_FACTOR[r.id.slice(0, 3)] ?? 1 : 1;
