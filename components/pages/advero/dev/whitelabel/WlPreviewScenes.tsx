@@ -1171,7 +1171,17 @@ function ChannelTable({ head, rows }: { head: string[]; rows: (string | number)[
   );
 }
 
-function ClientSectionBody({ c, section, data }: { c: DemoClient; section: ClientSection; data: ReturnType<typeof agencyDemoData> }) {
+function ClientSectionBody({
+  c,
+  section,
+  data,
+  theme,
+}: {
+  c: DemoClient;
+  section: ClientSection;
+  data: ReturnType<typeof agencyDemoData>;
+  theme: WhitelabelTheme;
+}) {
   if (section === 'google-ads') {
     const camps = splitBy(c.google.spend, [
       { name: 'Search — Brand', w: 18, cpaF: 0.55 },
@@ -1295,7 +1305,7 @@ function ClientSectionBody({ c, section, data }: { c: DemoClient; section: Clien
   }
 
   if (section === 'reports') {
-    return <ClientReports c={c} data={data} />;
+    return <ClientReports c={c} data={data} theme={theme} />;
   }
 
   const clientRuns = data.runs.filter((r) => r.client === c.name);
@@ -1344,12 +1354,20 @@ function ClientSectionBody({ c, section, data }: { c: DemoClient; section: Clien
   );
 }
 
-function ClientReports({ c, data }: { c: DemoClient; data: ReturnType<typeof agencyDemoData> }) {
+function ClientReports({
+  c,
+  data,
+  theme,
+}: {
+  c: DemoClient;
+  data: ReturnType<typeof agencyDemoData>;
+  theme: WhitelabelTheme;
+}) {
   const ctx = useSceneContext();
   const [limit, setLimit] = useState(PAGE);
   const reports = data.reports.filter((r) => r.client === c.name);
   const open = ctx?.reportId ? reports.find((r) => r.id === ctx.reportId) : undefined;
-  if (open) return <ReportDetail key={open.id} report={open} data={data} />;
+  if (open) return <ReportDetail key={open.id} report={open} data={data} theme={theme} />;
   const runs = data.runs.filter((r) => r.client === c.name);
   const tokens = runs.reduce((a, r) => a + r.tokens, 0);
   return (
@@ -1410,7 +1428,7 @@ export const WlClientDashboardScene: React.FC<SceneProps> = ({ theme }) => {
         </>
       }
     >
-      <ClientSectionBody c={c} section={section} data={data} />
+      <ClientSectionBody c={c} section={section} data={data} theme={theme} />
     </WlAppShell>
   );
 };
@@ -1567,7 +1585,15 @@ function reportSummary(r: DemoReport, c: DemoClient | undefined, data: ReturnTyp
   return `${lead} drove most of the results for ${c.name} this period at ${c.roas.toFixed(1)}× ROAS. Google CPA sits at ${formatWlIdr(c.google.cpa)}; organic visibility is ${c.seo.visibility} and AI visibility ${c.ai.score}.${rec ? ` Next step: ${rec.title.charAt(0).toLowerCase()}${rec.title.slice(1)} (${rec.impact}).` : ''}`;
 }
 
-function ReportDetail({ report, data }: { report: DemoReport; data: ReturnType<typeof agencyDemoData> }) {
+function ReportDetail({
+  report,
+  data,
+  theme,
+}: {
+  report: DemoReport;
+  data: ReturnType<typeof agencyDemoData>;
+  theme: WhitelabelTheme;
+}) {
   const ctx = useSceneContext();
   const c = data.clients.find((x) => x.name === report.client);
   const [status, setStatus] = useState(reportStatus(report));
@@ -1581,6 +1607,10 @@ function ReportDetail({ report, data }: { report: DemoReport; data: ReturnType<t
     { spend: 0, leads: 0, gConv: 0, gSpend: 0 },
   );
   const roas = c ? c.roas : data.totals.roas;
+  const periodLine =
+    report.kind === 'ai'
+      ? `Last 30 days · Generated ${report.issued}`
+      : `${report.period} · Issued ${report.issued}`;
 
   return (
     <>
@@ -1612,75 +1642,127 @@ function ReportDetail({ report, data }: { report: DemoReport; data: ReturnType<t
         </div>
       </div>
 
-      <div className="wl-panel" style={{ padding: '1.25rem 1.4rem' }}>
-        <p className="wl-eyebrow">{kindLabel}</p>
-        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0.35rem 0 0.2rem' }}>{report.client}</h2>
-        <p className="wl-muted" style={{ fontSize: 13 }}>
-          {report.kind === 'ai' ? `Last 30 days · Generated ${report.issued}` : `${report.period} · Issued ${report.issued}`} · {report.channels}
-          {report.tokens ? ` · ${fmtReach(report.tokens)} tokens` : ''}
-        </p>
-        <p className="wl-eyebrow wl-section-gap">Executive summary</p>
-        {status === 'Draft' ? (
-          <textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            rows={4}
-            style={{ width: '100%', marginTop: '0.5rem', padding: '0.7rem', border: '1px solid var(--wl-border)', borderRadius: 6, font: 'inherit', fontSize: 14, lineHeight: 1.55, background: 'var(--wl-surface)', color: 'var(--wl-text)' }}
+      <article className="wl-report-print">
+        <header className="wl-report-print-letterhead">
+          <div>
+            {theme.logoUrlDark || theme.logoUrl ? (
+              <img src={theme.logoUrlDark || theme.logoUrl} alt={theme.name} />
+            ) : (
+              <strong style={{ fontSize: 16 }}>{theme.name}</strong>
+            )}
+            <p className="wl-muted" style={{ fontSize: 11, margin: '0.35rem 0 0' }}>
+              {theme.legalEntity}
+            </p>
+          </div>
+          <div className="wl-report-print-meta">
+            <div>{kindLabel}</div>
+            <div>{periodLine}</div>
+            <div>{report.channels}</div>
+            {data.loginEmail ? <div>{data.loginEmail}</div> : null}
+          </div>
+        </header>
+
+        <div className="wl-panel" style={{ padding: '1.25rem 1.4rem' }}>
+          <p className="wl-eyebrow">{kindLabel}</p>
+          <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0.35rem 0 0.2rem' }}>{report.client}</h2>
+          <p className="wl-muted" style={{ fontSize: 13 }}>
+            {periodLine} · {report.channels}
+            {report.tokens ? ` · ${fmtReach(report.tokens)} tokens` : ''}
+          </p>
+          <p className="wl-eyebrow wl-section-gap">Executive summary</p>
+          {status === 'Draft' ? (
+            <textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              rows={4}
+              style={{
+                width: '100%',
+                marginTop: '0.5rem',
+                padding: '0.7rem',
+                border: '1px solid var(--wl-border)',
+                borderRadius: 6,
+                font: 'inherit',
+                fontSize: 14,
+                lineHeight: 1.55,
+                background: 'var(--wl-surface)',
+                color: 'var(--wl-text)',
+              }}
+            />
+          ) : (
+            <p style={{ fontSize: 14, lineHeight: 1.6, marginTop: '0.5rem' }}>{summary}</p>
+          )}
+        </div>
+
+        <div className="wl-section-gap">
+          <StatRow
+            items={[
+              { l: 'Ad spend', v: formatWlIdr(tot.spend) },
+              { l: 'Leads', v: fmtInt(tot.leads) },
+              { l: 'Google CPA', v: formatWlIdr(tot.gConv ? Math.round(tot.gSpend / tot.gConv) : 0) },
+              { l: 'Blended ROAS', v: `${roas.toFixed(1)}×` },
+            ]}
+          />
+        </div>
+
+        {c ? (
+          <ChannelTable
+            head={['Channel', 'Spend', 'Results', 'Key metric']}
+            rows={[
+              ['Google Ads', formatWlIdr(m[0].gSpend), `${fmtInt(m[0].gConv)} conversions`, `CPA ${formatWlIdr(c.google.cpa)}`],
+              [
+                'Meta Ads',
+                formatWlIdr(m[0].mSpend),
+                `${fmtInt(m[0].mConv)} conversions`,
+                `Reach ${fmtReach(m[0].mReach)} · CTR ${(c.meta.ctr * 100).toFixed(1)}%`,
+              ],
+              [
+                'SEO',
+                '—',
+                `${fmtInt(Math.round(c.seo.sessions * f))} organic sessions`,
+                `Visibility ${c.seo.visibility} · ${c.seo.top10} top-10 keywords`,
+              ],
+              [
+                'AI visibility',
+                '—',
+                `${fmtInt(Math.round(c.ai.mentions * f))} brand mentions`,
+                `Score ${c.ai.score} · ${c.ai.shareOfVoice}% share of voice`,
+              ],
+            ]}
           />
         ) : (
-          <p style={{ fontSize: 14, lineHeight: 1.6, marginTop: '0.5rem' }}>{summary}</p>
+          <ChannelTable
+            head={['Client', 'Spend', 'Leads', 'ROAS']}
+            rows={m.map((x) => [x.c.name, formatWlIdr(x.spend), fmtInt(x.leads), `${x.c.roas.toFixed(1)}×`])}
+          />
         )}
-      </div>
 
-      <div className="wl-section-gap">
-        <StatRow
-          items={[
-            { l: 'Ad spend', v: formatWlIdr(tot.spend) },
-            { l: 'Leads', v: fmtInt(tot.leads) },
-            { l: 'Google CPA', v: formatWlIdr(tot.gConv ? Math.round(tot.gSpend / tot.gConv) : 0) },
-            { l: 'Blended ROAS', v: `${roas.toFixed(1)}×` },
-          ]}
-        />
-      </div>
-
-      {c ? (
-        <ChannelTable
-          head={['Channel', 'Spend', 'Results', 'Key metric']}
-          rows={[
-            ['Google Ads', formatWlIdr(m[0].gSpend), `${fmtInt(m[0].gConv)} conversions`, `CPA ${formatWlIdr(c.google.cpa)}`],
-            ['Meta Ads', formatWlIdr(m[0].mSpend), `${fmtInt(m[0].mConv)} conversions`, `Reach ${fmtReach(m[0].mReach)} · CTR ${(c.meta.ctr * 100).toFixed(1)}%`],
-            ['SEO', '—', `${fmtInt(Math.round(c.seo.sessions * f))} organic sessions`, `Visibility ${c.seo.visibility} · ${c.seo.top10} top-10 keywords`],
-            ['AI visibility', '—', `${fmtInt(Math.round(c.ai.mentions * f))} brand mentions`, `Score ${c.ai.score} · ${c.ai.shareOfVoice}% share of voice`],
-          ]}
-        />
-      ) : (
-        <ChannelTable
-          head={['Client', 'Spend', 'Leads', 'ROAS']}
-          rows={m.map((x) => [x.c.name, formatWlIdr(x.spend), fmtInt(x.leads), `${x.c.roas.toFixed(1)}×`])}
-        />
-      )}
-
-      {data.recommendations.filter((r) => !c || r.client === c.name).length ? (
-        <div className="wl-panel wl-section-gap">
-          <div className="wl-panel-head">Recommendations</div>
-          <div className="wl-panel-body">
-            {data.recommendations
-              .filter((r) => !c || r.client === c.name)
-              .map((r) => (
-                <div key={r.title} className="wl-list-row">
-                  <div>
-                    <p style={{ fontWeight: 500 }}>{r.title}</p>
-                    <p className="wl-muted" style={{ fontSize: 12, marginTop: 2 }}>
-                      {c ? '' : `${r.client} · `}
-                      {r.channel} · {r.impact}
-                    </p>
+        {data.recommendations.filter((r) => !c || r.client === c.name).length ? (
+          <div className="wl-panel wl-section-gap">
+            <div className="wl-panel-head">Recommendations</div>
+            <div className="wl-panel-body">
+              {data.recommendations
+                .filter((r) => !c || r.client === c.name)
+                .map((r) => (
+                  <div key={r.title} className="wl-list-row">
+                    <div>
+                      <p style={{ fontWeight: 500 }}>{r.title}</p>
+                      <p className="wl-muted" style={{ fontSize: 12, marginTop: 2 }}>
+                        {c ? '' : `${r.client} · `}
+                        {r.channel} · {r.impact}
+                      </p>
+                    </div>
+                    <span className="wl-tag">{r.priority === 'med' ? 'medium' : r.priority}</span>
                   </div>
-                  <span className="wl-tag">{r.priority === 'med' ? 'medium' : r.priority}</span>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+
+        <footer className="wl-report-print-footer">
+          Prepared by {theme.legalEntity} · Confidential — for client use only
+          {report.tokens ? ` · ${fmtReach(report.tokens)} tokens` : ''}
+        </footer>
+      </article>
     </>
   );
 }
@@ -1695,7 +1777,7 @@ export const WlReportsScene: React.FC<SceneProps> = ({ theme }) => {
   if (open) {
     return (
       <WlAppShell theme={theme} role="agency" title="Reports" subtitle={`${open.client} · ${open.period}`} activeNav="Reports">
-        <ReportDetail key={open.id} report={open} data={data} />
+        <ReportDetail key={open.id} report={open} data={data} theme={theme} />
       </WlAppShell>
     );
   }
