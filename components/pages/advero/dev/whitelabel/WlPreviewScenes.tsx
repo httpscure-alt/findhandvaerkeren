@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import type { WhitelabelScreenId, WhitelabelTheme } from '../../../../../lib/adveroWhitelabelThemes';
 import { formatWlIdr } from '../../../../../lib/adveroWhitelabelThemes';
 import {
+  addAgencyClient,
   agencyDemoData,
+  createOnboardingClient,
   useAgencyData,
   type DemoClient,
   type DemoReport,
@@ -582,10 +584,130 @@ function AgencyDashboardBody({ theme }: SceneProps) {
   );
 }
 
+function NewClientModal({
+  theme,
+  open,
+  onClose,
+  onCreated,
+}: {
+  theme: WhitelabelTheme;
+  open: boolean;
+  onClose: () => void;
+  onCreated: (client: DemoClient) => void;
+}) {
+  const [form, setForm] = useState({ name: '', website: '', industry: '', bundle: 'Ads only' });
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  if (!open) return null;
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const name = form.name.trim();
+    if (!name) {
+      setError('Enter a company name.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const client = addAgencyClient(
+        theme.id,
+        createOnboardingClient({
+          name,
+          website: form.website,
+          industry: form.industry,
+          bundle: form.bundle,
+        }),
+      );
+      setForm({ name: '', website: '', industry: '', bundle: 'Ads only' });
+      onCreated(client);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not create client.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="wl-modal-backdrop" role="presentation" onClick={onClose}>
+      <div className="wl-modal" role="dialog" aria-modal="true" aria-labelledby="wl-new-client-title" onClick={(e) => e.stopPropagation()}>
+        <div className="wl-modal-head">
+          <h2 id="wl-new-client-title" className="wl-modal-title">
+            New client
+          </h2>
+          <button type="button" className="wl-modal-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        <form className="wl-modal-body" onSubmit={submit}>
+          <label className="wl-field">
+            <span>Company name *</span>
+            <input
+              className="wl-input"
+              required
+              autoFocus
+              value={form.name}
+              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+              placeholder="Acme Indonesia"
+            />
+          </label>
+          <label className="wl-field">
+            <span>Website</span>
+            <input
+              className="wl-input"
+              value={form.website}
+              onChange={(e) => setForm((s) => ({ ...s, website: e.target.value }))}
+              placeholder="acme.co.id"
+            />
+          </label>
+          <label className="wl-field">
+            <span>Industry</span>
+            <input
+              className="wl-input"
+              value={form.industry}
+              onChange={(e) => setForm((s) => ({ ...s, industry: e.target.value }))}
+              placeholder="E-commerce, SaaS, F&B…"
+            />
+          </label>
+          <label className="wl-field">
+            <span>Channel bundle</span>
+            <select className="wl-input" value={form.bundle} onChange={(e) => setForm((s) => ({ ...s, bundle: e.target.value }))}>
+              <option>Ads only</option>
+              <option>Ads + SEO</option>
+              <option>Social first</option>
+              <option>Growth bundle</option>
+              <option>Full stack</option>
+              <option>SEO + AI</option>
+            </select>
+          </label>
+          {error ? (
+            <p role="alert" style={{ color: '#b91c1c', fontSize: 12, margin: 0 }}>
+              {error}
+            </p>
+          ) : null}
+          <div className="wl-modal-actions">
+            <button type="button" className="wl-btn wl-btn--ghost" onClick={onClose} disabled={busy}>
+              Cancel
+            </button>
+            <button type="submit" className="wl-btn" disabled={busy || !form.name.trim()}>
+              {busy ? 'Creating…' : 'Create client'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
-  const data = agencyDemoData(theme.id);
   const sceneContext = useSceneContext();
-  const clientsHref = sceneContext?.navLink?.('Clients', 'agency');
+  const [open, setOpen] = useState(false);
+  const [version, setVersion] = useState(0);
+  const data = agencyDemoData(theme.id);
+  void version;
+
   return (
     <WlAppShell
       theme={theme}
@@ -594,18 +716,21 @@ export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
       subtitle={`Portfolio performance · ${data.clients.length} clients`}
       activeNav="Dashboard"
       action={
-        clientsHref ? (
-          <Link to={clientsHref} className="wl-btn">
-            New client
-          </Link>
-        ) : (
-          <button type="button" className="wl-btn" disabled title="Sign in to manage clients">
-            New client
-          </button>
-        )
+        <button type="button" className="wl-btn" onClick={() => setOpen(true)}>
+          New client
+        </button>
       }
     >
-      <AgencyDashboardBody theme={theme} />
+      <AgencyDashboardBody theme={theme} key={version} />
+      <NewClientModal
+        theme={theme}
+        open={open}
+        onClose={() => setOpen(false)}
+        onCreated={(client) => {
+          setVersion((n) => n + 1);
+          sceneContext?.onSelectClient?.(client.name);
+        }}
+      />
     </WlAppShell>
   );
 };

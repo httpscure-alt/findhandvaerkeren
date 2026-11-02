@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AgencyDemoData } from './agencyDemoData';
+import type { AgencyDemoData, DemoClient } from './agencyDemoData';
 
 export type {
   AgencyDemoData,
@@ -76,4 +76,51 @@ export function useAgencyData(themeId: string): { state: AgencyDataState; retry:
 
 export function clearAgencyData(): void {
   store.clear();
+}
+
+/** Session-only add — demo portals keep portfolio in memory after login. */
+export function addAgencyClient(themeId: string, client: DemoClient): DemoClient {
+  const key = agencyDataKey(themeId);
+  const data = key ? store.get(key) : undefined;
+  if (!key || !data) throw new Error(`Agency data for "${themeId}" is not loaded`);
+  const name = client.name.trim();
+  if (!name) throw new Error('Client name is required');
+  if (data.clients.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+    throw new Error('A client with that name already exists');
+  }
+  const next: DemoClient = { ...client, name };
+  store.set(key, {
+    ...data,
+    clients: [next, ...data.clients],
+    totals: {
+      ...data.totals,
+      activeClients:
+        next.status === 'Active' ? data.totals.activeClients + 1 : data.totals.activeClients,
+    },
+  });
+  return next;
+}
+
+export function createOnboardingClient(input: {
+  name: string;
+  industry?: string;
+  website?: string;
+  bundle?: string;
+}): DemoClient {
+  const website = (input.website || '').replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  return {
+    name: input.name.trim(),
+    industry: (input.industry || 'General').trim() || 'General',
+    website: website || 'pending.setup',
+    status: 'Onboarding',
+    bundle: (input.bundle || 'Ads only').trim() || 'Ads only',
+    google: { spend: 0, clicks: 0, conversions: 0, cpa: 0 },
+    meta: { spend: 0, reach: 0, ctr: 0, conversions: 0 },
+    seo: { visibility: 0, top10: 0, sessions: 0, pages: 0 },
+    ai: { score: 0, mentions: 0, shareOfVoice: 0, cited: 0 },
+    spend: 0,
+    leads: 0,
+    roas: 0,
+    trend: Array.from({ length: 12 }, () => 18),
+  };
 }
