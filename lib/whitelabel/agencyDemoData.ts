@@ -291,23 +291,33 @@ function buildReports(clients: DemoClient[], historyStart: number, draftCount: n
   }
 
   const startMonth = new Date(historyStart).getUTCMonth();
-  for (let m = 8; m >= startMonth; m -= 1) {
-    const partial = m === startMonth && new Date(historyStart).getUTCDate() > 1;
+  const endMonth = new Date(HISTORY_END).getUTCMonth();
+  for (let m = endMonth; m >= startMonth; m -= 1) {
+    const daysInMonth = new Date(Date.UTC(2026, m + 1, 0)).getUTCDate();
+    const partialStart = m === startMonth && new Date(historyStart).getUTCDate() > 1;
+    const partialEnd = m === endMonth && new Date(HISTORY_END).getUTCDate() < daysInMonth;
+    const startDay = partialStart ? new Date(historyStart).getUTCDate() : 1;
+    const endDay = partialEnd ? new Date(HISTORY_END).getUTCDate() : daysInMonth;
+    const issuedAt = partialEnd ? HISTORY_END : Date.UTC(2026, m + 1, 3);
+    const period =
+      partialStart && partialEnd
+        ? `${MONTHS_LONG[m]} 2026 (${startDay}–${endDay} ${MONTHS[m]})`
+        : partialStart
+          ? `${MONTHS_LONG[m]} 2026 (from ${startDay} ${MONTHS[m]})`
+          : partialEnd
+            ? `${MONTHS_LONG[m]} 2026 (to ${endDay} ${MONTHS[m]})`
+            : `${MONTHS_LONG[m]} 2026`;
     clients
       .filter((c) => c.status !== 'Onboarding')
       .forEach((c, i) => {
-        const days = new Date(Date.UTC(2026, m + 1, 0)).getUTCDate();
-        const startDay = partial ? new Date(historyStart).getUTCDate() : 1;
         reports.push({
           id: `${MONTHS[m].toLowerCase()}-2026-${slugOf(c.name)}`,
           kind: 'monthly',
-          coverage: (days - startDay + 1) / 30,
-          issued: fmtDate(Date.UTC(2026, m + 1, 3)),
-          at: Date.UTC(2026, m + 1, 3) - i,
+          coverage: (endDay - startDay + 1) / 30,
+          issued: fmtDate(issuedAt),
+          at: issuedAt - i,
           client: c.name,
-          period: partial
-            ? `${MONTHS_LONG[m]} 2026 (from ${new Date(historyStart).getUTCDate()} ${MONTHS[m]})`
-            : `${MONTHS_LONG[m]} 2026`,
+          period,
           channels: channelsOf(c),
           status: 'Sent',
         });

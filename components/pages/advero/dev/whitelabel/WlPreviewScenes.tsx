@@ -451,7 +451,7 @@ export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
       theme={theme}
       role="agency"
       title="Agency dashboard"
-      subtitle={`Portfolio performance · ${data.clients.length} clients · September 2026`}
+      subtitle={`Portfolio performance · ${data.clients.length} clients · ${data.period}`}
       activeNav="Dashboard"
       action={<button type="button" className="wl-btn">New client</button>}
     >
@@ -463,6 +463,9 @@ export const WlAgencyDashboardScene: React.FC<SceneProps> = ({ theme }) => {
           { l: 'Active clients', v: `${totals.activeClients} of ${data.clients.length}` },
         ]}
       />
+      <div className="wl-section-gap">
+        <UsageSummary data={data} />
+      </div>
 
       <p className="wl-eyebrow wl-section-gap">Channel performance — all clients</p>
       <div style={{ marginTop: '0.65rem' }}>
@@ -1059,6 +1062,8 @@ function ClientSectionBody({ c, section, data }: { c: DemoClient; section: Clien
     return <ClientReports c={c} data={data} />;
   }
 
+  const clientRuns = data.runs.filter((r) => r.client === c.name);
+  const clientTokens = clientRuns.reduce((a, r) => a + r.tokens, 0);
   return (
     <>
       <StatRow
@@ -1067,6 +1072,14 @@ function ClientSectionBody({ c, section, data }: { c: DemoClient; section: Clien
           { l: 'Leads generated', v: fmtInt(c.leads) },
           { l: 'Blended ROAS', v: `${c.roas.toFixed(1)}×` },
           { l: 'Visibility score', v: String(c.seo.visibility) },
+        ]}
+      />
+      <StatRow
+        items={[
+          { l: `AI runs since ${data.usage.since}`, v: fmtInt(clientRuns.length) },
+          { l: 'Reports · audits', v: `${fmtInt(clientRuns.filter((r) => r.kind === 'Report').length)} · ${fmtInt(clientRuns.filter((r) => r.kind === 'Audit').length)}` },
+          { l: 'Scans · recommendations', v: `${fmtInt(clientRuns.filter((r) => r.kind === 'AI visibility scan').length)} · ${fmtInt(clientRuns.filter((r) => r.kind === 'Recommendations').length)}` },
+          { l: 'Tokens used', v: `${fmtReach(clientTokens)} · $${fmtInt(Math.round(clientRuns.reduce((a, r) => a + r.usd, 0)))}` },
         ]}
       />
       <p className="wl-eyebrow wl-section-gap">Channel performance</p>
@@ -1289,7 +1302,7 @@ function ReportRow({ row, showClient = true }: { row: DemoReport; showClient?: b
   );
 }
 
-const MONTH_FACTOR: Record<string, number> = { aug: 0.92, sep: 1 };
+const MONTH_FACTOR: Record<string, number> = { aug: 0.92, sep: 1, oct: 1.04 };
 
 function reportFactor(r: DemoReport): number {
   const growth = r.kind === 'monthly' ? MONTH_FACTOR[r.id.slice(0, 3)] ?? 1 : 1;
