@@ -5,9 +5,11 @@ import { formatWlIdr } from '../../../../../lib/adveroWhitelabelThemes';
 import {
   addAgencyClient,
   agencyDemoData,
+  assignRecommendationTask,
   createOnboardingClient,
   useAgencyData,
   type DemoClient,
+  type DemoRecommendation,
   type DemoReport,
 } from '../../../../../lib/whitelabel/agencyDataStore';
 import WhitelabelWordmark from '../../../../advero/whitelabel/WhitelabelWordmark';
@@ -1803,6 +1805,34 @@ export const WlReportsScene: React.FC<SceneProps> = ({ theme }) => {
 
 export const WlRecommendationsScene: React.FC<SceneProps> = ({ theme }) => {
   const data = agencyDemoData(theme.id);
+  const sceneContext = useSceneContext();
+  const opsHref = sceneContext?.navLink?.('Operations', 'agency');
+  const [assigning, setAssigning] = useState<DemoRecommendation | null>(null);
+  const [owner, setOwner] = useState(data.team[0] ?? '');
+  const [assigned, setAssigned] = useState<Record<string, string>>({});
+  const [toast, setToast] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const openAssign = (rec: DemoRecommendation) => {
+    setAssigning(rec);
+    setOwner(data.team[0] ?? '');
+    setError(null);
+  };
+
+  const confirmAssign = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assigning || !owner.trim()) return;
+    try {
+      const task = assignRecommendationTask(theme.id, assigning, owner.trim());
+      setAssigned((prev) => ({ ...prev, [assigning.title]: task.owner }));
+      setToast(`Assigned to ${task.owner} · added to Operations`);
+      setAssigning(null);
+      window.setTimeout(() => setToast(null), 3200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not assign recommendation.');
+    }
+  };
+
   return (
     <WlAppShell
       theme={theme}
@@ -1811,24 +1841,111 @@ export const WlRecommendationsScene: React.FC<SceneProps> = ({ theme }) => {
       subtitle="Prioritized actions across the portfolio"
       activeNav="Recommendations"
     >
+      {toast ? (
+        <div className="wl-toast" style={{ marginBottom: '1rem' }}>
+          <strong>Assigned ·</strong> {toast}
+          {opsHref ? (
+            <>
+              {' '}
+              <Link to={opsHref} style={{ marginLeft: 8 }}>
+                Open Operations
+              </Link>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="wl-rec-list">
-        {data.recommendations.map((rec) => (
-          <div key={rec.title} className={`wl-rec-card wl-rec-card--${rec.priority}`}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-              <div>
-                <div className="wl-rec-meta">
-                  <span className="wl-tag wl-tag--outline">{rec.channel}</span>
-                  <span className="wl-tag">{rec.priority} priority</span>
+        {data.recommendations.map((rec) => {
+          const assignee = assigned[rec.title];
+          return (
+            <div key={rec.title} className={`wl-rec-card wl-rec-card--${rec.priority}`}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+                <div>
+                  <div className="wl-rec-meta">
+                    <span className="wl-tag wl-tag--outline">{rec.channel}</span>
+                    <span className="wl-tag">{rec.priority} priority</span>
+                    {assignee ? <span className="wl-tag wl-tag--done">Assigned · {assignee}</span> : null}
+                  </div>
+                  <p className="wl-rec-title">{rec.title}</p>
+                  <p className="wl-muted" style={{ fontSize: 12, marginTop: 4 }}>
+                    {rec.client}
+                  </p>
                 </div>
-                <p className="wl-rec-title">{rec.title}</p>
-                <p className="wl-muted" style={{ fontSize: 12, marginTop: 4 }}>{rec.client}</p>
+                {assignee ? (
+                  opsHref ? (
+                    <Link to={opsHref} className="wl-btn wl-btn--ghost">
+                      View task
+                    </Link>
+                  ) : (
+                    <span className="wl-btn wl-btn--ghost" style={{ pointerEvents: 'none', opacity: 0.7 }}>
+                      Assigned
+                    </span>
+                  )
+                ) : (
+                  <button type="button" className="wl-btn wl-btn--ghost" onClick={() => openAssign(rec)}>
+                    Assign
+                  </button>
+                )}
               </div>
-              <button type="button" className="wl-btn wl-btn--ghost">Assign</button>
+              <p className="wl-rec-impact">{rec.impact}</p>
             </div>
-            <p className="wl-rec-impact">{rec.impact}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {assigning ? (
+        <div className="wl-modal-backdrop" role="presentation" onClick={() => setAssigning(null)}>
+          <div
+            className="wl-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wl-assign-rec-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="wl-modal-head">
+              <h2 id="wl-assign-rec-title" className="wl-modal-title">
+                Assign recommendation
+              </h2>
+              <button type="button" className="wl-modal-close" onClick={() => setAssigning(null)} aria-label="Close">
+                ×
+              </button>
+            </div>
+            <form className="wl-modal-body" onSubmit={confirmAssign}>
+              <p style={{ margin: 0, fontWeight: 600 }}>{assigning.title}</p>
+              <p className="wl-muted" style={{ fontSize: 12, margin: '0.35rem 0 0' }}>
+                {assigning.client} · {assigning.channel}
+              </p>
+              <label className="wl-field" style={{ marginTop: '1rem' }}>
+                <span>Assign to</span>
+                <select className="wl-input" value={owner} onChange={(e) => setOwner(e.target.value)} required>
+                  {data.team.map((member) => (
+                    <option key={member} value={member}>
+                      {member}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="wl-muted" style={{ fontSize: 12, margin: 0 }}>
+                Creates an open task in Operations with a 5-day due date.
+              </p>
+              {error ? (
+                <p role="alert" style={{ color: '#b91c1c', fontSize: 12, margin: 0 }}>
+                  {error}
+                </p>
+              ) : null}
+              <div className="wl-modal-actions">
+                <button type="button" className="wl-btn wl-btn--ghost" onClick={() => setAssigning(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="wl-btn" disabled={!owner.trim()}>
+                  Assign & create task
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </WlAppShell>
   );
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AgencyDemoData, DemoClient } from './agencyDemoData';
+import type { AgencyDemoData, DemoClient, DemoRecommendation, DemoTask } from './agencyDemoData';
 
 export type {
   AgencyDemoData,
@@ -123,4 +123,50 @@ export function createOnboardingClient(input: {
     roas: 0,
     trend: Array.from({ length: 12 }, () => 18),
   };
+}
+
+function taskTypeFromChannel(channel: string): DemoTask['type'] {
+  const c = channel.toLowerCase();
+  if (c.includes('seo') || c.includes('ai')) return 'Audit';
+  if (c.includes('meta') || c.includes('creative') || c.includes('social')) return 'Creative';
+  if (c.includes('integrat') || c.includes('tag') || c.includes('tracking')) return 'Integration';
+  if (c.includes('report')) return 'Report';
+  return 'Scan';
+}
+
+/** Turn a recommendation into an ops task assigned to a teammate (session-only). */
+export function assignRecommendationTask(
+  themeId: string,
+  rec: DemoRecommendation,
+  owner: string,
+): DemoTask {
+  const key = agencyDataKey(themeId);
+  const data = key ? store.get(key) : undefined;
+  if (!key || !data) throw new Error(`Agency data for "${themeId}" is not loaded`);
+  const assignee = owner.trim() || data.team[0];
+  if (!assignee) throw new Error('No team members to assign');
+
+  const task: DemoTask = {
+    id: `rec-${Date.now()}`,
+    title: rec.title,
+    client: rec.client,
+    type: taskTypeFromChannel(rec.channel),
+    status: 'open',
+    priority: rec.priority === 'med' ? 'medium' : rec.priority,
+    dueLabel: 'Due in 5 days',
+    dueDate: 'Oct 12',
+    owner: assignee,
+    description: `${rec.channel} · ${rec.impact}`,
+    checklist: [
+      { id: 'c1', label: 'Review recommendation', done: false },
+      { id: 'c2', label: 'Confirm with client context', done: false },
+      { id: 'c3', label: 'Execute and report back', done: false },
+    ],
+  };
+
+  store.set(key, {
+    ...data,
+    tasks: [task, ...data.tasks],
+  });
+  return task;
 }
