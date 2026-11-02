@@ -170,16 +170,19 @@ function WlSidebar({
   theme,
   role,
   links,
+  activeNav,
   navLink,
   onSignOut,
 }: {
   theme: WhitelabelTheme;
   role: 'agency' | 'client';
   links: NavLink[];
+  activeNav: string;
   navLink?: (label: string, role?: 'agency' | 'client') => string | undefined;
   onSignOut?: () => void;
 }) {
   const backHref = role === 'client' ? navLink?.('Dashboard', 'agency') : undefined;
+  const settingsHref = role === 'agency' ? navLink?.('Settings', 'agency') : undefined;
   return (
     <aside className="wl-sidebar">
       <WhitelabelWordmark theme={theme} variant="light" />
@@ -216,9 +219,14 @@ function WlSidebar({
       </div>
       <div className="mt-auto">
         <p className="wl-sidebar-section">Account</p>
-        <a href="#" className="wl-sidebar-link" onClick={(e) => e.preventDefault()}>
-          Settings
-        </a>
+        {settingsHref ? (
+          <Link
+            to={settingsHref}
+            className={`wl-sidebar-link ${activeNav === 'Settings' ? 'wl-sidebar-link--on' : ''}`}
+          >
+            Settings
+          </Link>
+        ) : null}
         {onSignOut ? (
           <button type="button" className="wl-sidebar-link wl-sidebar-signout" onClick={onSignOut}>
             Sign out
@@ -276,6 +284,7 @@ function WlAppShell({
           theme={theme}
           role={role}
           links={role === 'agency' ? agencyLinks : clientLinks}
+          activeNav={activeNav}
           navLink={sceneContext?.navLink}
           onSignOut={sceneContext?.onAgencyLogout}
         />
@@ -1742,6 +1751,250 @@ export const WlRecommendationsScene: React.FC<SceneProps> = ({ theme }) => {
   );
 };
 
+const SETTINGS_SECTIONS = [
+  { id: 'branding', label: 'Agency branding', description: 'Logo, colors, and portal hostname' },
+  { id: 'roles', label: 'Roles & permissions', description: 'Who can see and edit what' },
+  { id: 'api-keys', label: 'API keys', description: 'Webhooks and service accounts' },
+  { id: 'billing', label: 'Billing', description: 'Plan, invoices, payment method' },
+] as const;
+
+type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]['id'];
+
+export const WlAgencySettingsScene: React.FC<SceneProps> = ({ theme }) => {
+  const data = agencyDemoData(theme.id);
+  const [section, setSection] = useState<SettingsSectionId>('branding');
+  const [tagline, setTagline] = useState(theme.tagline);
+  const [accent, setAccent] = useState(theme.accent);
+  const [supportEmail, setSupportEmail] = useState(theme.supportEmail || data.loginEmail);
+  const [portalHost, setPortalHost] = useState(`advero.id/${theme.id === 'juicebox-au' ? 'juicebox' : theme.id}`);
+  const [saved, setSaved] = useState(false);
+  const [keys, setKeys] = useState([
+    {
+      id: '1',
+      label: 'Production webhook',
+      value: `${theme.id.slice(0, 2)}_live_••••••••••••4f2a`,
+      created: '12 Mar 2026',
+    },
+  ]);
+  const [revealed, setRevealed] = useState<string | null>(null);
+
+  const saveBranding = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2200);
+  };
+
+  const generateKey = () => {
+    const id = `key-${Date.now()}`;
+    const secret = `${theme.id.slice(0, 2)}_live_${Math.random().toString(36).slice(2, 12)}`;
+    setKeys((prev) => [
+      ...prev,
+      {
+        id,
+        label: 'New API key',
+        value: secret,
+        created: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      },
+    ]);
+    setRevealed(id);
+  };
+
+  return (
+    <WlAppShell theme={theme} role="agency" title="Settings" subtitle="Workspace configuration" activeNav="Settings">
+      <div className="wl-settings-layout">
+        <nav className="wl-settings-nav" aria-label="Settings sections">
+          {SETTINGS_SECTIONS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`wl-settings-nav-item ${section === item.id ? 'wl-settings-nav-item--on' : ''}`}
+              onClick={() => setSection(item.id)}
+              aria-current={section === item.id ? 'page' : undefined}
+            >
+              <span className="wl-settings-nav-label">{item.label}</span>
+              <span className="wl-settings-nav-desc">{item.description}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="wl-settings-panel wl-fade-in" key={section}>
+          {section === 'branding' ? (
+            <form onSubmit={saveBranding}>
+              <h2 className="wl-settings-panel-title">Agency branding</h2>
+              <p className="wl-muted wl-settings-panel-lead">
+                How your portal looks to the team. Client-facing brand portal uses the same theme.
+              </p>
+              <div className="wl-settings-brand-preview">
+                {theme.logoUrl ? (
+                  <img src={theme.logoUrl} alt="" className="wl-settings-brand-logo" />
+                ) : (
+                  <span className="wl-settings-brand-initials">{theme.initials}</span>
+                )}
+                <div>
+                  <strong>{theme.name}</strong>
+                  <p className="wl-muted" style={{ fontSize: 12, margin: '0.15rem 0 0' }}>
+                    {tagline || theme.tagline}
+                  </p>
+                </div>
+              </div>
+              <label className="wl-field">
+                <span>Portal hostname</span>
+                <input className="wl-input" value={portalHost} onChange={(e) => setPortalHost(e.target.value)} />
+                <span className="wl-field-hint">Login URL: https://{portalHost}</span>
+              </label>
+              <label className="wl-field">
+                <span>Tagline</span>
+                <input className="wl-input" value={tagline} onChange={(e) => setTagline(e.target.value)} />
+              </label>
+              <label className="wl-field">
+                <span>Accent color</span>
+                <div className="wl-settings-color-row">
+                  <input
+                    type="color"
+                    className="wl-settings-color-swatch"
+                    value={accent}
+                    onChange={(e) => setAccent(e.target.value)}
+                    aria-label="Accent color"
+                  />
+                  <input className="wl-input" value={accent} onChange={(e) => setAccent(e.target.value)} />
+                </div>
+              </label>
+              <label className="wl-field">
+                <span>Support email</span>
+                <input className="wl-input" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} />
+              </label>
+              <div className="wl-settings-panel-actions">
+                {saved ? <span className="wl-settings-saved">Saved for this session</span> : null}
+                <button type="submit" className="wl-btn">
+                  Save branding
+                </button>
+              </div>
+            </form>
+          ) : null}
+
+          {section === 'roles' ? (
+            <>
+              <h2 className="wl-settings-panel-title">Roles & permissions</h2>
+              <p className="wl-muted wl-settings-panel-lead">
+                Admins see every client. Managers only see clients they&apos;re assigned to.
+              </p>
+              <div className="wl-panel" style={{ padding: 0, overflow: 'hidden' }}>
+                <table className="wl-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ fontWeight: 500 }}>Workspace admin</td>
+                      <td className="wl-muted">{data.loginEmail}</td>
+                      <td>
+                        <span className="wl-tag wl-tag--outline">ADMIN</span>
+                      </td>
+                    </tr>
+                    {data.team.map((name, i) => (
+                      <tr key={name}>
+                        <td style={{ fontWeight: 500 }}>{name}</td>
+                        <td className="wl-muted">
+                          {name.toLowerCase()}@{theme.website.replace(/^www\./, '') || `${theme.id}.com`}
+                        </td>
+                        <td>
+                          <span className="wl-tag wl-tag--outline">{i === 0 ? 'ADMIN' : 'MANAGER'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : null}
+
+          {section === 'api-keys' ? (
+            <>
+              <h2 className="wl-settings-panel-title">API keys</h2>
+              <p className="wl-muted wl-settings-panel-lead">
+                Use keys for custom integrations and inbound webhooks. Rotate if one leaks.
+              </p>
+              <div className="wl-settings-key-list">
+                {keys.map((k) => (
+                  <div key={k.id} className="wl-settings-key-row">
+                    <div>
+                      <strong style={{ fontSize: 13 }}>{k.label}</strong>
+                      <p className="wl-muted" style={{ fontSize: 11, margin: '0.15rem 0 0' }}>
+                        Created {k.created}
+                      </p>
+                    </div>
+                    <code className="wl-settings-key-value">
+                      {revealed === k.id ? k.value : k.value.replace(/[^_]/g, '•').slice(0, 24)}
+                    </code>
+                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      <button
+                        type="button"
+                        className="wl-btn wl-btn--ghost wl-btn--sm"
+                        onClick={() => setRevealed(revealed === k.id ? null : k.id)}
+                      >
+                        {revealed === k.id ? 'Hide' : 'Reveal'}
+                      </button>
+                      <button
+                        type="button"
+                        className="wl-btn wl-btn--ghost wl-btn--sm"
+                        onClick={() => navigator.clipboard?.writeText(k.value).catch(() => undefined)}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="wl-btn" style={{ marginTop: '1rem' }} onClick={generateKey}>
+                Generate key
+              </button>
+            </>
+          ) : null}
+
+          {section === 'billing' ? (
+            <>
+              <h2 className="wl-settings-panel-title">Billing</h2>
+              <p className="wl-muted wl-settings-panel-lead">Your agency workspace plan and payment details.</p>
+              <div className="wl-kpi-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '1.25rem' }}>
+                <div className="wl-kpi-card">
+                  <span>Plan</span>
+                  <strong style={{ fontSize: '0.95rem' }}>Agency workspace</strong>
+                </div>
+                <div className="wl-kpi-card">
+                  <span>Active clients</span>
+                  <strong>{data.totals.activeClients}</strong>
+                </div>
+                <div className="wl-kpi-card">
+                  <span>Token usage</span>
+                  <strong style={{ fontSize: '0.95rem' }}>
+                    {fmtReach(data.usage.tokens)} · ${fmtInt(data.usage.usd)}
+                  </strong>
+                </div>
+                <div className="wl-kpi-card">
+                  <span>Status</span>
+                  <strong>
+                    <span className="wl-tag wl-tag--done">Active</span>
+                  </strong>
+                </div>
+              </div>
+              <p className="wl-muted" style={{ fontSize: 13 }}>
+                Invoices for <strong>{theme.name}</strong> are billed through Advero. Self-serve billing is coming soon.
+              </p>
+              <a className="wl-btn wl-btn--ghost" style={{ marginTop: '1rem', display: 'inline-flex' }} href={`mailto:${theme.supportEmail || 'hello@advero.id'}?subject=Billing%20question`}>
+                Contact billing
+              </a>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </WlAppShell>
+  );
+};
+
 export function renderWhitelabelScene(
   screen: WhitelabelScreenId,
   theme: WhitelabelTheme,
@@ -1755,6 +2008,8 @@ export function renderWhitelabelScene(
         return <WlAgencyDashboardScene theme={theme} />;
       case 'agency-ops':
         return <WlAgencyOpsScene theme={theme} />;
+      case 'agency-settings':
+        return <WlAgencySettingsScene theme={theme} />;
       case 'client-login':
         return <WlClientLoginScene theme={theme} />;
       case 'client-portal':

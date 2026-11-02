@@ -23,6 +23,7 @@ const SCREEN_BY_PATH: Record<string, WhitelabelScreenId> = {
   audits: 'audit-history',
   reports: 'reports',
   recommendations: 'recommendations',
+  settings: 'agency-settings',
 };
 
 const PATH_BY_NAV_LABEL: Record<string, string> = {
@@ -32,6 +33,7 @@ const PATH_BY_NAV_LABEL: Record<string, string> = {
   'Audit history': 'audits',
   Reports: 'reports',
   Recommendations: 'recommendations',
+  Settings: 'settings',
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
